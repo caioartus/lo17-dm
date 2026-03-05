@@ -1,9 +1,12 @@
+import os.path
 import re
 from lxml import etree
 from bs4 import BeautifulSoup
 from pathlib import Path
 import html
-class Bulletins:
+from typing import List
+
+class Bulletin:
     def __init__(self, path : Path):
         self.path = path
 
@@ -18,8 +21,8 @@ class Bulletins:
         dom = self.dom
 
         self.title = dom.xpath('//*[@id="LayoutTable"]/table/tr[7]/td/table/tr[3]/td[1]/p[1]/span[2]/text()')[0].strip()
-        auteur_info = dom.xpath('//*[@id="LayoutTable"]/table/tr[7]/td/table/tr[8]/td[2]/p/span/text()')[0]
-        self.auteur_email = dom.xpath('//*[@id="LayoutTable"]/table/tr[7]/td/table/tr[8]/td[2]/p/span/a/text()')[0]
+        auteur_info = "".join(dom.xpath('string(//*[@id="LayoutTable"]/table/tr[7]/td/table/tr[8]/td[2]/p/span)'))
+
 
         self.num_article = dom.xpath('//*[@id="LayoutTable"]/table/tr[7]/td/table/tr[6]/td[3]/p/a/span/text()')[0]
         self.num_buletin = dom.xpath('//*[@id="LayoutTable"]/table/tr[7]/td/table/tr[1]/td[3]/p/span[1]/text()')[
@@ -42,13 +45,17 @@ class Bulletins:
             for img in td.xpath('.//div[img]/img')
         ]
 
-        m = re.search(r'^(.*?)\s*-\s*(.*?)\s*-', auteur_info)
-        if m:
-            self.org, self.name = m.groups()
-        else:
-            self.org, self.name = None, None
+        m = re.search(r'^(.*?)\s*-\s*(.*?)\s*-\s*email\s*:\s*(.*?)$', auteur_info)
 
-    def makeXML(self) -> str:
+        if m:
+            self.org, self.name, self.email = m.groups()
+        else:
+            self.org, self.name, self.email = None, None, None
+
+    def makeXML(self, escape = False) -> str:
+        """params :
+            escape : bool - defines wether final ouput is html escaped or is regular text to read
+        """
         root = etree.Element("Bulletin")
 
         etree.SubElement(root, "titre").text = self.title
@@ -62,7 +69,7 @@ class Bulletins:
         author = etree.SubElement(root, "auteur")
         etree.SubElement(author, "nom").text = self.name
         etree.SubElement(author, "organisation").text = self.org
-        etree.SubElement(author, "email").text = self.auteur_email
+        etree.SubElement(author, "email").text = self.email
         etree.SubElement(root, "contact").text = self.info_contact
         imgs = etree.SubElement(root, "images")
         for img in self.images:
@@ -71,12 +78,41 @@ class Bulletins:
             etree.SubElement(img_elem, "Caption").text = img["caption"]
 
         xml_str = etree.tostring(root, pretty_print=True, encoding='unicode')
-        xml_str = html.unescape(xml_str)
+        if not escape  :
+            xml_str = html.unescape(xml_str)
+        return xml_str
+
+
+class Corpus:
+    documents: List['Bulletin']
+
+    def __init__(self, folder_path: str | Path):
+        self.folder_path: Path = Path(folder_path)
+        self.documents: List['Bulletin'] = []
+
+    def parseFiles(self) -> None:
+        if not os.path.exists(self.folder_path) :
+            raise FileNotFoundError("Folder not found.")
+        for file in self.folder_path.iterdir():
+            if file.is_file():
+                bulletin = Bulletin(file)
+                bulletin.load()
+                bulletin.extract_data()
+                self.documents.append(bulletin)
+
+    def makeXML(self) -> str:
+        root = etree.Element("corpus")
+        for bulletin in self.documents:
+            # pour chaque bulletin on le wrap dans un <document>
+            bulletin_xml = etree.fromstring(bulletin.makeXML(escape = True)) # we dont escape yet
+            doc_elem = etree.SubElement(root, "document")
+            doc_elem.append(bulletin_xml)
+        xml_str = etree.tostring(root, pretty_print=True, encoding='unicode')
         xml_str = html.unescape(xml_str)
         return xml_str
 
+
 if __name__ == "__main__" :
-    bul = Bulletins(Path("../data/BULLETINS/71359.htm"))
-    bul.load()
-    bul.extract_data()
-    print(bul.makeXML())
+    corpus = Corpus("../data/BULLETINS")
+    corpus.parseFiles()
+    print(corpus.makeXML())
