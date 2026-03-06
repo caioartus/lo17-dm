@@ -1,4 +1,5 @@
 import os.path
+from os import makedirs
 import re
 from lxml import etree
 from bs4 import BeautifulSoup
@@ -109,10 +110,30 @@ class Corpus:
             doc_elem.append(bulletin_xml)
         xml_str = etree.tostring(root, pretty_print=True, encoding='unicode')
         xml_str = html.unescape(xml_str)
+        self.xml_str = xml_str
         return xml_str
+
+    def save_xml(self, path : str | Path) -> None :
+        path = Path(path)
+        with open(path, "w") as f:
+            f.write(self.xml_str)
+
+
 
 
 if __name__ == "__main__" :
-    corpus = Corpus("../data/BULLETINS")
+    import argparse
+    argparser = argparse.ArgumentParser()
+    argparser.add_argument("--input",help="Path to folder containing all of the html files", required=True)
+    argparser.add_argument("--output",help="Path to directory where output xml file will be saved",required=False, default="./outputs")
+    args = argparser.parse_args()
+
+    input = Path(args.input)
+    out = Path(args.output)
+    makedirs(out, exist_ok=True)
+
+    corpus = Corpus(input)
     corpus.parseFiles()
-    print(corpus.makeXML())
+    corpus.makeXML()
+    corpus.save_xml(os.path.join(out, "corpus.xml"))
+    print("Saved XML to ", out)
