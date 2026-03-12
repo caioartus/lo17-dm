@@ -18,4 +18,18 @@ Nous utilisons etree de lxml pour construire le fichier html.
 
 ## Anti-Dictionnaire
 
--
+Choix de la granularité (document = article ou bulletin)
+
+> 1 Document = 1 Article
+
+Justification :
+
+- Les bulletins n'ont pas vraiment de lien entre eux
+- Filtrage probablement plus efficace
+
+#### Pourquoi sauvegarder en CSV entre les étapes ?
+
+- Traçabilité : Tu peux vérifier chaque fichier, l’ouvrir, l’inspecter, le versionner.
+- Reproductibilité : Si une étape change, tu ne recalcules pas tout depuis zéro.
+- Séparation claire des tâches : Chaque fichier correspond exactement à une question du sujet.
+- Compatibilité : CSV = lisible par n’importe quel outil (Excel, R, scripts bash, etc.).

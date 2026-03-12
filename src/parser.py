@@ -1,38 +1,42 @@
-import os.path
-from os import makedirs
-import re
-from lxml import etree
-from bs4 import BeautifulSoup
-from pathlib import Path
 import html
-from typing import List
+import os.path
+import re
+from os import makedirs
+from pathlib import Path
+
+from bs4 import BeautifulSoup
+from lxml import etree
 
 
-class Bulletin:
+class BulletinParser:
     def __init__(self, path: Path):
         self.path = path
 
     def load(self):
+        """Open htlm file and read contents, and extract DOM to etree"""
         with open(self.path) as f:
             self.content = f.read()
             self.soup = BeautifulSoup(self.content, "html.parser")
             self.dom = etree.HTML(str(self.soup))
 
     def extract_data(self):
+        """Extract all fields"""
         dom = self.dom
-
+        # document title
         self.title = dom.xpath(
             '//*[@id="LayoutTable"]/table/tr[7]/td/table/tr[3]/td[1]/p[1]/span[2]/text()'
         )[0].strip()
+        # author info
         auteur_info = "".join(
             dom.xpath(
                 'string(//*[@id="LayoutTable"]/table/tr[7]/td/table/tr[8]/td[2]/p/span)'
             )
         )
-
+        # number of the article
         self.num_article = dom.xpath(
             '//*[@id="LayoutTable"]/table/tr[7]/td/table/tr[6]/td[3]/p/a/span/text()'
         )[0]
+        # number of the bulletin
         self.num_buletin = (
             dom.xpath(
                 '//*[@id="LayoutTable"]/table/tr[7]/td/table/tr[1]/td[3]/p/span[1]/text()'
@@ -41,23 +45,29 @@ class Bulletin:
             .replace("BE France", "")
             .strip()
         )
+        # date of the article
         self.date = dom.xpath(
             '//*[@id="LayoutTable"]/table/tr[7]/td/table/tr[1]/td[3]/p/span[3]/text()'
         )[0].strip()
+        # rubrique title
         self.rubrique = dom.xpath(
             '//*[@id="LayoutTable"]/table/tr[7]/td/table/tr[3]/td[1]/p[1]/span[1]/text()'
         )[0].strip()
-
+        # contact info
         self.info_contact = "".join(
             dom.xpath(
                 'string(//*[@id="LayoutTable"]/table/tr[7]/td/table/tr[6]/td[2]/p/span)'
             )
         )
-
+        # extract data from the main table data where the main text is
         td = dom.xpath('//*[@id="LayoutTable"]/table/tr[7]/td/table/tr[3]/td[1]')[0]
-
-        self.text = " ".join(td.xpath(".//text()[not(ancestor::div[img])]")).strip()
-
+        # extract text from table data but not images
+        self.text = " ".join(
+            td.xpath(
+                ".//text()[not(ancestor::div[img]) and not(ancestor::span[@class='style88'])]"
+            )
+        ).strip()
+        # extract images from table data
         self.images = [
             {
                 "url": img.xpath("./@src")[0],
@@ -68,6 +78,7 @@ class Bulletin:
             for img in td.xpath(".//div[img]/img")
         ]
 
+        # extract author name from the string with other information
         m = re.search(r"^(.*?)\s*-\s*(.*?)\s*-\s*email\s*:\s*(.*?)$", auteur_info)
 
         if m:
@@ -75,9 +86,9 @@ class Bulletin:
         else:
             self.org, self.name, self.email = None, None, None
 
-    def makeXML(self, escape=False) -> str:
-        """params :
-        escape : bool - defines wether final ouput is html escaped or is regular text to read
+    def makeXML(self) -> str:
+        """
+        Builds XML for inserting into the main XML file with the corpus
         """
         root = etree.Element("document")
 
@@ -96,42 +107,40 @@ class Bulletin:
             etree.SubElement(img_elem, "legendeImage").text = img["caption"]
 
         xml_str = etree.tostring(root, pretty_print=True, encoding="unicode")
-        if not escape:
-            xml_str = html.unescape(xml_str)
         return xml_str
 
 
-class Corpus:
-    documents: List["Bulletin"]
+class CorpusParser:
+    documents: list[BulletinParser]
 
     def __init__(self, folder_path: str | Path):
         self.folder_path: Path = Path(folder_path)
-        self.documents: List["Bulletin"] = []
+        self.documents: list[BulletinParser] = []
 
     def parseFiles(self) -> None:
+        """Parses files in input folder one by one building BulletinParser objects as we go"""
         if not os.path.exists(self.folder_path):
             raise FileNotFoundError("Folder not found.")
         for file in self.folder_path.iterdir():
             if file.is_file():
-                bulletin = Bulletin(file)
+                bulletin = BulletinParser(file)
                 bulletin.load()
                 bulletin.extract_data()
                 self.documents.append(bulletin)
 
     def makeXML(self) -> str:
+        """Builds the full XML file from all of the BulletinParser objects"""
         root = etree.Element("corpus")
         for bulletin in self.documents:
             # pour chaque bulletin on le wrap dans un <document>
-            bulletin_xml = etree.fromstring(
-                bulletin.makeXML(escape=True)
-            )  # we dont escape yet
+            bulletin_xml = etree.fromstring(bulletin.makeXML())  # we dont escape yet
             root.append(bulletin_xml)
         xml_str = etree.tostring(root, pretty_print=True, encoding="unicode")
-        xml_str = html.unescape(xml_str)
         self.xml_str = xml_str
         return xml_str
 
     def save_xml(self, path: str | Path) -> None:
+        """Save in XML file"""
         path = Path(path)
         with open(path, "w") as f:
             f.write(self.xml_str)
@@ -145,7 +154,7 @@ if __name__ == "__main__":
         "--input", help="Path to folder containing all of the html files", required=True
     )
     argparser.add_argument(
-        "--output",
+        "--outdir",
         help="Path to directory where output xml file will be saved",
         required=False,
         default="./outputs",
@@ -153,10 +162,10 @@ if __name__ == "__main__":
     args = argparser.parse_args()
 
     input = Path(args.input)
-    out = Path(args.output)
+    out = Path(args.outdir)
     makedirs(out, exist_ok=True)
 
-    corpus = Corpus(input)
+    corpus = CorpusParser(input)
     corpus.parseFiles()
     corpus.makeXML()
     corpus.save_xml(os.path.join(out, "corpus.xml"))
