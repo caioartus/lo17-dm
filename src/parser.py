@@ -7,55 +7,77 @@ from pathlib import Path
 import html
 from typing import List
 
-class Bulletin:
-    def __init__(self, path : Path):
-        self.path = path
 
+class Bulletin:
+    def __init__(self, path: Path):
+        self.path = path
 
     def load(self):
         with open(self.path) as f:
             self.content = f.read()
-            self.soup = BeautifulSoup(self.content, 'html.parser')
+            self.soup = BeautifulSoup(self.content, "html.parser")
             self.dom = etree.HTML(str(self.soup))
 
     def extract_data(self):
         dom = self.dom
 
-        self.title = dom.xpath('//*[@id="LayoutTable"]/table/tr[7]/td/table/tr[3]/td[1]/p[1]/span[2]/text()')[0].strip()
-        auteur_info = "".join(dom.xpath('string(//*[@id="LayoutTable"]/table/tr[7]/td/table/tr[8]/td[2]/p/span)'))
+        self.title = dom.xpath(
+            '//*[@id="LayoutTable"]/table/tr[7]/td/table/tr[3]/td[1]/p[1]/span[2]/text()'
+        )[0].strip()
+        auteur_info = "".join(
+            dom.xpath(
+                'string(//*[@id="LayoutTable"]/table/tr[7]/td/table/tr[8]/td[2]/p/span)'
+            )
+        )
 
+        self.num_article = dom.xpath(
+            '//*[@id="LayoutTable"]/table/tr[7]/td/table/tr[6]/td[3]/p/a/span/text()'
+        )[0]
+        self.num_buletin = (
+            dom.xpath(
+                '//*[@id="LayoutTable"]/table/tr[7]/td/table/tr[1]/td[3]/p/span[1]/text()'
+            )[0]
+            .strip()
+            .replace("BE France", "")
+            .strip()
+        )
+        self.date = dom.xpath(
+            '//*[@id="LayoutTable"]/table/tr[7]/td/table/tr[1]/td[3]/p/span[3]/text()'
+        )[0].strip()
+        self.rubrique = dom.xpath(
+            '//*[@id="LayoutTable"]/table/tr[7]/td/table/tr[3]/td[1]/p[1]/span[1]/text()'
+        )[0].strip()
 
-        self.num_article = dom.xpath('//*[@id="LayoutTable"]/table/tr[7]/td/table/tr[6]/td[3]/p/a/span/text()')[0]
-        self.num_buletin = dom.xpath('//*[@id="LayoutTable"]/table/tr[7]/td/table/tr[1]/td[3]/p/span[1]/text()')[
-            0].strip().replace("BE France", "").strip()
-        self.date = dom.xpath('//*[@id="LayoutTable"]/table/tr[7]/td/table/tr[1]/td[3]/p/span[3]/text()')[0].strip()
-        self.rubrique = dom.xpath('//*[@id="LayoutTable"]/table/tr[7]/td/table/tr[3]/td[1]/p[1]/span[1]/text()')[
-            0].strip()
-
-        self.info_contact = ''.join(dom.xpath('string(//*[@id="LayoutTable"]/table/tr[7]/td/table/tr[6]/td[2]/p/span)'))
+        self.info_contact = "".join(
+            dom.xpath(
+                'string(//*[@id="LayoutTable"]/table/tr[7]/td/table/tr[6]/td[2]/p/span)'
+            )
+        )
 
         td = dom.xpath('//*[@id="LayoutTable"]/table/tr[7]/td/table/tr[3]/td[1]')[0]
 
-        self.text = ' '.join(td.xpath('.//text()[not(ancestor::div[img])]')).strip()
+        self.text = " ".join(td.xpath(".//text()[not(ancestor::div[img])]")).strip()
 
         self.images = [
             {
-                "url": img.xpath('./@src')[0],
-                "caption": ' '.join(img.xpath('./following-sibling::span//text()')).strip()
+                "url": img.xpath("./@src")[0],
+                "caption": " ".join(
+                    img.xpath("./following-sibling::span//text()")
+                ).strip(),
             }
-            for img in td.xpath('.//div[img]/img')
+            for img in td.xpath(".//div[img]/img")
         ]
 
-        m = re.search(r'^(.*?)\s*-\s*(.*?)\s*-\s*email\s*:\s*(.*?)$', auteur_info)
+        m = re.search(r"^(.*?)\s*-\s*(.*?)\s*-\s*email\s*:\s*(.*?)$", auteur_info)
 
         if m:
             self.org, self.name, self.email = m.groups()
         else:
             self.org, self.name, self.email = None, None, None
 
-    def makeXML(self, escape = False) -> str:
+    def makeXML(self, escape=False) -> str:
         """params :
-            escape : bool - defines wether final ouput is html escaped or is regular text to read
+        escape : bool - defines wether final ouput is html escaped or is regular text to read
         """
         root = etree.Element("document")
 
@@ -65,31 +87,29 @@ class Bulletin:
         etree.SubElement(root, "bulletin").text = self.num_buletin
         etree.SubElement(root, "date").text = self.date
         etree.SubElement(root, "texte").text = self.text
-
-
         etree.SubElement(root, "auteur").text = self.name
         etree.SubElement(root, "contact").text = self.info_contact
         imgs = etree.SubElement(root, "images")
         for img in self.images:
             img_elem = etree.SubElement(imgs, "image")
-            etree.SubElement(img_elem, "URL").text = img["url"]
-            etree.SubElement(img_elem, "Caption").text = img["caption"]
+            etree.SubElement(img_elem, "urlImage").text = img["url"]
+            etree.SubElement(img_elem, "legendeImage").text = img["caption"]
 
-        xml_str = etree.tostring(root, pretty_print=True, encoding='unicode')
-        if not escape  :
+        xml_str = etree.tostring(root, pretty_print=True, encoding="unicode")
+        if not escape:
             xml_str = html.unescape(xml_str)
         return xml_str
 
 
 class Corpus:
-    documents: List['Bulletin']
+    documents: List["Bulletin"]
 
     def __init__(self, folder_path: str | Path):
         self.folder_path: Path = Path(folder_path)
-        self.documents: List['Bulletin'] = []
+        self.documents: List["Bulletin"] = []
 
     def parseFiles(self) -> None:
-        if not os.path.exists(self.folder_path) :
+        if not os.path.exists(self.folder_path):
             raise FileNotFoundError("Folder not found.")
         for file in self.folder_path.iterdir():
             if file.is_file():
@@ -102,26 +122,34 @@ class Corpus:
         root = etree.Element("corpus")
         for bulletin in self.documents:
             # pour chaque bulletin on le wrap dans un <document>
-            bulletin_xml = etree.fromstring(bulletin.makeXML(escape = True)) # we dont escape yet
+            bulletin_xml = etree.fromstring(
+                bulletin.makeXML(escape=True)
+            )  # we dont escape yet
             root.append(bulletin_xml)
-        xml_str = etree.tostring(root, pretty_print=True, encoding='unicode')
+        xml_str = etree.tostring(root, pretty_print=True, encoding="unicode")
         xml_str = html.unescape(xml_str)
         self.xml_str = xml_str
         return xml_str
 
-    def save_xml(self, path : str | Path) -> None :
+    def save_xml(self, path: str | Path) -> None:
         path = Path(path)
         with open(path, "w") as f:
             f.write(self.xml_str)
 
 
-
-
-if __name__ == "__main__" :
+if __name__ == "__main__":
     import argparse
+
     argparser = argparse.ArgumentParser()
-    argparser.add_argument("--input",help="Path to folder containing all of the html files", required=True)
-    argparser.add_argument("--output",help="Path to directory where output xml file will be saved",required=False, default="./outputs")
+    argparser.add_argument(
+        "--input", help="Path to folder containing all of the html files", required=True
+    )
+    argparser.add_argument(
+        "--output",
+        help="Path to directory where output xml file will be saved",
+        required=False,
+        default="./outputs",
+    )
     args = argparser.parse_args()
 
     input = Path(args.input)
