@@ -57,7 +57,7 @@ class Bulletin:
         """params :
             escape : bool - defines wether final ouput is html escaped or is regular text to read
         """
-        root = etree.Element("Bulletin")
+        root = etree.Element("document")
 
         etree.SubElement(root, "titre").text = self.title
         etree.SubElement(root, "rubrique").text = self.rubrique
@@ -67,14 +67,11 @@ class Bulletin:
         etree.SubElement(root, "texte").text = self.text
 
 
-        author = etree.SubElement(root, "auteur")
-        etree.SubElement(author, "nom").text = self.name
-        etree.SubElement(author, "organisation").text = self.org
-        etree.SubElement(author, "email").text = self.email
+        etree.SubElement(root, "auteur").text = self.name
         etree.SubElement(root, "contact").text = self.info_contact
         imgs = etree.SubElement(root, "images")
         for img in self.images:
-            img_elem = etree.SubElement(imgs, "Image")
+            img_elem = etree.SubElement(imgs, "image")
             etree.SubElement(img_elem, "URL").text = img["url"]
             etree.SubElement(img_elem, "Caption").text = img["caption"]
 
@@ -106,8 +103,7 @@ class Corpus:
         for bulletin in self.documents:
             # pour chaque bulletin on le wrap dans un <document>
             bulletin_xml = etree.fromstring(bulletin.makeXML(escape = True)) # we dont escape yet
-            doc_elem = etree.SubElement(root, "document")
-            doc_elem.append(bulletin_xml)
+            root.append(bulletin_xml)
         xml_str = etree.tostring(root, pretty_print=True, encoding='unicode')
         xml_str = html.unescape(xml_str)
         self.xml_str = xml_str
