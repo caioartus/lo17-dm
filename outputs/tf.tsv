@@ -1,5 +1,4 @@
 document_id	token	tf
-67068		11
 67068	10 000	1
 67068	1980	1
 67068	1990	1
@@ -441,7 +440,6 @@ document_id	token	tf
 67068	étant	1
 67068	été	2
 67068	êtes	2
-67071		7
 67071	1	2
 67071	12	2
 67071	15 000	1
@@ -667,7 +665,6 @@ document_id	token	tf
 67071	étendu	1
 67071	été	2
 67071	être	1
-67383		2
 67383	27	1
 67383	a	7
 67383	adept	1
@@ -963,7 +960,6 @@ document_id	token	tf
 67383	été	4
 67383	éventuellement	1
 67383	évidemment	1
-67385		2
 67385	2006	1
 67385	2009	1
 67385	a	1
@@ -1175,7 +1171,6 @@ document_id	token	tf
 67385	énergétique	1
 67385	étape	2
 67385	été	2
-67386		3
 67386	a	1
 67386	académique	1
 67386	acteurs	1
@@ -1371,7 +1366,6 @@ document_id	token	tf
 67386	évitant	1
 67386	évoque	1
 67386	être	1
-67387		4
 67387	1	1
 67387	106	1
 67387	2	1
@@ -1580,7 +1574,6 @@ document_id	token	tf
 67387	écosystèmes	2
 67387	était	1
 67387	été	2
-67388		5
 67388	1	1
 67388	1 l umt	1
 67388	100	1
@@ -1938,7 +1931,6 @@ document_id	token	tf
 67388	été	3
 67388	évidemment	1
 67388	être	1
-67389		3
 67389	40	1
 67389	901	1
 67389	a	1
@@ -2176,7 +2168,6 @@ document_id	token	tf
 67389	évidence	1
 67389	évolue	1
 67389	être	1
-67390		2
 67390	10	1
 67390	17	1
 67390	36	1
@@ -2396,7 +2387,6 @@ document_id	token	tf
 67390	électronique	1
 67390	étant	1
 67390	être	1
-67391		4
 67391	20	1
 67391	3 5	1
 67391	35	1
@@ -2570,7 +2560,6 @@ document_id	token	tf
 67391	économiquement	1
 67391	étudié	1
 67391	être	1
-67392		3
 67392	12ème	1
 67392	2011	1
 67392	30	1
@@ -2637,7 +2626,6 @@ document_id	token	tf
 67392	transfert	1
 67392	validité	1
 67392	à	2
-67553		7
 67553	2007	1
 67553	2012	2
 67553	3	1
@@ -3075,7 +3063,6 @@ document_id	token	tf
 67553	évoluer	1
 67553	évolution	1
 67553	être	2
-67554		2
 67554	140	2
 67554	200	1
 67554	2009	1
@@ -3454,7 +3441,6 @@ document_id	token	tf
 67554	étant	2
 67554	étroitement	1
 67554	être	1
-67555		6
 67555	10	1
 67555	11	1
 67555	12	1
@@ -3875,7 +3861,6 @@ document_id	token	tf
 67555	été	4
 67555	évaluée	1
 67555	être	5
-67556		4
 67556	20	1
 67556	2011	1
 67556	26	1
@@ -4116,7 +4101,6 @@ document_id	token	tf
 67556	étant	1
 67556	étape	3
 67556	être	2
-67557		4
 67557	2 5	1
 67557	20	1
 67557	2010	1
@@ -4279,7 +4263,6 @@ document_id	token	tf
 67557	énergétique	2
 67557	équipement	1
 67557	équipes	1
-67558		2
 67558	12 hydroxy	3
 67558	20	2
 67558	29	1
@@ -4524,7 +4507,6 @@ document_id	token	tf
 67558	éléments	1
 67558	étudié	1
 67558	évacuation	1
-67561		5
 67561	20	1
 67561	2011	1
 67561	aujourd hui	1
@@ -4597,7 +4579,6 @@ document_id	token	tf
 67561	valrose	1
 67561	vision	2
 67561	à	3
-67794		18
 67794	2	1
 67794	2050	3
 67794	3 000	1
@@ -5016,7 +4997,6 @@ document_id	token	tf
 67794	évolutions	2
 67794	évoquant	1
 67794	être	1
-67795		32
 67795	1er	1
 67795	2007	2
 67795	4	1
@@ -5380,7 +5360,6 @@ document_id	token	tf
 67795	évolution	1
 67795	évoquant	1
 67795	être	3
-67796		3
 67796	a	1
 67796	accord	1
 67796	actualité	1
@@ -5498,7 +5477,6 @@ document_id	token	tf
 67796	visualiser	1
 67796	à	4
 67796	également	1
-67797		3
 67797	a	1
 67797	a320	3
 67797	actualité	1
@@ -5591,7 +5569,6 @@ document_id	token	tf
 67797	à	7
 67797	électrique	2
 67797	été	1
-67798		8
 67798	12	1
 67798	17	1
 67798	2012	2
@@ -5912,7 +5889,6 @@ document_id	token	tf
 67798	été	1
 67798	évidence	2
 67798	être	1
-67799		5
 67799	1 5	1
 67799	18	1
 67799	65	1
@@ -6060,7 +6036,6 @@ document_id	token	tf
 67799	âgées	1
 67799	également	1
 67799	équipes	1
-67800		6
 67800	2	1
 67800	24 000	1
 67800	250	1
@@ -6257,7 +6232,6 @@ document_id	token	tf
 67800	également	1
 67800	étudier	1
 67800	été	2
-67801		4
 67801	1	1
 67801	100 000	1
 67801	15	2
@@ -6498,7 +6472,6 @@ document_id	token	tf
 67801	évitant	1
 67801	évoquant	1
 67801	être	2
-67802		13
 67802	1	1
 67802	2	1
 67802	3	1
@@ -6744,7 +6717,6 @@ document_id	token	tf
 67802	étant	1
 67802	étape	2
 67802	îlots	1
-67803		7
 67803	2004	1
 67803	4	1
 67803	a	1
@@ -6828,7 +6800,6 @@ document_id	token	tf
 67803	échangent	1
 67803	économiques	1
 67803	élus	1
-67804		4
 67804	18	1
 67804	2011	1
 67804	4ème	3
@@ -6895,7 +6866,6 @@ document_id	token	tf
 67804	un	1
 67804	une	1
 67804	à	4
-67937		16
 67937	100 000	1
 67937	1954	1
 67937	1978	1
@@ -7432,7 +7402,6 @@ document_id	token	tf
 67937	été	1
 67937	évidence	1
 67937	événement	1
-67938		20
 67938	1809	1
 67938	1859	1
 67938	a	2
@@ -7731,7 +7700,6 @@ document_id	token	tf
 67938	épisode	1
 67938	étape	1
 67938	étrange	1
-67939		13
 67939	0	1
 67939	12	2
 67939	1993	1
@@ -8251,7 +8219,6 @@ document_id	token	tf
 67939	évoluer	1
 67939	évoqué	1
 67939	être	3
-67940		21
 67940	1	2
 67940	2	1
 67940	4	1
@@ -8449,7 +8416,6 @@ document_id	token	tf
 67940	état	1
 67940	évolutive	1
 67940	être	1
-67941		5
 67941	100	1
 67941	20	1
 67941	2011	1
@@ -8619,7 +8585,6 @@ document_id	token	tf
 67941	équipements	1
 67941	équipé	1
 67941	être	1
-67942		3
 67942	1er	1
 67942	2004	1
 67942	2010	1
@@ -8815,7 +8780,6 @@ document_id	token	tf
 67942	été	3
 67942	évidence	1
 67942	être	2
-67943		3
 67943	abondance	1
 67943	accélérateur	1
 67943	actuellement	1
@@ -8920,7 +8884,6 @@ document_id	token	tf
 67943	à	6
 67943	étoiles lancement	1
 67943	étudier	1
-67944		3
 67944	11	1
 67944	29	1
 67944	3	1
@@ -9045,7 +9008,6 @@ document_id	token	tf
 67944	établissements	2
 67944	étudiants	1
 67944	être	1
-67945		5
 67945	15	1
 67945	2009	1
 67945	2011	1
@@ -9235,7 +9197,6 @@ document_id	token	tf
 67945	éditions	1
 67945	également	2
 67945	événements	2
-67946		3
 67946	13	1
 67946	2011	1
 67946	2è	1
@@ -9318,7 +9279,6 @@ document_id	token	tf
 67946	à	2
 67946	édition	4
 67946	événement	1
-68273		13
 68273	1	2
 68273	10	1
 68273	11	1
@@ -9667,7 +9627,6 @@ document_id	token	tf
 68273	étanchéité	1
 68273	étant	1
 68273	être	1
-68274		6
 68274	13	1
 68274	15	1
 68274	15 000	1
@@ -10007,7 +9966,6 @@ document_id	token	tf
 68274	évidemment	2
 68274	événement	1
 68274	être	1
-68275		7
 68275	11 5	1
 68275	2010	2
 68275	24	1
@@ -10255,7 +10213,6 @@ document_id	token	tf
 68275	également	1
 68275	évolué	1
 68275	être	1
-68276		26
 68276	11	1
 68276	17	2
 68276	1780	1
@@ -10542,7 +10499,6 @@ document_id	token	tf
 68276	études	1
 68276	étudiants	1
 68276	été	2
-68277		6
 68277	1	1
 68277	12	1
 68277	2013	1
@@ -10719,7 +10675,6 @@ document_id	token	tf
 68277	à	4
 68277	équipement	1
 68277	éventuels	1
-68278		5
 68278	4	1
 68278	académiques	2
 68278	actualité	1
@@ -10825,7 +10780,6 @@ document_id	token	tf
 68278	également	1
 68278	émissions	1
 68278	étudiants	1
-68279		39
 68279	1	2
 68279	12	1
 68279	16	1
@@ -11270,7 +11224,6 @@ document_id	token	tf
 68279	état	1
 68279	été	6
 68279	être	1
-68280		4
 68280	18	1
 68280	ainsi	1
 68280	applications	1
@@ -11444,7 +11397,6 @@ document_id	token	tf
 68280	à	9
 68280	éclairage	1
 68280	être	1
-68281		4
 68281	10	1
 68281	20	1
 68281	2000	1
@@ -11599,7 +11551,6 @@ document_id	token	tf
 68281	étudiants	5
 68281	été	1
 68281	être	1
-68283		5
 68283	2011	1
 68283	a	1
 68283	ainsi	1
@@ -11698,7 +11649,6 @@ document_id	token	tf
 68283	écosystèmes	1
 68283	équation	1
 68283	équipes	1
-68383		14
 68383	1	1
 68383	10	1
 68383	10ème	1
@@ -12118,7 +12068,6 @@ document_id	token	tf
 68383	étant	1
 68383	été	2
 68383	être	1
-68384		3
 68384	17	1
 68384	18	1
 68384	a	1
@@ -12255,7 +12204,6 @@ document_id	token	tf
 68384	équipe	2
 68384	équipes	1
 68384	étant	1
-68385		3
 68385	2008	1
 68385	3e	2
 68385	50	1
@@ -12402,7 +12350,6 @@ document_id	token	tf
 68385	équipes	1
 68385	étudier	1
 68385	été	1
-68386		5
 68386	2009	1
 68386	21	1
 68386	23	1
@@ -12510,7 +12457,6 @@ document_id	token	tf
 68386	à	4
 68386	établie	1
 68386	été	1
-68387		9
 68387	10 000	1
 68387	14	1
 68387	15	1
@@ -12934,7 +12880,6 @@ document_id	token	tf
 68387	étant	2
 68387	étude	5
 68387	été	2
-68388		7
 68388	1	1
 68388	3	1
 68388	30	2
@@ -13161,7 +13106,6 @@ document_id	token	tf
 68388	études	1
 68388	étudié	1
 68388	été	2
-68389		5
 68389	1 1	1
 68389	2008	1
 68389	35 6	1
@@ -13374,7 +13318,6 @@ document_id	token	tf
 68389	étude	2
 68389	évidemment	1
 68389	être	1
-68390		8
 68390	1	1
 68390	2011	1
 68390	a	1
@@ -13562,7 +13505,6 @@ document_id	token	tf
 68390	équipe	1
 68390	équivalents	1
 68390	étudiant	1
-68391		3
 68391	1	1
 68391	1969	1
 68391	29	1
@@ -13771,7 +13713,6 @@ document_id	token	tf
 68391	étendues	1
 68391	étudie	1
 68391	été	1
-68392		5
 68392	10	2
 68392	2	1
 68392	2000	1
@@ -13907,7 +13848,6 @@ document_id	token	tf
 68392	équipes	1
 68392	étudiants	1
 68392	été	1
-68393		3
 68393	5	1
 68393	a	2
 68393	abritera	1
@@ -14042,7 +13982,6 @@ document_id	token	tf
 68393	également	1
 68393	élèves	1
 68393	étudiants	1
-68638		14
 68638	10	1
 68638	10 15	1
 68638	1979	1
@@ -14445,7 +14384,6 @@ document_id	token	tf
 68638	été	1
 68638	évidemment	2
 68638	être	3
-68639		4
 68639	9	1
 68639	a	1
 68639	actualité	1
@@ -14584,7 +14522,6 @@ document_id	token	tf
 68639	vise	2
 68639	à	4
 68639	équipes	2
-68640		5
 68640	1	3
 68640	105	1
 68640	115	1
@@ -14739,7 +14676,6 @@ document_id	token	tf
 68640	étudiants	1
 68640	été	1
 68640	évite	1
-68641		3
 68641	1	1
 68641	1 6	1
 68641	15	1
@@ -14864,7 +14800,6 @@ document_id	token	tf
 68641	à	13
 68641	été	2
 68641	être	1
-68642		10
 68642	11	1
 68642	3	1
 68642	9	1
@@ -15091,7 +15026,6 @@ document_id	token	tf
 68642	établir	1
 68642	états	1
 68642	être	1
-68643		11
 68643	1	2
 68643	4	1
 68643	a	6
@@ -15491,7 +15425,6 @@ document_id	token	tf
 68643	études	1
 68643	été	1
 68643	être	1
-68644		5
 68644	3 inp	1
 68644	410 c	1
 68644	ainsi	1
@@ -15658,7 +15591,6 @@ document_id	token	tf
 68644	énergétique	1
 68644	équipés	1
 68644	être	1
-68645		6
 68645	20	1
 68645	abandonnées	1
 68645	actions	1
@@ -15886,7 +15818,6 @@ document_id	token	tf
 68645	étudier	1
 68645	évaluation	1
 68645	évaluer	1
-68646		5
 68646	0 3	1
 68646	1	1
 68646	100 000	1
@@ -16087,7 +16018,6 @@ document_id	token	tf
 68646	étant	1
 68646	étude	2
 68646	être	1
-68881		16
 68881	1	1
 68881	10	1
 68881	12	1
@@ -16584,7 +16514,6 @@ document_id	token	tf
 68881	évaluer	1
 68881	évolution	1
 68881	être	2
-68882		13
 68882	1	2
 68882	10	1
 68882	125	1
@@ -17005,7 +16934,6 @@ document_id	token	tf
 68882	évidemment	3
 68882	évolutions	1
 68882	être	1
-68883		6
 68883	100	1
 68883	105	2
 68883	2011	1
@@ -17257,7 +17185,6 @@ document_id	token	tf
 68883	était	3
 68883	étant	1
 68883	être	2
-68884		3
 68884	3	1
 68884	700	1
 68884	9	1
@@ -17431,7 +17358,6 @@ document_id	token	tf
 68884	électrique	3
 68884	électrolyseur	1
 68884	été	2
-68885		20
 68885	1	2
 68885	10	1
 68885	2	2
@@ -17820,7 +17746,6 @@ document_id	token	tf
 68885	également	2
 68885	études	1
 68885	été	1
-68886		8
 68886	200	1
 68886	500	1
 68886	academy	1
@@ -18034,7 +17959,6 @@ document_id	token	tf
 68886	égale	1
 68886	étude	1
 68886	être	1
-68887		3
 68887	3	3
 68887	8	1
 68887	a	2
@@ -18235,7 +18159,6 @@ document_id	token	tf
 68887	équipe	1
 68887	été	2
 68887	évidemment	1
-68888		5
 68888	2005	2
 68888	3	1
 68888	6	1
@@ -18400,7 +18323,6 @@ document_id	token	tf
 68888	établissement	2
 68888	étroit	1
 68888	été	1
-68889		5
 68889	1	1
 68889	11	1
 68889	2012	3
@@ -18501,7 +18423,6 @@ document_id	token	tf
 68889	ville	1
 68889	wolton rencontres	1
 68889	à	1
-69177		14
 69177	1 5	1
 69177	16	1
 69177	1a	1
@@ -18991,7 +18912,6 @@ document_id	token	tf
 69177	évoqué	1
 69177	évoqués	1
 69177	être	3
-69178		16
 69178	1	1
 69178	1 laboratoires	1
 69178	1950	1
@@ -19303,7 +19223,6 @@ document_id	token	tf
 69178	étant	1
 69178	été	2
 69178	être	3
-69179		6
 69179	1	2
 69179	10	1
 69179	115	1
@@ -19614,7 +19533,6 @@ document_id	token	tf
 69179	était	1
 69179	étudiant	1
 69179	été	2
-69180		6
 69180	12	1
 69180	a	1
 69180	actualité	1
@@ -19724,7 +19642,6 @@ document_id	token	tf
 69180	équations	1
 69180	étendues	1
 69180	été	1
-69181		5
 69181	150	1
 69181	2020	1
 69181	750	1
@@ -19928,7 +19845,6 @@ document_id	token	tf
 69181	été	1
 69181	évaluer	1
 69181	être	2
-69182		6
 69182	1	1
 69182	2	1
 69182	650	1
@@ -20117,7 +20033,6 @@ document_id	token	tf
 69182	étant	1
 69182	étudiée	1
 69182	être	3
-69183		5
 69183	a	1
 69183	actuellement	1
 69183	ainsi	1
@@ -20314,7 +20229,6 @@ document_id	token	tf
 69183	équipe	1
 69183	été	1
 69183	éventail	1
-69184		6
 69184	606	1
 69184	a	2
 69184	academy	1
@@ -20529,7 +20443,6 @@ document_id	token	tf
 69184	équilibre	1
 69184	étudié	1
 69184	été	1
-69185		4
 69185	10	1
 69185	1ère	2
 69185	5	1
@@ -20643,7 +20556,6 @@ document_id	token	tf
 69185	établi	1
 69185	étudiants	2
 69185	été	1
-69186		8
 69186	2	1
 69186	5	1
 69186	activités	1
@@ -20771,7 +20683,6 @@ document_id	token	tf
 69186	à	1
 69186	électroniques	1
 69186	étant	1
-69533		7
 69533	1990	1
 69533	1995	1
 69533	2	1
@@ -21138,7 +21049,6 @@ document_id	token	tf
 69533	évolution	1
 69533	évolutions	2
 69533	être	1
-69534		25
 69534	1	2
 69534	1466	1
 69534	16	1
@@ -21499,7 +21409,6 @@ document_id	token	tf
 69534	équilibrés	1
 69534	étant	1
 69534	être	2
-69535		6
 69535	20	1
 69535	2040	5
 69535	30	1
@@ -21824,7 +21733,6 @@ document_id	token	tf
 69535	été	1
 69535	évidemment	1
 69535	être	2
-69536		7
 69536	accord	2
 69536	accueillis	1
 69536	actions	2
@@ -21989,7 +21897,6 @@ document_id	token	tf
 69536	étant	2
 69536	études	2
 69536	être	1
-69537		4
 69537	1 25 000	1
 69537	2007	1
 69537	2008	1
@@ -22209,7 +22116,6 @@ document_id	token	tf
 69537	été	5
 69537	évapotranspiration	2
 69537	être	1
-69538		3
 69538	2040	1
 69538	24	1
 69538	27	1
@@ -22400,7 +22306,6 @@ document_id	token	tf
 69538	été	1
 69538	évolution	1
 69538	être	1
-69539		6
 69539	1990	1
 69539	36	1
 69539	93	1
@@ -22636,7 +22541,6 @@ document_id	token	tf
 69539	émettant	1
 69539	été	1
 69539	être	1
-69540		6
 69540	0	1
 69540	1	2
 69540	1 000	1
@@ -22890,7 +22794,6 @@ document_id	token	tf
 69540	états	1
 69540	été	6
 69540	être	1
-69541		13
 69541	00	2
 69541	1	2
 69541	10	1
@@ -23077,7 +22980,6 @@ document_id	token	tf
 69541	étudiants	3
 69541	été	1
 69541	événement	1
-69542		5
 69542	14	1
 69542	14ème	2
 69542	17	1
@@ -23235,7 +23137,6 @@ document_id	token	tf
 69542	à	6
 69542	édition	2
 69542	été	1
-69543		3
 69543	2012	3
 69543	3 000	1
 69543	300	1
@@ -23304,7 +23205,6 @@ document_id	token	tf
 69543	visiteurs	1
 69543	à	2
 69543	édition	1
-69811		10
 69811	1 000	2
 69811	10	2
 69811	1er	1
@@ -23623,7 +23523,6 @@ document_id	token	tf
 69811	étaient	1
 69811	était	1
 69811	été	4
-69812		6
 69812	16	1
 69812	2	2
 69812	200	1
@@ -23947,7 +23846,6 @@ document_id	token	tf
 69812	études	2
 69812	été	1
 69812	être	1
-69813		6
 69813	2	1
 69813	2 5	1
 69813	2014	1
@@ -24261,7 +24159,6 @@ document_id	token	tf
 69813	étant	1
 69813	été	1
 69813	être	3
-69814		3
 69814	1	1
 69814	1 000	1
 69814	10	1
@@ -24464,7 +24361,6 @@ document_id	token	tf
 69814	électriques	2
 69814	électroniques	1
 69814	émissions	2
-69815		4
 69815	1 5	1
 69815	150	1
 69815	2	1
@@ -24679,7 +24575,6 @@ document_id	token	tf
 69815	à	5
 69815	étant	1
 69815	été	1
-69816		7
 69816	2050	1
 69816	actualité	1
 69816	afin	1
@@ -24911,7 +24806,6 @@ document_id	token	tf
 69816	étude	2
 69816	évolutions	1
 69816	être	1
-69817		4
 69817	2	1
 69817	2007	1
 69817	5	1
@@ -25153,7 +25047,6 @@ document_id	token	tf
 69817	écophysiologiste	1
 69817	été	1
 69817	être	1
-69818		5
 69818	10 000	1
 69818	13ème	1
 69818	140	1
@@ -25302,7 +25195,6 @@ document_id	token	tf
 69818	à	9
 69818	énergie	3
 69818	été	2
-69819		6
 69819	1 6	1
 69819	1000	1
 69819	3d	2
@@ -25520,7 +25412,6 @@ document_id	token	tf
 69819	énergie	1
 69819	équipe	1
 69819	était	1
-69820		6
 69820	1ère	3
 69820	200	1
 69820	2012	1
@@ -25676,7 +25567,6 @@ document_id	token	tf
 69820	à	1
 69820	état	1
 69820	événement	1
-69821		8
 69821	10 000	1
 69821	3 000	1
 69821	a	6
@@ -25900,7 +25790,6 @@ document_id	token	tf
 69821	étrangères	1
 69821	été	1
 69821	éventuels	1
-70161		37
 70161	17	1
 70161	1780	1
 70161	1990	1
@@ -26486,7 +26375,6 @@ document_id	token	tf
 70161	évoque	1
 70161	êtes	1
 70161	être	6
-70162		16
 70162	16	1
 70162	18	1
 70162	212	1
@@ -26904,7 +26792,6 @@ document_id	token	tf
 70162	événement	1
 70162	événementielle	1
 70162	être	4
-70163		7
 70163	10	1
 70163	18	1
 70163	2018	1
@@ -27182,7 +27069,6 @@ document_id	token	tf
 70163	été	2
 70163	évoluant	1
 70163	être	2
-70164		3
 70164	20	1
 70164	2012	2
 70164	2013	1
@@ -27351,7 +27237,6 @@ document_id	token	tf
 70164	économiques	2
 70164	édition	1
 70164	événement	1
-70165		6
 70165	100	1
 70165	2 0	1
 70165	25	1
@@ -27551,7 +27436,6 @@ document_id	token	tf
 70165	étroite	1
 70165	études	2
 70165	être	3
-70166		10
 70166	2008	1
 70166	2011	2
 70166	300 000	1
@@ -27877,7 +27761,6 @@ document_id	token	tf
 70166	été	2
 70166	événements	1
 70166	être	2
-70167		5
 70167	10 000	1
 70167	100	1
 70167	2 106	1
@@ -28053,7 +27936,6 @@ document_id	token	tf
 70167	étudié	1
 70167	été	1
 70167	être	1
-70168		4
 70168	150	1
 70168	2012	1
 70168	26	1
@@ -28144,7 +28026,6 @@ document_id	token	tf
 70168	édition	3
 70168	étudiantes	1
 70168	étudiants	1
-70169		7
 70169	14	1
 70169	15	1
 70169	167	1
@@ -28285,7 +28166,6 @@ document_id	token	tf
 70169	zone	1
 70169	à	5
 70169	édition	7
-70170		16
 70170	1er	1
 70170	2012	4
 70170	25	1
@@ -28414,7 +28294,6 @@ document_id	token	tf
 70170	échanger	1
 70170	édition	1
 70170	étant	1
-70420		15
 70420	2006	1
 70420	2010	1
 70420	6	2
@@ -28850,7 +28729,6 @@ document_id	token	tf
 70420	été	2
 70420	évidemment	1
 70420	être	3
-70421		16
 70421	3d	1
 70421	42	1
 70421	a	4
@@ -29357,7 +29235,6 @@ document_id	token	tf
 70421	étant	2
 70421	été	2
 70421	être	3
-70422		11
 70422	a	6
 70422	académiques	1
 70422	accompagnement	1
@@ -29712,7 +29589,6 @@ document_id	token	tf
 70422	étudiant	1
 70422	étudiants	4
 70422	être	1
-70423		4
 70423	20	1
 70423	5	1
 70423	6	1
@@ -29892,7 +29768,6 @@ document_id	token	tf
 70423	à	8
 70423	échelle	1
 70423	évoluer	1
-70424		9
 70424	1 2	1
 70424	1990	1
 70424	2011	1
@@ -30193,7 +30068,6 @@ document_id	token	tf
 70424	énergie	1
 70424	équivalente	1
 70424	évolution	1
-70425		9
 70425	1	1
 70425	100	1
 70425	1015	1
@@ -30460,7 +30334,6 @@ document_id	token	tf
 70425	étant	1
 70425	étonnant	1
 70425	été	1
-70426		4
 70426	6	1
 70426	activités	1
 70426	ainsi	1
@@ -30614,7 +30487,6 @@ document_id	token	tf
 70426	échelles	1
 70426	équipée	1
 70426	être	1
-70428		5
 70428	18	1
 70428	19	1
 70428	2005	1
@@ -30711,7 +30583,6 @@ document_id	token	tf
 70428	vingtaine	1
 70428	vitagora	2
 70428	à	4
-70429		3
 70429	a	3
 70429	afin	1
 70429	appel	1
@@ -30829,7 +30700,6 @@ document_id	token	tf
 70429	viennent	1
 70429	vrais	1
 70429	à	8
-70743		12
 70743	1	2
 70743	1 50ème	1
 70743	10	1
@@ -31026,7 +30896,6 @@ document_id	token	tf
 70743	établissement	1
 70743	étant	1
 70743	être	1
-70744		10
 70744	10 15	1
 70744	70	1
 70744	a	2
@@ -31264,7 +31133,6 @@ document_id	token	tf
 70744	écrire	1
 70744	émerger	1
 70744	étape	1
-70745		19
 70745	230	1
 70745	4ème	1
 70745	6	1
@@ -31596,7 +31464,6 @@ document_id	token	tf
 70745	été	2
 70745	évolution	1
 70745	être	1
-70746		19
 70746	1 000	1
 70746	2	1
 70746	actifs	1
@@ -31795,7 +31662,6 @@ document_id	token	tf
 70746	à	3
 70746	également	1
 70746	être	1
-70747		6
 70747	10	1
 70747	15	1
 70747	17	1
@@ -31961,7 +31827,6 @@ document_id	token	tf
 70747	émettent	2
 70747	étant	1
 70747	être	2
-70748		3
 70748	2010	1
 70748	a	2
 70748	action	1
@@ -32080,7 +31945,6 @@ document_id	token	tf
 70748	établi	1
 70748	étudiants	2
 70748	été	1
-70749		18
 70749	18	1
 70749	19	1
 70749	2005	1
@@ -32373,7 +32237,6 @@ document_id	token	tf
 70749	étant	1
 70749	été	4
 70749	être	2
-70751		11
 70751	10	1
 70751	11	1
 70751	13	1
@@ -32525,7 +32388,6 @@ document_id	token	tf
 70751	économiques	1
 70751	équipements	1
 70751	événements	1
-70752		12
 70752	18	1
 70752	19	2
 70752	1er	1
@@ -32599,7 +32461,6 @@ document_id	token	tf
 70752	à	2
 70752	édition	1
 70752	événement	1
-70753		6
 70753	2006	1
 70753	34	1
 70753	60	2
@@ -32711,7 +32572,6 @@ document_id	token	tf
 70753	à	4
 70753	économie les	1
 70753	été	1
-70914		32
 70914	100 000	1
 70914	12	1
 70914	20	1
@@ -33144,7 +33004,6 @@ document_id	token	tf
 70914	étant	1
 70914	étape	1
 70914	été	2
-70915		20
 70915	1	3
 70915	11	1
 70915	2	2
@@ -33383,7 +33242,6 @@ document_id	token	tf
 70915	étant	1
 70915	été	2
 70915	éventuels	1
-70916		27
 70916	1	2
 70916	1 000	1
 70916	100	1
@@ -33911,7 +33769,6 @@ document_id	token	tf
 70916	évaluer	2
 70916	événements	5
 70916	être	2
-70917		6
 70917	100	1
 70917	1980	1
 70917	1982	1
@@ -34129,7 +33986,6 @@ document_id	token	tf
 70917	était	1
 70917	été	1
 70917	être	1
-70918		5
 70918	10	1
 70918	18	1
 70918	a	2
@@ -34295,7 +34151,6 @@ document_id	token	tf
 70918	évaluations	1
 70918	évitant	1
 70918	être	1
-70919		7
 70919	2006	1
 70919	26	1
 70919	a	5
@@ -34487,7 +34342,6 @@ document_id	token	tf
 70919	à	5
 70919	échantillon	1
 70919	équipe	1
-70920		3
 70920	2012	1
 70920	a	1
 70920	achevée	1
@@ -34634,7 +34488,6 @@ document_id	token	tf
 70920	étude	1
 70920	évaluer	2
 70920	être	1
-70921		18
 70921	1	1
 70921	10	1
 70921	11	1
@@ -34867,7 +34720,6 @@ document_id	token	tf
 70921	émerger	2
 70921	équipe	1
 70921	étrangers	1
-70922		5
 70922	9	1
 70922	acteurs	1
 70922	ainsi	1
@@ -34976,7 +34828,6 @@ document_id	token	tf
 70922	équipe	1
 70922	étant	1
 70922	étapes	1
-70923		8
 70923	18	1
 70923	2 0	1
 70923	2013	1
@@ -35160,7 +35011,6 @@ document_id	token	tf
 70923	étudiants	3
 70923	été	1
 70923	évoluer	1
-71357		6
 71357	2	1
 71357	2030	4
 71357	2050	1
@@ -35590,7 +35440,6 @@ document_id	token	tf
 71357	évidemment	1
 71357	évolution	1
 71357	être	2
-71358		9
 71358	1 500	1
 71358	1925	1
 71358	2011	1
@@ -35952,7 +35801,6 @@ document_id	token	tf
 71358	étudiants	1
 71358	été	1
 71358	être	1
-71359		23
 71359	10	1
 71359	150	1
 71359	1953	1
@@ -36444,7 +36292,6 @@ document_id	token	tf
 71359	été	1
 71359	évidemment	2
 71359	être	1
-71360		7
 71360	1	2
 71360	10	1
 71360	120	1
@@ -36649,7 +36496,6 @@ document_id	token	tf
 71360	vient	1
 71360	vision	1
 71360	à	6
-71361		7
 71361	0 5	1
 71361	1 8	1
 71361	111	1
@@ -36840,7 +36686,6 @@ document_id	token	tf
 71361	à	2
 71361	étant	1
 71361	évaluée	1
-71362		3
 71362	1	1
 71362	1ère	1
 71362	2006	1
@@ -37057,7 +36902,6 @@ document_id	token	tf
 71362	à	10
 71362	établissement	2
 71362	étudiants	4
-71363		5
 71363	20	1
 71363	2012	1
 71363	21	2
@@ -37205,7 +37049,6 @@ document_id	token	tf
 71363	électrique	1
 71363	énergies	4
 71363	évidemment	1
-71366		7
 71366	260	1
 71366	a	1
 71366	actuel	1
@@ -37338,7 +37181,6 @@ document_id	token	tf
 71366	études	1
 71366	éviter	1
 71366	évoluer	1
-71612		7
 71612	200	1
 71612	2013	2
 71612	2014	1
@@ -37671,7 +37513,6 @@ document_id	token	tf
 71612	évidemment	1
 71612	éviter	1
 71612	être	1
-71614		16
 71614	12	1
 71614	15	1
 71614	2002	1
@@ -38121,7 +37962,6 @@ document_id	token	tf
 71614	établi	1
 71614	évidemment	1
 71614	être	3
-71615		8
 71615	20	1
 71615	2000	1
 71615	2020	1
@@ -38290,7 +38130,6 @@ document_id	token	tf
 71615	émissions	2
 71615	équipes	1
 71615	était	1
-71616		4
 71616	2005	1
 71616	2007	1
 71616	2009	1
@@ -38493,7 +38332,6 @@ document_id	token	tf
 71616	vient	1
 71616	viveris	1
 71616	à	2
-71617		13
 71617	2050	4
 71617	a	1
 71617	accélération	1
@@ -38756,7 +38594,6 @@ document_id	token	tf
 71617	étant	1
 71617	étapes	1
 71617	être	1
-71618		3
 71618	analyses	2
 71618	année	1
 71618	applicable	1
@@ -38918,7 +38755,6 @@ document_id	token	tf
 71618	étrangers	1
 71618	étudier	1
 71618	être	2
-71619		5
 71619	1 formation	1
 71619	10	1
 71619	12	1
@@ -39069,7 +38905,6 @@ document_id	token	tf
 71619	visiter	1
 71619	voire	1
 71619	à	6
-71620		4
 71620	2000	1
 71620	2012	1
 71620	3ème	2
@@ -39157,7 +38992,6 @@ document_id	token	tf
 71620	à	3
 71620	édition	1
 71620	émergé	1
-71621		10
 71621	a	3
 71621	abritent	1
 71621	actes	1
@@ -39420,7 +39254,6 @@ document_id	token	tf
 71621	élevages	1
 71621	éléments	1
 71621	îles	4
-71835		26
 71835	2010	2
 71835	2012	1
 71835	a	5
@@ -39872,7 +39705,6 @@ document_id	token	tf
 71835	été	1
 71835	évolue	1
 71835	évoque	1
-71836		10
 71836	100	2
 71836	1a	3
 71836	1b	5
@@ -40234,7 +40066,6 @@ document_id	token	tf
 71836	évidence	1
 71836	évite	1
 71836	être	1
-71837		10
 71837	1980	1
 71837	1987	1
 71837	200	1
@@ -40573,7 +40404,6 @@ document_id	token	tf
 71837	étudie	1
 71837	étudier	3
 71837	été	1
-71838		5
 71838	1992	1
 71838	accord	2
 71838	actualité	1
@@ -40710,7 +40540,6 @@ document_id	token	tf
 71838	à	11
 71838	échanger	1
 71838	également	1
-71839		4
 71839	accord	1
 71839	activités	1
 71839	actualité	1
@@ -40827,7 +40656,6 @@ document_id	token	tf
 71839	vient	1
 71839	well	1
 71839	à	3
-71840		7
 71840	13 5	1
 71840	15	1
 71840	1990	1
@@ -41037,7 +40865,6 @@ document_id	token	tf
 71840	échanges	1
 71840	étape	1
 71840	été	1
-71841		4
 71841	1	1
 71841	15	1
 71841	18	1
@@ -41183,7 +41010,6 @@ document_id	token	tf
 71841	à	1
 71841	études	1
 71841	été	2
-71842		15
 71842	2015	1
 71842	500	1
 71842	a	2
@@ -41496,7 +41322,6 @@ document_id	token	tf
 71842	étant	1
 71842	été	1
 71842	être	1
-71843		3
 71843	2 h	1
 71843	2 heptanone	4
 71843	a	1
@@ -41659,7 +41484,6 @@ document_id	token	tf
 71843	étaient	1
 71843	été	3
 71843	évidence	1
-71845		3
 71845	2013	1
 71845	22	1
 71845	accompagner	1
@@ -41753,7 +41577,6 @@ document_id	token	tf
 71845	végétal	1
 71845	à	3
 71845	étapes	1
-72113		21
 72113	1901	1
 72113	1er	1
 72113	20	1
@@ -42216,7 +42039,6 @@ document_id	token	tf
 72113	été	2
 72113	évolutions	1
 72113	être	3
-72114		12
 72114	1ère	1
 72114	2012	1
 72114	2016	1
@@ -42638,7 +42460,6 @@ document_id	token	tf
 72114	éviter	1
 72114	êtes	1
 72114	être	3
-72115		11
 72115	1	1
 72115	1 000	2
 72115	10	1
@@ -43001,7 +42822,6 @@ document_id	token	tf
 72115	étudié	1
 72115	été	1
 72115	être	1
-72116		5
 72116	200	1
 72116	2013	1
 72116	50	1
@@ -43300,7 +43120,6 @@ document_id	token	tf
 72116	été	1
 72116	évidence	1
 72116	être	3
-72117		9
 72117	1	2
 72117	10	1
 72117	15	1
@@ -43486,7 +43305,6 @@ document_id	token	tf
 72117	viennent	1
 72117	à	6
 72117	étude	1
-72118		5
 72118	1 3	3
 72118	1000	4
 72118	1998	1
@@ -43653,7 +43471,6 @@ document_id	token	tf
 72118	également	1
 72118	égales	1
 72118	étape	1
-72119		11
 72119	15	1
 72119	2	1
 72119	200	2
@@ -43813,7 +43630,6 @@ document_id	token	tf
 72119	étape	1
 72119	étapes	1
 72119	été	1
-72120		6
 72120	16	1
 72120	2	1
 72120	2013	1
@@ -43900,7 +43716,6 @@ document_id	token	tf
 72120	à	3
 72120	également	1
 72120	événements	1
-72121		6
 72121	1	2
 72121	11	1
 72121	2	1
@@ -44031,7 +43846,6 @@ document_id	token	tf
 72121	à	1
 72121	énergie	1
 72121	étant	1
-72122		5
 72122	12	1
 72122	12 000	1
 72122	19	1
@@ -44133,7 +43947,6 @@ document_id	token	tf
 72122	y	1
 72122	à	6
 72122	édition	2
-72392		8
 72392	1	1
 72392	100	1
 72392	125	1
@@ -44524,7 +44337,6 @@ document_id	token	tf
 72392	état	1
 72392	évacuation	1
 72392	être	2
-72393		10
 72393	2	1
 72393	2011	2
 72393	2012	1
@@ -44817,7 +44629,6 @@ document_id	token	tf
 72393	état	1
 72393	été	3
 72393	événement	1
-72394		10
 72394	1	2
 72394	1er	1
 72394	60	1
@@ -45199,7 +45010,6 @@ document_id	token	tf
 72394	élevé	1
 72394	était	1
 72394	été	1
-72395		6
 72395	12	1
 72395	17	2
 72395	19	1
@@ -45401,7 +45211,6 @@ document_id	token	tf
 72395	vise	1
 72395	y	1
 72395	à	8
-72396		17
 72396	15	1
 72396	16	1
 72396	17	2
@@ -45770,7 +45579,6 @@ document_id	token	tf
 72396	été	2
 72396	évidemment	1
 72396	être	1
-72397		9
 72397	1	3
 72397	1 000	1
 72397	28	1
@@ -46023,7 +45831,6 @@ document_id	token	tf
 72397	énergie	3
 72397	étant	2
 72397	évidemment	1
-72398		13
 72398	2	1
 72398	2003	1
 72398	a	2
@@ -46209,7 +46016,6 @@ document_id	token	tf
 72398	également	1
 72398	élèves	2
 72398	établissement	1
-72399		6
 72399	2013	1
 72399	4	1
 72399	actuelles	1
@@ -46310,7 +46116,6 @@ document_id	token	tf
 72399	également	1
 72399	épuration	3
 72399	être	1
-72400		6
 72400	16ème	1
 72400	2013	1
 72400	23	1
@@ -46421,7 +46226,6 @@ document_id	token	tf
 72400	édition	1
 72400	également	1
 72400	événement	1
-72401		8
 72401	a	3
 72401	abusent	1
 72401	accompagnent	1
@@ -46564,7 +46368,6 @@ document_id	token	tf
 72401	écrans	7
 72401	éducateurs	1
 72401	également	1
-72629		11
 72629	18	1
 72629	2000	1
 72629	2008	1
@@ -47011,7 +46814,6 @@ document_id	token	tf
 72629	été	1
 72629	événements	1
 72629	être	1
-72630		10
 72630	13	1
 72630	15	1
 72630	1990	1
@@ -47435,7 +47237,6 @@ document_id	token	tf
 72630	éventuellement	1
 72630	évidemment	1
 72630	évoque	1
-72631		14
 72631	1	2
 72631	2	1
 72631	36	1
@@ -47806,7 +47607,6 @@ document_id	token	tf
 72631	évolué	1
 72631	évoquer	1
 72631	être	1
-72632		10
 72632	1990	1
 72632	a	1
 72632	accidentellement	1
@@ -47991,7 +47791,6 @@ document_id	token	tf
 72632	établi	1
 72632	été	2
 72632	évidence	1
-72633		4
 72633	1 40	1
 72633	10	1
 72633	12ème	1
@@ -48207,7 +48006,6 @@ document_id	token	tf
 72633	édition	1
 72633	études	1
 72633	été	1
-72634		25
 72634	1	2
 72634	2013	1
 72634	2014	2
@@ -48628,7 +48426,6 @@ document_id	token	tf
 72634	été	2
 72634	évidemment	1
 72634	être	3
-72635		6
 72635	10	1
 72635	14	1
 72635	2	1
@@ -48817,7 +48614,6 @@ document_id	token	tf
 72635	élément	1
 72635	été	1
 72635	être	1
-72636		4
 72636	21	1
 72636	6	1
 72636	a	2
@@ -48963,7 +48759,6 @@ document_id	token	tf
 72636	étaient	1
 72636	était	1
 72636	étonnant	1
-72637		7
 72637	a	1
 72637	accroître	1
 72637	acquérir	1
@@ -49133,7 +48928,6 @@ document_id	token	tf
 72637	économiques	2
 72637	étudiants	1
 72637	être	1
-72932		24
 72932	00	1
 72932	17	1
 72932	1994	1
@@ -49705,7 +49499,6 @@ document_id	token	tf
 72932	évidemment	1
 72932	évoque	1
 72932	être	1
-72933		7
 72933	10	1
 72933	117	1
 72933	18	1
@@ -50083,7 +49876,6 @@ document_id	token	tf
 72933	équipements	2
 72933	étapes	1
 72933	être	1
-72934		8
 72934	1	1
 72934	10	4
 72934	10 000	1
@@ -50414,7 +50206,6 @@ document_id	token	tf
 72934	été	2
 72934	évacuation	1
 72934	être	4
-72935		6
 72935	18	6
 72935	18 2	4
 72935	2006	1
@@ -50651,7 +50442,6 @@ document_id	token	tf
 72935	été	2
 72935	évaluation	1
 72935	évaluer	1
-72936		4
 72936	145	1
 72936	2009 2015	1
 72936	2014	3
@@ -50801,7 +50591,6 @@ document_id	token	tf
 72936	étudiants	1
 72936	été	1
 72936	être	1
-72937		5
 72937	10	1
 72937	11	1
 72937	2006	1
@@ -50979,7 +50768,6 @@ document_id	token	tf
 72937	énergie	1
 72937	équipes	1
 72937	événement	2
-72938		3
 72938	200	1
 72938	2011	1
 72938	2013	2
@@ -51156,7 +50944,6 @@ document_id	token	tf
 72938	étude	1
 72938	été	1
 72938	événement	1
-72939		9
 72939	16	2
 72939	17	2
 72939	1ère	1
@@ -51439,7 +51226,6 @@ document_id	token	tf
 72939	épidémies	1
 72939	été	1
 72939	évidemment	1
-72940		14
 72940	130	1
 72940	2011	1
 72940	352	1
@@ -51626,7 +51412,6 @@ document_id	token	tf
 72940	énergétique	1
 72940	éventail	1
 72940	éviter	1
-73182		17
 73182	10	1
 73182	12	1
 73182	1983	1
@@ -52128,7 +51913,6 @@ document_id	token	tf
 73182	été	3
 73182	évidemment	1
 73182	être	2
-73183		15
 73183	14	1
 73183	15	1
 73183	16	1
@@ -52490,7 +52274,6 @@ document_id	token	tf
 73183	évaluer	1
 73183	évolution	1
 73183	être	3
-73184		22
 73184	1	2
 73184	1er	1
 73184	2	1
@@ -52918,7 +52701,6 @@ document_id	token	tf
 73184	études	1
 73184	été	3
 73184	œil	1
-73185		19
 73185	1	1
 73185	17	1
 73185	2006	1
@@ -53360,7 +53142,6 @@ document_id	token	tf
 73185	étant	1
 73185	études	1
 73185	été	1
-73186		6
 73186	a	2
 73186	actualité	1
 73186	afin	1
@@ -53509,7 +53290,6 @@ document_id	token	tf
 73186	émettant	1
 73186	équiper	1
 73186	équipes	1
-73187		4
 73187	1	1
 73187	2007	1
 73187	7	1
@@ -53665,7 +53445,6 @@ document_id	token	tf
 73187	électronique	2
 73187	été	1
 73187	être	1
-73188		5
 73188	15	1
 73188	22	1
 73188	50	1
@@ -53787,7 +53566,6 @@ document_id	token	tf
 73188	électrique	1
 73188	énergie	1
 73188	équipe	1
-73189		5
 73189	1	1
 73189	3d	1
 73189	a	1
@@ -53939,7 +53717,6 @@ document_id	token	tf
 73189	été	2
 73189	évidemment	1
 73189	être	1
-73190		4
 73190	100	1
 73190	2 0	1
 73190	2013	2
@@ -54103,7 +53880,6 @@ document_id	token	tf
 73190	équipé	1
 73190	étudiantes	1
 73190	étudiants	2
-73430		10
 73430	120	1
 73430	1ère	1
 73430	200	1
@@ -54551,7 +54327,6 @@ document_id	token	tf
 73430	étudié	1
 73430	été	2
 73430	être	2
-73431		17
 73431	1	2
 73431	1 8	1
 73431	1ère	1
@@ -54996,7 +54771,6 @@ document_id	token	tf
 73431	étudiants	4
 73431	été	5
 73431	évidemment	3
-73432		21
 73432	100	1
 73432	1500	1
 73432	20 000	1
@@ -55420,7 +55194,6 @@ document_id	token	tf
 73432	étions	1
 73432	été	1
 73432	être	2
-73433		5
 73433	72 000	1
 73433	a	4
 73433	actualités	1
@@ -55566,7 +55339,6 @@ document_id	token	tf
 73433	à	6
 73433	énergie microalgues	1
 73433	été	1
-73434		5
 73434	10	1
 73434	1992	1
 73434	2000	1
@@ -55961,7 +55733,6 @@ document_id	token	tf
 73434	étudier	2
 73434	été	3
 73434	être	1
-73435		3
 73435	2	1
 73435	2008	1
 73435	2012 prix	1
@@ -56128,7 +55899,6 @@ document_id	token	tf
 73435	édition	1
 73435	éthique	1
 73435	été	2
-73436		9
 73436	0 10	1
 73436	12	1
 73436	2000	1
@@ -56335,7 +56105,6 @@ document_id	token	tf
 73436	étant	1
 73436	étapes	1
 73436	été	1
-73437		6
 73437	1ère	1
 73437	2	1
 73437	27	1
@@ -56452,7 +56221,6 @@ document_id	token	tf
 73437	équivalent	1
 73437	étudiant	1
 73437	évidemment	1
-73438		4
 73438	16	1
 73438	18	1
 73438	20 000	1
@@ -56528,7 +56296,6 @@ document_id	token	tf
 73438	édition	3
 73438	éléments	1
 73438	événement	1
-73683		19
 73683	1	3
 73683	1 88	1
 73683	10	2
@@ -57150,7 +56917,6 @@ document_id	token	tf
 73683	été	4
 73683	évidence	1
 73683	être	3
-73684		27
 73684	1	1
 73684	10	1
 73684	11	1
@@ -57710,7 +57476,6 @@ document_id	token	tf
 73684	évidemment	1
 73684	évolués	1
 73684	être	1
-73685		10
 73685	2012	2
 73685	2013	1
 73685	a	5
@@ -58061,7 +57826,6 @@ document_id	token	tf
 73685	évidemment	1
 73685	évoluent	1
 73685	être	1
-73686		4
 73686	2010	1
 73686	3	1
 73686	3 8	1
@@ -58193,7 +57957,6 @@ document_id	token	tf
 73686	à	1
 73686	également	1
 73686	étude	2
-73687		5
 73687	1	1
 73687	19	1
 73687	2	1
@@ -58415,7 +58178,6 @@ document_id	token	tf
 73687	également	1
 73687	étonnant	1
 73687	été	1
-73688		4
 73688	10	1
 73688	100	1
 73688	2 400	1
@@ -58617,7 +58379,6 @@ document_id	token	tf
 73688	équipe	1
 73688	été	1
 73688	être	1
-73689		8
 73689	1	2
 73689	11	1
 73689	12	1
@@ -58728,7 +58489,6 @@ document_id	token	tf
 73689	épreuves	1
 73689	équipe	1
 73689	étudiants	1
-73690		5
 73690	16	1
 73690	18	1
 73690	2013	1
@@ -58798,7 +58558,6 @@ document_id	token	tf
 73690	échanges	1
 73690	économiques	1
 73690	évolutions	1
-73691		4
 73691	14	1
 73691	15	1
 73691	2009	1
@@ -58908,7 +58667,6 @@ document_id	token	tf
 73691	échanger	1
 73691	édition	3
 73691	également	1
-73875		14
 73875	1 500	1
 73875	15	1
 73875	180	1
@@ -59318,7 +59076,6 @@ document_id	token	tf
 73875	équilibré	1
 73875	équipes	1
 73875	étant	1
-73876		11
 73876	1985	1
 73876	5	1
 73876	a	4
@@ -59763,7 +59520,6 @@ document_id	token	tf
 73876	était	1
 73876	étant	1
 73876	été	2
-73877		20
 73877	150	1
 73877	1er	1
 73877	2	1
@@ -60232,7 +59988,6 @@ document_id	token	tf
 73877	été	2
 73877	évoquer	1
 73877	être	2
-73878		7
 73878	100	1
 73878	173 000	1
 73878	18	1
@@ -60482,7 +60237,6 @@ document_id	token	tf
 73878	émergence	1
 73878	énorme	1
 73878	être	1
-73879		13
 73879	1000	1
 73879	1024	1
 73879	15	1
@@ -60861,7 +60615,6 @@ document_id	token	tf
 73879	été	1
 73879	éventail	1
 73879	être	2
-73880		8
 73880	1 500	1
 73880	11	1
 73880	13	1
@@ -61057,7 +60810,6 @@ document_id	token	tf
 73880	établir	1
 73880	été	1
 73880	événement	1
-73881		5
 73881	12	1
 73881	14	1
 73881	1ère	1
@@ -61147,7 +60899,6 @@ document_id	token	tf
 73881	édition	1
 73881	éphémère	1
 73881	événement	1
-73882		3
 73882	1963	1
 73882	1ère	1
 73882	2013	1
@@ -61266,7 +61017,6 @@ document_id	token	tf
 73882	économique	1
 73882	étudiants	1
 73882	événement	1
-73883		3
 73883	1ère	3
 73883	2009	1
 73883	2013	4
@@ -61355,7 +61105,6 @@ document_id	token	tf
 73883	travers	1
 73883	à	3
 73883	été	1
-73884		5
 73884	11ème	1
 73884	1er	2
 73884	1ère	1
@@ -61496,7 +61245,6 @@ document_id	token	tf
 73884	édition	1
 73884	électrique 1er	1
 73884	événements	1
-74167		13
 74167	24	1
 74167	5	1
 74167	50	1
@@ -61997,7 +61745,6 @@ document_id	token	tf
 74167	été	1
 74167	évoquant	1
 74167	être	4
-74168		17
 74168	1950	2
 74168	1980	1
 74168	2006	1
@@ -62475,7 +62222,6 @@ document_id	token	tf
 74168	étoiles	1
 74168	été	4
 74168	évidemment	2
-74169		13
 74169	1er	1
 74169	2 2	1
 74169	2007	1
@@ -62820,7 +62566,6 @@ document_id	token	tf
 74169	évidemment	1
 74169	évident	1
 74169	être	1
-74170		7
 74170	12	1
 74170	2012	1
 74170	262	1
@@ -63008,7 +62753,6 @@ document_id	token	tf
 74170	équipes	1
 74170	événement	1
 74170	îles	1
-74171		5
 74171	1	1
 74171	2008	1
 74171	a	1
@@ -63191,7 +62935,6 @@ document_id	token	tf
 74171	également	1
 74171	équipes	1
 74171	été	1
-74172		4
 74172	24	1
 74172	a	5
 74172	accompagner	1
@@ -63435,7 +63178,6 @@ document_id	token	tf
 74172	équipes	1
 74172	été	1
 74172	évidence	1
-74173		8
 74173	1	1
 74173	10	1
 74173	150 000	1
@@ -63642,7 +63384,6 @@ document_id	token	tf
 74173	à	12
 74173	équipe	1
 74173	étant	1
-74174		6
 74174	2013	1
 74174	4	1
 74174	acteurs	1
@@ -63740,7 +63481,6 @@ document_id	token	tf
 74174	à	6
 74174	également	1
 74174	étant	1
-74175		8
 74175	2	2
 74175	2013	1
 74175	2014 eco campus	1
@@ -63851,7 +63591,6 @@ document_id	token	tf
 74175	établissements	2
 74175	étudiants	1
 74175	événement	1
-74176		10
 74176	2013	1
 74176	2014	1
 74176	24	2
@@ -63988,7 +63727,6 @@ document_id	token	tf
 74176	équipes	1
 74176	étapes	2
 74176	événement	1
-74449		12
 74449	101	1
 74449	141	1
 74449	26	2
@@ -64357,7 +64095,6 @@ document_id	token	tf
 74449	été	3
 74449	évidence	1
 74449	événements	2
-74450		8
 74450	2	3
 74450	200	2
 74450	2011	2
@@ -64851,7 +64588,6 @@ document_id	token	tf
 74450	énergies	1
 74450	étant	4
 74450	été	1
-74451		6
 74451	1 9	1
 74451	100	1
 74451	12	2
@@ -65053,7 +64789,6 @@ document_id	token	tf
 74451	viveris	1
 74451	à	6
 74451	éléments	1
-74452		4
 74452	18	1
 74452	200	1
 74452	21	1
@@ -65203,7 +64938,6 @@ document_id	token	tf
 74452	virus	2
 74452	à	4
 74452	été	1
-74453		6
 74453	1	1
 74453	2005	1
 74453	30	1
@@ -65438,7 +65172,6 @@ document_id	token	tf
 74453	épileptiques	3
 74453	équipes	1
 74453	été	1
-74454		8
 74454	140	1
 74454	150 000	1
 74454	1500	1
@@ -65651,7 +65384,6 @@ document_id	token	tf
 74454	étudiant	1
 74454	été	1
 74454	évolué	1
-74455		8
 74455	7	1
 74455	a	8
 74455	accompagner	1
@@ -65991,7 +65723,6 @@ document_id	token	tf
 74455	élimination	1
 74455	étapes	1
 74455	été	1
-74456		4
 74456	2014	1
 74456	29	1
 74456	30	1
@@ -66106,7 +65837,6 @@ document_id	token	tf
 74456	économiques	1
 74456	édition	1
 74456	événement	1
-74457		10
 74457	a	3
 74457	acteurs	1
 74457	agro industries	1
@@ -66314,7 +66044,6 @@ document_id	token	tf
 74457	été	1
 74457	évolution	1
 74457	être	1
-74744		5
 74744	150 000	1
 74744	2003	1
 74744	a	5
@@ -66636,7 +66365,6 @@ document_id	token	tf
 74744	évidemment	1
 74744	évidence	1
 74744	être	1
-74745		4
 74745	1980	1
 74745	1990	1
 74745	2013	1
@@ -66933,7 +66661,6 @@ document_id	token	tf
 74745	équiper	1
 74745	équipes	1
 74745	été	5
-74746		8
 74746	10ème	1
 74746	12	1
 74746	150	1
@@ -67338,7 +67065,6 @@ document_id	token	tf
 74746	étant	2
 74746	été	4
 74746	être	1
-74747		5
 74747	300	1
 74747	accès	1
 74747	actualisées	1
@@ -67453,7 +67179,6 @@ document_id	token	tf
 74747	visibilité	1
 74747	véritable	1
 74747	à	4
-74748		9
 74748	10 000	1
 74748	1160	1
 74748	13	1
@@ -67705,7 +67430,6 @@ document_id	token	tf
 74748	été	2
 74748	événement	1
 74748	événements	1
-74749		9
 74749	1	1
 74749	1 000	1
 74749	17	1
@@ -68077,7 +67801,6 @@ document_id	token	tf
 74749	évidemment	1
 74749	évoquant	1
 74749	être	1
-74750		8
 74750	2013	1
 74750	additif	1
 74750	adhésion	2
@@ -68292,7 +68015,6 @@ document_id	token	tf
 74750	étalant	1
 74750	étonnante	1
 74750	être	2
-74751		8
 74751	2	1
 74751	5	1
 74751	aboutir	1
@@ -68475,7 +68197,6 @@ document_id	token	tf
 74751	à	12
 74751	écoles	1
 74751	émergé	1
-74752		12
 74752	20	1
 74752	2005	1
 74752	2012	1
@@ -68773,7 +68494,6 @@ document_id	token	tf
 74752	étonnant	1
 74752	étonnement	1
 74752	évolution	1
-75063		10
 75063	1991	1
 75063	20	1
 75063	2000	1
@@ -69136,7 +68856,6 @@ document_id	token	tf
 75063	évidemment	1
 75063	évoquée	1
 75063	être	3
-75064		8
 75064	1	1
 75064	2005	1
 75064	2010	1
@@ -69454,7 +69173,6 @@ document_id	token	tf
 75064	étroite	1
 75064	été	1
 75064	être	1
-75065		9
 75065	1	1
 75065	10	1
 75065	100	1
@@ -69838,7 +69556,6 @@ document_id	token	tf
 75065	étude	5
 75065	été	1
 75065	être	2
-75066		28
 75066	110	1
 75066	111	1
 75066	128	1
@@ -70092,7 +69809,6 @@ document_id	token	tf
 75066	étant	1
 75066	été	1
 75066	être	1
-75067		4
 75067	1	1
 75067	1 cnrs cea	1
 75067	3	1
@@ -70368,7 +70084,6 @@ document_id	token	tf
 75067	étant	1
 75067	évidence	1
 75067	être	1
-75068		4
 75068	14	1
 75068	154	1
 75068	2013	1
@@ -70577,7 +70292,6 @@ document_id	token	tf
 75068	établissements	1
 75068	étudiants	1
 75068	été	2
-75069		15
 75069	1	2
 75069	17	1
 75069	19	1
@@ -70914,7 +70628,6 @@ document_id	token	tf
 75069	étape	1
 75069	état	1
 75069	éviter	1
-75070		4
 75070	afin	1
 75070	ainsi	1
 75070	alors	2
@@ -71087,7 +70800,6 @@ document_id	token	tf
 75070	émise	1
 75070	émissions	1
 75070	étape	1
-75071		5
 75071	2	1
 75071	20	1
 75071	2014	1
@@ -71252,7 +70964,6 @@ document_id	token	tf
 75071	établissement	2
 75071	étudiants	1
 75071	être	1
-75457		8
 75457	1995	1
 75457	1ère	1
 75457	2013	1
@@ -71596,7 +71307,6 @@ document_id	token	tf
 75457	étudiants	7
 75457	évidemment	1
 75457	être	1
-75458		48
 75458	1	3
 75458	10	2
 75458	11	1
@@ -72294,7 +72004,6 @@ document_id	token	tf
 75458	études	1
 75458	été	6
 75458	évidemment	2
-75459		11
 75459	1992	1
 75459	2000	1
 75459	2012 2016	1
@@ -72649,7 +72358,6 @@ document_id	token	tf
 75459	époque	1
 75459	équipes	1
 75459	évidence	1
-75460		5
 75460	2011	1
 75460	4	1
 75460	a	2
@@ -72805,7 +72513,6 @@ document_id	token	tf
 75460	également	1
 75460	équipes	1
 75460	étudiée	1
-75461		5
 75461	1600	1
 75461	200	1
 75461	4	1
@@ -72980,7 +72687,6 @@ document_id	token	tf
 75461	également	1
 75461	été	1
 75461	être	1
-75462		10
 75462	3	1
 75462	5	2
 75462	9ème	1
@@ -73203,7 +72909,6 @@ document_id	token	tf
 75462	états	2
 75462	évoquant	1
 75462	être	1
-75463		12
 75463	2012	1
 75463	2020	2
 75463	2050 modification	1
@@ -73394,7 +73099,6 @@ document_id	token	tf
 75463	études	2
 75463	été	1
 75463	être	1
-75464		5
 75464	10	1
 75464	2014	1
 75464	25ème	2
@@ -73536,7 +73240,6 @@ document_id	token	tf
 75464	édition	1
 75464	élastomère	1
 75464	étude	2
-75465		8
 75465	2014	5
 75465	2ème	2
 75465	5	1
@@ -73663,7 +73366,6 @@ document_id	token	tf
 75465	à	5
 75465	édition	1
 75465	également	2
-75466		5
 75466	17ème	3
 75466	2014	1
 75466	22	1
@@ -73792,7 +73494,6 @@ document_id	token	tf
 75466	édition	3
 75466	étant	1
 75466	été	1
-75788		9
 75788	2014	1
 75788	3d	2
 75788	6	1
@@ -74095,7 +73796,6 @@ document_id	token	tf
 75788	étapes	1
 75788	évidemment	1
 75788	être	2
-75789		9
 75789	100	1
 75789	19	1
 75789	20	1
@@ -74446,7 +74146,6 @@ document_id	token	tf
 75789	éventuellement	1
 75789	évidemment	1
 75789	être	1
-75790		17
 75790	1994	1
 75790	2004	1
 75790	25	1
@@ -74757,7 +74456,6 @@ document_id	token	tf
 75790	équipes	2
 75790	étant	1
 75790	évènements	1
-75791		5
 75791	3	1
 75791	actualité	1
 75791	afin	2
@@ -74886,7 +74584,6 @@ document_id	token	tf
 75791	à	6
 75791	équipe	1
 75791	étant	1
-75792		9
 75792	0 1	1
 75792	100	2
 75792	15	1
@@ -75281,7 +74978,6 @@ document_id	token	tf
 75792	équipes	1
 75792	étant	2
 75792	étapes	1
-75793		17
 75793	1	2
 75793	100	2
 75793	178	2
@@ -75629,7 +75325,6 @@ document_id	token	tf
 75793	été	3
 75793	évoquée	1
 75793	être	4
-75794		6
 75794	1	1
 75794	220	1
 75794	30	1
@@ -75878,7 +75573,6 @@ document_id	token	tf
 75794	études	1
 75794	été	2
 75794	être	1
-75795		5
 75795	10	2
 75795	20	1
 75795	200	1
@@ -76061,7 +75755,6 @@ document_id	token	tf
 75795	également	1
 75795	énergétique	1
 75795	événement	1
-75796		9
 75796	1 000	1
 75796	1er	2
 75796	2	1
@@ -76200,7 +75893,6 @@ document_id	token	tf
 75796	émergentes	1
 75796	énergétique	1
 75796	événement	1
-75797		4
 75797	10	1
 75797	12	1
 75797	2014	1
@@ -76317,7 +76009,6 @@ document_id	token	tf
 75797	équipements	1
 75797	étroit	1
 75797	événement	1
-76206		14
 76206	a	4
 76206	ailleurs	1
 76206	ainsi	3
@@ -76650,7 +76341,6 @@ document_id	token	tf
 76206	été	2
 76206	évidemment	1
 76206	être	1
-76207		6
 76207	2005	1
 76207	40	1
 76207	a	6
@@ -76945,7 +76635,6 @@ document_id	token	tf
 76207	à	7
 76207	étions	1
 76207	été	1
-76208		7
 76208	20	1
 76208	35	1
 76208	500 000	1
@@ -77198,7 +76887,6 @@ document_id	token	tf
 76208	économique	1
 76208	équivalent	1
 76208	étant	1
-76209		14
 76209	2020	1
 76209	4	1
 76209	9ème	1
@@ -77469,7 +77157,6 @@ document_id	token	tf
 76209	été	3
 76209	évoluer	1
 76209	évoque	1
-76210		9
 76210	1	2
 76210	23	1
 76210	300	1
@@ -77716,7 +77403,6 @@ document_id	token	tf
 76210	équipe	1
 76210	étape	1
 76210	été	3
-76211		7
 76211	2014	1
 76211	a	3
 76211	acquis	1
@@ -77893,7 +77579,6 @@ document_id	token	tf
 76211	échanges	1
 76211	écosystème	1
 76211	étudiants	1
-76212		6
 76212	10	1
 76212	16	1
 76212	17	1
@@ -78013,7 +77698,6 @@ document_id	token	tf
 76212	équipes	2
 76212	étudiants	2
 76212	événement	1
-76213		22
 76213	2012	1
 76213	35	1
 76213	7	1
@@ -78418,7 +78102,6 @@ document_id	token	tf
 76213	évolué	2
 76213	évoque	1
 76213	être	1
-76507		18
 76507	150	1
 76507	17	1
 76507	1946	1
@@ -78755,7 +78438,6 @@ document_id	token	tf
 76507	étions	1
 76507	été	1
 76507	être	1
-76508		10
 76508	1	1
 76508	10	1
 76508	15	1
@@ -79142,7 +78824,6 @@ document_id	token	tf
 76508	étape	2
 76508	été	1
 76508	être	3
-76509		7
 76509	1	1
 76509	a	2
 76509	accompagner	1
@@ -79376,7 +79057,6 @@ document_id	token	tf
 76509	évocateur	1
 76509	événement	1
 76509	être	1
-76510		7
 76510	20 000	1
 76510	2002	1
 76510	2011	1
@@ -79602,7 +79282,6 @@ document_id	token	tf
 76510	électrique	2
 76510	été	1
 76510	être	1
-76511		16
 76511	1989	1
 76511	25	1
 76511	3	2
@@ -80113,7 +79792,6 @@ document_id	token	tf
 76511	été	2
 76511	éviter	1
 76511	être	3
-76512		9
 76512	10	1
 76512	2	1
 76512	20	1
@@ -80276,7 +79954,6 @@ document_id	token	tf
 76512	étape	1
 76512	été	1
 76512	évidence	1
-76513		8
 76513	2013	1
 76513	3d	2
 76513	accessible	1
@@ -80438,7 +80115,6 @@ document_id	token	tf
 76513	établissement	2
 76513	établissements	1
 76513	étudiants	5
-76514		9
 76514	2009	1
 76514	2014	1
 76514	30	1
@@ -80585,7 +80261,6 @@ document_id	token	tf
 76514	également	1
 76514	évoquées	1
 76514	événement	1
-76515		9
 76515	15	2
 76515	16	1
 76515	17	1
@@ -80722,7 +80397,6 @@ document_id	token	tf
 76515	à	2
 76515	évidemment	1
 76515	événement	1
-76516		6
 76516	2014	1
 76516	24	1
 76516	25	1

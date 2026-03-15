@@ -126,8 +126,9 @@ class CorpusSegmenter:
             tokenlist = [self.simplify(token) for token in tokenlist]
 
             for token in tokenlist:
-                doc_dict["document_id"].append(id)
-                doc_dict["token"].append(token)
+                if token is not None and token != "":
+                    doc_dict["document_id"].append(id)
+                    doc_dict["token"].append(token)
         df = pd.DataFrame(doc_dict)
         self.table = df
 
