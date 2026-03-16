@@ -133,6 +133,48 @@ class CorpusSegmenter:
         self.table = df
 
 
+class DataCleaner:
+    def __init__(
+        self,
+    ):
+        self.stopwords: set | None = None
+        self.sub_tab: pd.DataFrame | None = None
+
+    def build_stopwords(self, tf_idf: pd.DataFrame):
+        """Builds the stopword set from data"""
+        # For now we only use tf-idf mean bottom 100 words as stop words.
+        # TODO - Review how we select stop words from statistics
+        N = 100
+        stopwords = (
+            tf_idf.groupby("token")["tf_idf"]
+            .mean()
+            .sort_values()
+            .iloc[0:N]
+            .index.to_list()
+        )
+        self.stopwords = set(stopwords)
+        return self.stopwords
+
+    def build_sub_tab(self, token_list: list):
+        """Builds the table with two columns one for the orinal token and one for the replacement with empty string if its a stop word"""
+        assert self.stopwords is not None, (
+            "Run build_stopwords before this function. Stopwords must be defined."
+        )
+
+        sub_tab: dict[str, list[str]] = {"token": [], "sub": []}
+        for token in token_list:
+            sub_tab["token"].append(token)
+            if token in self.stopwords:
+                sub_tab["sub"].append("")
+            else:
+                # for now if its not to be substituted we just leave the token as is
+                # TODO - Implement stemming ?
+                sub_tab["sub"].append(token)
+        self.sub_tab = pd.DataFrame(sub_tab)
+
+        return self.sub_tab
+
+
 if __name__ == "__main__":
     import argparse
     import os
@@ -156,9 +198,15 @@ if __name__ == "__main__":
 
     # Processing
     processor = TFIDFProcessor(segmenter.get_table())
-    processor.compute_tf()
-    processor.compute_idf()
-    processor.compute_tf_idf()
+    tf = processor.compute_tf()
+    idf = processor.compute_idf()
+    tf_idf = processor.compute_tf_idf()
 
     # Persistence
     processor.save(args.outdir)
+
+    # make stop words list from computed metrics
+    cleaner = DataCleaner()
+    cleaner.build_stopwords(tf_idf)
+    sub_tab = cleaner.build_sub_tab(idf["token"].unique())
+    print(sub_tab)
