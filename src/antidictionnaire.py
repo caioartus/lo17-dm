@@ -8,7 +8,7 @@ from pathlib import Path
 def simplify(sent: str) -> str:
     sent = sent.lower()  # Conversion en minuscules
     sent = re.sub(r"\W+", "", sent)  # Suppression des caractères spéciaux
-    return sent.strip().strip("\n")
+    return sent.strip("\n").strip()
 
 
 def simplify_many(tokenlist: list[str]) -> list:
@@ -148,7 +148,8 @@ class DataCleaner:
         self,
     ):
         self.stopwords: set | None = None
-        self.sub_dict: dict = None
+        self.sub_table: pd.DataFrame = None
+        self.clean_xml = None
 
     def build_stopwords(self, tf_idf: pd.DataFrame):
         """Builds the stopword set from data"""
@@ -165,26 +166,27 @@ class DataCleaner:
         self.stopwords = set(stopwords)
         return self.stopwords
 
-    def build_sub_dict(self, token_list: list):
+    def build_sub_table(self, token_list: list, outpath: str | Path):
         """Builds the dict for replacements"""
         assert self.stopwords is not None, (
             "Run build_stopwords before this function. Stopwords must be defined."
         )
-
-        sub_dict: dict[str, str] = {}
+        subs: dict[str, list[str]] = {"token": [], "sub": []}
         for token in token_list:
+            subs["token"].append(token)
             if token in self.stopwords:
-                sub_dict[token] = ""
+                subs["sub"].append("")
             else:
                 # for now if its not to be substituted we just leave the token as is
                 # TODO - Implement stemming ?
-                sub_dict[token] = token
-        self.sub_dict = sub_dict
+                subs["sub"].append(token)
+        self.sub_table = pd.DataFrame(subs)
+        self.sub_table.to_csv(outpath, sep="\t", index=False)
+        return self.sub_table
 
-        return self.sub_dict
-
-    def make_clean_xml(self, input_path: str, output_path: str):
+    def substitute(self, input_path: str):
         """Builds cleaned XML from original XML, cleaning the contents of title and text sections"""
+        sub_dict = self.sub_table.set_index("token").T.to_dict(orient="records")[0]
         tree = etree.ElementTree().parse(input_path)
         for document in tree.iter("document"):
             titre_elem = document.find("titre")
@@ -192,20 +194,28 @@ class DataCleaner:
             if titre_elem is None or texte_elem is None:
                 raise ValueError("Nones found, make sure corpus is correctly parsed.")
             if titre_elem.text is not None:
-                cleaned_tokens = [
-                    self.sub_dict.get(tok, tok)
-                    for tok in split_and_simplify(titre_elem.text)
-                    if tok
-                ]
+                cleaned_tokens = []
+                for tok in split_and_simplify(titre_elem.text):
+                    sub = sub_dict.get(tok, tok)
+                    if sub != "":
+                        cleaned_tokens.append(sub)
                 titre_elem.text = " ".join(cleaned_tokens)
+
             if texte_elem.text is not None:
-                cleaned_tokens = [
-                    self.sub_dict.get(tok, tok)
-                    for tok in split_and_simplify(texte_elem.text)
-                    if tok
-                ]
+                cleaned_tokens = []
+                for tok in split_and_simplify(texte_elem.text):
+                    sub = sub_dict.get(tok, tok)
+                    if sub != "":
+                        cleaned_tokens.append(sub)
                 texte_elem.text = " ".join(cleaned_tokens)
-        return etree.tostring(tree, pretty_print=True)
+        self.clean_xml = etree.tostring(tree, pretty_print=True, encoding="unicode")
+        return self.clean_xml
+
+    def save_xml(self, path: str | Path) -> None:
+        """Save in XML file"""
+        path = Path(path)
+        with open(path, "w") as f:
+            f.write(self.clean_xml)
 
 
 if __name__ == "__main__":
@@ -241,7 +251,9 @@ if __name__ == "__main__":
     # make stop words list from computed metrics
     cleaner = DataCleaner()
     cleaner.build_stopwords(tf_idf)
-    cleaner.build_sub_dict(idf["token"].unique())
+    cleaner.build_sub_table(
+        idf["token"].unique(), os.path.join(args.outdir, "sub_table.tsv")
+    )
 
-    print(cleaner.make_clean_xml(args.input, ""))
-    print(cleaner.stopwords)
+    cleaner.substitute(args.input)
+    cleaner.save_xml(os.path.join(args.outdir, "clean_corpus.xml"))
