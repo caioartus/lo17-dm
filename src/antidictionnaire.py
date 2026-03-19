@@ -3,24 +3,9 @@ import numpy as np
 from lxml import etree
 import re
 from pathlib import Path
-
-
-def simplify(sent: str) -> str:
-    sent = sent.lower()  # Conversion en minuscules
-    sent = re.sub(r"\W+", "", sent)  # Suppression des caractères spéciaux
-    return sent.strip("\n").strip()
-
-
-def simplify_many(tokenlist: list[str]) -> list:
-    return [simplify(tok) for tok in tokenlist]
-
-
-def split_and_simplify(text: str) -> list[str]:
-    delimiters = ["'", "-", " "]
-    pattern = "|".join(re.escape(d) for d in delimiters)
-    result = re.split(pattern, text)
-    result = simplify_many(result)
-    return result
+import nltk
+from nltk.stem.snowball import SnowballStemmer
+from Tokenizer import CorpusTokenizer
 
 
 class TFIDFProcessor:
@@ -54,10 +39,8 @@ class TFIDFProcessor:
 
     def compute_idf(self) -> pd.DataFrame:
         """
-        Calcule l'IDF (inverse document frequency) pour chaque token.
-        idf_t = log10(N / df_t)
-            - N = nombre total de documents
-            - df_t = nombre de documents contenant le token t
+        Calcule l'IDF (idf_t = log10(N / df_t)) pour chaque token.
+        avec : N = nb_doc, df_t = nb_doc_with_t
         """
         N = self.tokens["document_id"].nunique()
 
@@ -75,7 +58,7 @@ class TFIDFProcessor:
     def compute_tf_idf(self) -> pd.DataFrame:
         """
         Calcule le TF-IDF pour chaque couple (document, token).
-        tfidf_{t,d} = tf_{t,d} × idf_t
+        tfidf_{t,d} = tf_{t,d} x idf_t
         """
         if self.tf is None:
             raise RuntimeError("TF non calculé. Appelez compute_tf() d'abord.")
@@ -84,8 +67,13 @@ class TFIDFProcessor:
 
         merged = self.tf.merge(self.idf, on="token", how="left")
         merged["tf_idf"] = merged["tf"] * merged["idf"]
-
-        self.tf_idf = merged[["document_id", "token", "tf_idf"]]
+        self.tf_idf = merged[
+            [
+                "document_id",
+                "token",
+                "tf_idf",
+            ]
+        ]
         return self.tf_idf
 
     def save(self, directory: str | Path):
@@ -98,58 +86,10 @@ class TFIDFProcessor:
         self.idf.to_csv(os.path.join(directory, "idf.tsv"), sep="\t", index=False)
 
 
-class CorpusSegmenter:
+class AntiDict:
     def __init__(self):
-        self.xml_path = None
-        self.tree = None
-        self.table: pd.DataFrame | None = None
-
-    def get_table(self) -> pd.DataFrame:
-        return self.table
-
-    def load_xml(self, path: str):
-        self.tree = etree.ElementTree().parse(path)
-
-    def segment(self):
-        """Tokenises document and creates id, token dataframe"""
-        doc_dict: dict = {"document_id": [], "token": []}
-        for document in self.tree.iter("document"):
-            article_elem = document.find("article")
-
-            texte_elem = document.find("texte")
-            title_elem = document.find("titre")
-
-            if (
-                article_elem is None
-                or article_elem.text is None
-                or texte_elem is None
-                or title_elem is None
-            ):
-                raise ValueError("Error during parsing, None found in elements.")
-
-            id = int(article_elem.text)
-            # concat title and text t
-            all_text = str(texte_elem.text) + str(title_elem.text)
-            all_text = str(texte_elem.text) + str(title_elem.text)
-
-            # split and simplify the tokens
-            tokenlist = split_and_simplify(all_text)
-
-            for token in tokenlist:
-                if token is not None and token != "":
-                    doc_dict["document_id"].append(id)
-                    doc_dict["token"].append(token)
-        df = pd.DataFrame(doc_dict)
-        self.table = df
-
-
-class DataCleaner:
-    def __init__(
-        self,
-    ):
         self.stopwords: set | None = None
         self.sub_table: pd.DataFrame = None
-        self.clean_xml = None
 
     def build_stopwords(self, tf_idf: pd.DataFrame):
         """Builds the stopword set from data"""
@@ -166,7 +106,7 @@ class DataCleaner:
         self.stopwords = set(stopwords)
         return self.stopwords
 
-    def build_sub_table(self, token_list: list, outpath: str | Path):
+    def build_sub_table(self, token_list: list):
         """Builds the dict for replacements"""
         assert self.stopwords is not None, (
             "Run build_stopwords before this function. Stopwords must be defined."
@@ -181,12 +121,18 @@ class DataCleaner:
                 # TODO - Implement stemming ?
                 subs["sub"].append(token)
         self.sub_table = pd.DataFrame(subs)
-        self.sub_table.to_csv(outpath, sep="\t", index=False)
         return self.sub_table
 
-    def substitute(self, input_path: str):
-        """Builds cleaned XML from original XML, cleaning the contents of title and text sections"""
-        sub_dict = self.sub_table.set_index("token").T.to_dict(orient="records")[0]
+
+class DataCleaner:
+    """A MODIFIER -> SEPARER LA LOGIQUE"""
+
+    def __init__(self):
+        self.anti_dict: AntiDict = None
+        self.clean_xml = None
+
+    def apply_treatment(self, input_path: str, treatment_func):
+        """Applies a text treatment function to the title and text sections of the XML."""
         tree = etree.ElementTree().parse(input_path)
         for document in tree.iter("document"):
             titre_elem = document.find("titre")
@@ -194,22 +140,38 @@ class DataCleaner:
             if titre_elem is None or texte_elem is None:
                 raise ValueError("Nones found, make sure corpus is correctly parsed.")
             if titre_elem.text is not None:
-                cleaned_tokens = []
-                for tok in split_and_simplify(titre_elem.text):
-                    sub = sub_dict.get(tok, tok)
-                    if sub != "":
-                        cleaned_tokens.append(sub)
-                titre_elem.text = " ".join(cleaned_tokens)
-
+                titre_elem.text = treatment_func(titre_elem.text)
             if texte_elem.text is not None:
-                cleaned_tokens = []
-                for tok in split_and_simplify(texte_elem.text):
-                    sub = sub_dict.get(tok, tok)
-                    if sub != "":
-                        cleaned_tokens.append(sub)
-                texte_elem.text = " ".join(cleaned_tokens)
+                texte_elem.text = treatment_func(texte_elem.text)
         self.clean_xml = etree.tostring(tree, pretty_print=True, encoding="unicode")
         return self.clean_xml
+
+    def build_anti_dict(self, tf_idf: pd.DataFrame, outpath: str | None):
+        self.anti_dict = AntiDict()
+        self.anti_dict.build_stopwords(tf_idf)
+        self.anti_dict.build_sub_table(tf_idf["token"].unique().tolist())
+        if outpath is not None:
+            self.anti_dict.sub_table.to_csv(outpath, sep="\t", index=False)
+        return self.anti_dict.sub_table
+
+    def substitute(self, input_path: str):
+        """Builds cleaned XML from original XML, cleaning the contents of title and text sections"""
+
+        assert self.anti_dict is not None, "Must run build_anti_dict before."
+
+        sub_dict = self.anti_dict.sub_table.set_index("token").T.to_dict(
+            orient="records"
+        )[0]
+
+        def treatment(text):
+            cleaned_tokens = []
+            for tok in CorpusTokenizer.tokenize(text):
+                sub = sub_dict.get(tok, tok)
+                if sub != "":
+                    cleaned_tokens.append(sub)
+            return " ".join(cleaned_tokens)
+
+        return self.apply_treatment(input_path, treatment)
 
     def save_xml(self, path: str | Path) -> None:
         """Save in XML file"""
@@ -221,7 +183,6 @@ class DataCleaner:
 if __name__ == "__main__":
     import argparse
     import os
-    from pathlib import Path
 
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -235,9 +196,9 @@ if __name__ == "__main__":
     os.makedirs(out, exist_ok=True)
 
     # Initialization
-    segmenter = CorpusSegmenter()
+    segmenter = CorpusTokenizer()
     segmenter.load_xml(args.input)
-    segmenter.segment()
+    segmenter.tokenize_corpus()
 
     # Processing
     processor = TFIDFProcessor(segmenter.get_table())
@@ -250,10 +211,8 @@ if __name__ == "__main__":
 
     # make stop words list from computed metrics
     cleaner = DataCleaner()
-    cleaner.build_stopwords(tf_idf)
-    cleaner.build_sub_table(
-        idf["token"].unique(), os.path.join(args.outdir, "sub_table.tsv")
-    )
+
+    cleaner.build_anti_dict(tf_idf, outpath=os.path.join(args.outdir, "sub_table.tsv"))
 
     cleaner.substitute(args.input)
     cleaner.save_xml(os.path.join(args.outdir, "clean_corpus.xml"))
