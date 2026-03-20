@@ -27,6 +27,14 @@ Justification :
 - Les bulletins n'ont pas vraiment de lien entre eux
 - Filtrage probablement plus efficace
 
+
+## Choix du seuil tf-idf
+
+- Nous avons choisi le seuil de 0.7 de tf-idf moyen pour considérer un mot comme un stop word.
+Ce seuil a été choisi après une analyse qualitative révélant que certains mots spécifiques commencent à apparaitre après ce seuil comme "laboratoire" "chercheurs" et "actualité".
+
+- Il est a noté que ces mots restent très communs dans au vu du sujet des documents. De plus, certains mots clairement non intérréssants persistent même au dessus du seuil. Il s'agit d'un choix conservatif pour préserver au maximum les mots qui ont du sens au risk d'inclure des mots moins interressants.
+
 #### Pourquoi sauvegarder en CSV entre les étapes ?
 
 - Traçabilité : Tu peux vérifier chaque fichier, l’ouvrir, l’inspecter, le versionner.

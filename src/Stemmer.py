@@ -6,11 +6,15 @@ import os
 import fr_core_news_sm
 from Tokenizer import CorpusTokenizer
 
+
 class Stemmer:
     def __init__(self):
         pass
 
-    def stem(self, text: str):
+    def make_table(self, text: str) -> pd.DataFrame:
+        raise NotImplementedError()
+
+    def transform(self, text: str) -> str:
         raise NotImplementedError()
 
 
@@ -18,7 +22,7 @@ class SpacyStemmer(Stemmer):
     def __init__(self):
         self.nlp = fr_core_news_sm.load()
 
-    def stem(self, text: str):
+    def make_table(self, text: str):
         table: dict[str, list[str]] = {"token": [], "lemma": []}
         doc = self.nlp(text)
 
@@ -38,9 +42,17 @@ class SnowStemmer(Stemmer):
     def __init__(self):
         self.model = SnowballStemmer("french")
 
-    def stem(self, text: str):
+    def transform(self, text: str) -> str:
+        doc = CorpusTokenizer.tokenize(text)
+        stemmed = []
+        for word in doc:
+            stemmed.append(self.model.stem(word))
+        self.stemed_tokens = stemmed
+        return " ".join(self.stemed_tokens)
+
+    def make_table(self, text: str):
         table: dict[str, list[str]] = {"token": [], "lemma": []}
-        doc = 
+        doc = CorpusTokenizer.tokenize(text)
         for word in doc:
             table["token"].append(word)
             table["lemma"].append(self.model.stem(word))
@@ -50,26 +62,21 @@ class SnowStemmer(Stemmer):
         return self.lemma_table
 
 
-def stemming_demo():
-
-    # Initialize stemmer for English
-    stemmer = SnowballStemmer("french")
-
-    # Test words with different morphological patterns
-    test_words = ["cours", "courir", "coureur", "courons", "courera"]
-
-    print("Basic Stemming Results:")
-    print("-" * 30)
-    for word in test_words:
-        stem = stemmer.stem(word)
-        print(f"{word:12} → {stem}")
-
-
 def main():
     stemmer = SpacyStemmer()
     res = stemmer.stem(
         "J'aime bien manger des frites a la mayonnaise, un maillot de bain et un morceau de pain, avec des pains au vin il vint",
     )
+    print("SPACY : ")
+    print(res)
+
+    stemmer = SnowStemmer()
+
+    res = stemmer.stem(
+        "J'aime bien manger des frites a la mayonnaise, un maillot de bain et un morceau de pain, avec des pains au vin il vint",
+    )
+
+    print("Snow : ")
     print(res)
 
 

@@ -1,10 +1,7 @@
 import pandas as pd
 import numpy as np
 from lxml import etree
-import re
 from pathlib import Path
-import nltk
-from nltk.stem.snowball import SnowballStemmer
 from Tokenizer import CorpusTokenizer
 
 
@@ -93,17 +90,12 @@ class AntiDict:
 
     def build_stopwords(self, tf_idf: pd.DataFrame):
         """Builds the stopword set from data"""
-        # For now we only use tf-idf mean bottom 100 words as stop words.
-        # TODO - Review how we select stop words from statistics
-        N = 100
-        stopwords = (
-            tf_idf.groupby("token")["tf_idf"]
-            .mean()
-            .sort_values()
-            .iloc[0:N]
-            .index.to_list()
-        )
+
+        thresh = 0.7
+        mean_tfidf = tf_idf.groupby("token").mean()
+        stopwords = mean_tfidf[mean_tfidf["tf_idf"] <= thresh].index.to_list()
         self.stopwords = set(stopwords)
+        print(stopwords)
         return self.stopwords
 
     def build_sub_table(self, token_list: list):
