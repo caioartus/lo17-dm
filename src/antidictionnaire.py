@@ -95,7 +95,6 @@ class AntiDict:
         mean_tfidf = tf_idf.groupby("token").mean()
         stopwords = mean_tfidf[mean_tfidf["tf_idf"] <= thresh].index.to_list()
         self.stopwords = set(stopwords)
-        print(stopwords)
         return self.stopwords
 
     def build_sub_table(self, token_list: list):
