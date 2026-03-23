@@ -29,13 +29,9 @@ class SpacyStemmer(Stemmer):
         spaces = [True] * (len(tokens) - 1) + [False]
         doc = spacy.tokens.Doc(self.nlp.vocab, words=tokens, spaces=spaces)
         doc = self.nlp(doc)
-        seen: set[str] = set()
         for word in doc:
-            if word.text not in seen:
-                seen.add(word.text)
-                table["token"].append(word.text)
-                table["lemma"].append(word.lemma_)
-
+            table["token"].append(word.text)
+            table["lemma"].append(word.lemma_)
         self.lemma_table = pd.DataFrame(table)
 
         return self.lemma_table
@@ -59,12 +55,9 @@ class SnowStemmer(Stemmer):
     def make_table(self, text: str):
         table: dict[str, list[str]] = {"token": [], "lemma": []}
         doc = CorpusTokenizer.tokenize(text)
-        seen: set[str] = set()
         for word in doc:
-            if word not in seen:
-                seen.add(word)
-                table["token"].append(word)
-                table["lemma"].append(self.model.stem(word))
+            table["token"].append(word)
+            table["lemma"].append(self.model.stem(word))
 
         self.lemma_table = pd.DataFrame(table)
 
@@ -73,8 +66,12 @@ class SnowStemmer(Stemmer):
 
 def main():
     """Generation de tableaux token, lemme pour analyse"""
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+
     all_text = []
-    tree = etree.ElementTree().parse("../outputs/clean_corpus.xml")
+    tree = etree.ElementTree().parse(
+        os.path.join(script_dir, "../outputs/clean_corpus.xml")
+    )
     for document in tree.iter("document"):
         titre_elem = document.find("titre")
         texte_elem = document.find("texte")
@@ -89,13 +86,13 @@ def main():
 
     stemmer = SpacyStemmer()
     stemmer.make_table(all_text_str).to_csv(
-        "../outputs/spacy_stems.tsv", sep="\t", index=False
+        os.path.join(script_dir, "../outputs/spacy_stems.tsv"), sep="\t", index=False
     )
 
     stemmer = SnowStemmer()
 
     stemmer.make_table(all_text_str).to_csv(
-        "../outputs/snow_stems.tsv", sep="\t", index=False
+        os.path.join(script_dir, "../outputs/snow_stems.tsv"), sep="\t", index=False
     )
 
 

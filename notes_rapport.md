@@ -16,6 +16,11 @@ Pour l'information de contact, la structure n'est pas bien définie donc nous aj
 
 Nous utilisons etree de lxml pour construire le fichier html.
 
+## Tokenisation
+
+Separation du text selon " ", "-" et '.
+Object CorpusTokeniser pour centraliser la logique en cas de changements.
+
 ## Anti-Dictionnaire
 
 Choix de la granularité (document = article ou bulletin)
@@ -41,3 +46,15 @@ Ce seuil a été choisi après une analyse qualitative révélant que certains m
 - Reproductibilité : Si une étape change, tu ne recalcules pas tout depuis zéro.
 - Séparation claire des tâches : Chaque fichier correspond exactement à une question du sujet.
 - Compatibilité : CSV = lisible par n’importe quel outil (Excel, R, scripts bash, etc.).
+
+## Analyse SpaCy vs SnowBall : 
+
+Le corpus contient 14344 tokens unique avec notre méthode de séparation.
+
+Avec le lemmatizeur SpaCy nous avons 11285 lemmes uniques;
+Avec SnowBall nous avons 9046 racines uniques;
+Ainsi SpaCy conserve une plus grande compléxité dans le text, chaque lemme correspond en moyenne moins de mots qu'une racine de SnowBall. 
+
+En regardant la distribution de Pareto (% du dictonnaire nescessaire pour couvrir le x% du corpus) on peut voir la différence en distribution des différentes méthodes.
+// TODO - see how to interpret better
+![alt text](image.png)
