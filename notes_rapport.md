@@ -55,6 +55,30 @@ Avec le lemmatizeur SpaCy nous avons 11285 lemmes uniques;
 Avec SnowBall nous avons 9046 racines uniques;
 Ainsi SpaCy conserve une plus grande compléxité dans le text, chaque lemme correspond en moyenne moins de mots qu'une racine de SnowBall. 
 
-En regardant la distribution de Pareto (% du dictonnaire nescessaire pour couvrir le x% du corpus) on peut voir la différence en distribution des différentes méthodes.
-// TODO - see how to interpret better
+En regardant la distribution de Pareto (% du dictonnaire nescessaire pour couvrir le x% du corpus) on peut voir la différence en distribution des différentes méthodes. On voit que les courbes sont globalements similaires, mais que le plus le dictionnaire est restreint le plus une petite partie des mots est sur-représenté et correspond a une grande partie du corpus. On a donc Snowball qui a la distribution la plus extrème suivi de proche par SpaCy. 
+
+Il est intérréssant de noter que l'on voit bien que environ 20% des tokens représentent 80% du corpus, c'est le principe des 80-20.
+
+Il faut tenir compte que nous appliqué les outils sur le corpus entier, avec les stop words toujours présentes.
+
 ![alt text](image.png)
+
+## Choix
+
+// TODO - Voir ce choix ensemble pour décider pour de vrai
+
+Nous avons opté pour Spacy car celui ci garde mieux la nuance des termes. En effet quantitativement on observe que il y a plus de lemmes uniques, et qualitativement certains mots ne devrai pas être traités comme les même mais le sont avec le Stemmer Snowball (exemple optim fait référence a optimisation et optimiste, ce qui n'ont rien a voir).
+
+Avec SpaCy on perd probablement en recall (il faut être plus précis dans sa recherche) mais on gagne en précision (moins de documents non pertinents.)
+
+## Nouveaux stop words
+
+En appliquant dans un notebook TF-IDF aux tableau des tokens transformés en lemmes avec SpaCy, nous observons l'emergence de nouveaux termes non intérréssants avec des faibles TF-IDF.
+Par exemple 'permettre' avait un TD-IDF moyen de 0.92 avant la lemmatization. Après ce chiffre est passé à 0.42, représentant un très forte baisse.
+
+Cela s'explique par le fait que avec la lemmatization les termes dérivés tels que 'permis', 'permettent', 'permet' etc. sont tous transformés à l'infinitif, augmentant ainsi la frequence d'appartition de 'permettre' a l'infinitif.
+
+De même pour 'son', un terme qui n'était que très peu présent dans le corpus original mais qui englobe désormais les 'leurs', 'leur', 'sa' etc.
+
+En maintenant le même seuil de $tf-idf \le 0.7$ nous parvenons à éliminer des nouveau mots non porteur de sens dans ce context.
+

@@ -1,8 +1,9 @@
-import pandas as pd
-from lxml import etree
+import os
 import re
 from pathlib import Path
-import os
+
+import pandas as pd
+from lxml import etree
 
 
 class CorpusTokenizer:
@@ -16,7 +17,7 @@ class CorpusTokenizer:
     def get_table(self) -> pd.DataFrame | None:
         return self.table
 
-    def load_xml(self, path: str):
+    def load_xml(self, path: str | Path):
         self.tree = etree.ElementTree().parse(path)
 
     @staticmethod
@@ -35,7 +36,11 @@ class CorpusTokenizer:
         delimiters = ["'", "-", " "]
         pattern = "|".join(re.escape(d) for d in delimiters)
         result = re.split(pattern, text)
-        result = CorpusTokenizer.simplify_many(result)
+        result = [
+            tok
+            for tok in CorpusTokenizer.simplify_many(result)
+            if tok != "" and tok is not None
+        ]
         return result
 
     def tokenize_corpus(self):

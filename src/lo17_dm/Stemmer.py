@@ -1,11 +1,11 @@
-import nltk
-from nltk.stem.snowball import SnowballStemmer
-import spacy
-import pandas as pd
 import os
+
 import fr_core_news_sm
-from Tokenizer import CorpusTokenizer
-from lxml import etree
+import pandas as pd
+import spacy
+from nltk.stem.snowball import SnowballStemmer
+
+from .Tokenizer import CorpusTokenizer
 
 
 class Stemmer:
@@ -25,7 +25,11 @@ class SpacyStemmer(Stemmer):
 
     def make_table(self, text: str):
         table: dict[str, list[str]] = {"token": [], "lemma": []}
-        tokens = CorpusTokenizer.tokenize(text)
+        tokens = [tok for tok in CorpusTokenizer.tokenize(text) if tok]
+        if not tokens:
+            self.lemma_table = pd.DataFrame(table)
+            return self.lemma_table
+
         spaces = [True] * (len(tokens) - 1) + [False]
         doc = spacy.tokens.Doc(self.nlp.vocab, words=tokens, spaces=spaces)
         doc = self.nlp(doc)
@@ -37,7 +41,11 @@ class SpacyStemmer(Stemmer):
         return self.lemma_table
 
     def save_table(self, outdir: str):
-        self.lemma_table.to_csv(os.path.join(outdir, "sapcy_table.tsv"), sep="\t")
+        self.lemma_table.to_csv(os.path.join(outdir, "spacy_table.tsv"), sep="\t")
+
+    def transform(self, text: str) -> str:
+        lemma_table = self.make_table(text)
+        return " ".join(lemma_table["lemma"].astype(str).tolist())
 
 
 class SnowStemmer(Stemmer):
@@ -62,39 +70,3 @@ class SnowStemmer(Stemmer):
         self.lemma_table = pd.DataFrame(table)
 
         return self.lemma_table
-
-
-def main():
-    """Generation de tableaux token, lemme pour analyse"""
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-
-    all_text = []
-    tree = etree.ElementTree().parse(
-        os.path.join(script_dir, "../outputs/clean_corpus.xml")
-    )
-    for document in tree.iter("document"):
-        titre_elem = document.find("titre")
-        texte_elem = document.find("texte")
-        if titre_elem is None or texte_elem is None:
-            raise ValueError("Nones found, make sure corpus is correctly parsed.")
-        if titre_elem.text is not None:
-            all_text.append(titre_elem.text)
-        if texte_elem.text is not None:
-            all_text.append(texte_elem.text)
-
-    all_text_str = " ".join(all_text)
-
-    stemmer = SpacyStemmer()
-    stemmer.make_table(all_text_str).to_csv(
-        os.path.join(script_dir, "../outputs/spacy_stems.tsv"), sep="\t", index=False
-    )
-
-    stemmer = SnowStemmer()
-
-    stemmer.make_table(all_text_str).to_csv(
-        os.path.join(script_dir, "../outputs/snow_stems.tsv"), sep="\t", index=False
-    )
-
-
-if __name__ == "__main__":
-    main()

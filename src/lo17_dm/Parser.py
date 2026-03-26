@@ -1,7 +1,5 @@
-import html
 import os.path
 import re
-from os import makedirs
 from pathlib import Path
 
 from bs4 import BeautifulSoup
@@ -144,29 +142,3 @@ class CorpusParser:
         path = Path(path)
         with open(path, "w") as f:
             f.write(self.xml_str)
-
-
-if __name__ == "__main__":
-    import argparse
-
-    argparser = argparse.ArgumentParser()
-    argparser.add_argument(
-        "--input", help="Path to folder containing all of the html files", required=True
-    )
-    argparser.add_argument(
-        "--outdir",
-        help="Path to directory where output xml file will be saved",
-        required=False,
-        default="./outputs",
-    )
-    args = argparser.parse_args()
-
-    input = Path(args.input)
-    out = Path(args.outdir)
-    makedirs(out, exist_ok=True)
-
-    corpus = CorpusParser(input)
-    corpus.parseFiles()
-    corpus.makeXML()
-    corpus.save_xml(os.path.join(out, "corpus.xml"))
-    print("Saved XML to ", out)
