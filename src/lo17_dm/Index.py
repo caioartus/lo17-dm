@@ -1,13 +1,17 @@
-from lxml import etree
+from collections import Counter
 from pathlib import Path
-from lo17_dm.Tokenizer import CorpusTokenizer
+
+from lxml import etree
 import pandas as pd
+
+from lo17_dm.Tokenizer import CorpusTokenizer
 
 
 class Index:
     def __init__(self):
         self.xml_tree: etree._Element | None = None
-        self.index_dict: dict = {}
+        self.titre_dict: dict = {}
+        self.texte_dict: dict = {}
 
     def load_xml(self, path: str | Path):
         path = Path(path)
@@ -15,19 +19,25 @@ class Index:
             raise FileNotFoundError("Path provided does not exist")
         self.xml_tree = etree.ElementTree().parse(path)
 
-    def treat_field(self, text: str, document_id: int) -> None:
-        """Traite un champ de text en mettant a jour le dict interne"""
-
-        tokenlist = CorpusTokenizer.tokenize(text)
-        for tok in tokenlist:
-            if tok not in self.index_dict.keys():
-                self.index_dict[tok] = [document_id]
+    def treat_field(self, text: str, document_id: int, index_dict: dict) -> dict:
+        """Traite un champ de text, retourne le dictionnaire mis a jour"""
+        token_counts = Counter(CorpusTokenizer.tokenize(text))
+        for tok, count in token_counts.items():
+            if tok not in index_dict:
+                index_dict[tok] = {"freq": count, "docs": [document_id]}
             else:
-                self.index_dict[tok].append(document_id)
+                index_dict[tok]["freq"] += count
+                if document_id not in index_dict[tok]["docs"]:
+                    index_dict[tok]["docs"].append(document_id)
+        return index_dict
 
-    def build(self, output_path: str | Path):
+    def build(self, output_dir: str | Path):
         """Construit l'index inversé pour le titre et le text"""
         assert self.xml_tree is not None, "Load XML before calling this function"
+
+        output_dir = Path(output_dir)
+        if not output_dir.exists():
+            raise FileNotFoundError("Output directory doesn't exist.")
 
         for document in self.xml_tree.iter("document"):
             article_elem = document.find("article")
@@ -44,7 +54,27 @@ class Index:
             doc_id = int(article_elem.text)
 
             if titre_elem.text is not None:
-                self.treat_field(titre_elem.text, doc_id)
+                self.titre_dict = self.treat_field(
+                    titre_elem.text, doc_id, self.titre_dict
+                )
 
             if texte_elem.text is not None:
-                self.treat_field(texte_elem.text, doc_id)
+                self.texte_dict = self.treat_field(
+                    texte_elem.text, doc_id, self.texte_dict
+                )
+
+            self.save_to_tsv(self.titre_dict, output_dir / "index_titre.tsv")
+            self.save_to_tsv(self.texte_dict, output_dir / "index_texte.tsv")
+
+    def save_to_tsv(self, index_dict: dict, path: str | Path):
+        data = []
+        for token, info in index_dict.items():
+            data.append(
+                {
+                    "token": token,
+                    "freq": info["freq"],
+                    "docs": ",".join(map(str, info["docs"])),
+                }
+            )
+        df = pd.DataFrame(data)
+        df.to_csv(path, sep="\t", index=False)
