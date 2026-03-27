@@ -1,10 +1,20 @@
 import pandas as pd
+from pathlib import Path
 
 
 class AntiDict:
     def __init__(self):
-        self.stopwords: set | None = None
+        self.stopwords: set = None
         self.sub_table: pd.DataFrame = None
+
+    def build_from_file(self, path: str | Path):
+        path = Path(path)
+        if not path.exists():
+            raise FileNotFoundError("Path not found")
+        self.sub_table = pd.read_csv(path, sep="\t")
+        self.stopwords = set(
+            self.sub_table[self.sub_table["sub"].isna()]["token"].to_list()
+        )
 
     def build_stopwords(self, tf_idf: pd.DataFrame):
         """Builds the stopword set from data"""
@@ -27,8 +37,6 @@ class AntiDict:
             if token in self.stopwords:
                 subs["sub"].append("")
             else:
-                # for now if its not to be substituted we just leave the token as is
-                # TODO - Implement stemming ?
                 subs["sub"].append(token)
         self.sub_table = pd.DataFrame(subs)
         return self.sub_table

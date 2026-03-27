@@ -117,7 +117,7 @@ class DataCleaner:
         segmenter.load_xml(stemmed_xml_path)
         segmenter.tokenize_corpus()
 
-        # build tf_idf table
+        # build tf_idf tables
         processor = TFIDFProcessor(segmenter.get_table())
         tf = processor.compute_tf()
         idf = processor.compute_idf()

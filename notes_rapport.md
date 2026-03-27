@@ -82,3 +82,11 @@ De même pour 'son', un terme qui n'était que très peu présent dans le corpus
 
 En maintenant le même seuil de $tf-idf \le 0.7$ nous parvenons à éliminer des nouveau mots non porteur de sens dans ce context.
 
+
+## Construction de l'index inversé 
+
+// TODO
+
+### Amérliorations possibles
+
+// TODO : Table de hachage, arbres binaires, B-Tree
