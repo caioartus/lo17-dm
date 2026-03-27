@@ -10,8 +10,7 @@ from lo17_dm.Tokenizer import CorpusTokenizer
 class Index:
     def __init__(self):
         self.xml_tree: etree._Element | None = None
-        self.titre_dict: dict = {}
-        self.texte_dict: dict = {}
+        self.index_dict: dict = {}
 
     def load_xml(self, path: str | Path):
         path = Path(path)
@@ -19,12 +18,18 @@ class Index:
             raise FileNotFoundError("Path provided does not exist")
         self.xml_tree = etree.ElementTree().parse(path)
 
-    def treat_field(self, text: str, document_id: int, index_dict: dict) -> dict:
+    def treat_field(
+        self, text: str, document_id: int, index_dict: dict, section: str
+    ) -> dict:
         """Traite un champ de text, retourne le dictionnaire mis a jour"""
         token_counts = Counter(CorpusTokenizer.tokenize(text))
         for tok, count in token_counts.items():
             if tok not in index_dict:
-                index_dict[tok] = {"freq": count, "docs": [document_id]}
+                index_dict[tok] = {
+                    "freq": count,
+                    "section": section,
+                    "docs": [document_id],
+                }
             else:
                 index_dict[tok]["freq"] += count
                 if document_id not in index_dict[tok]["docs"]:
@@ -55,16 +60,15 @@ class Index:
 
             if titre_elem.text is not None:
                 self.titre_dict = self.treat_field(
-                    titre_elem.text, doc_id, self.titre_dict
+                    titre_elem.text, doc_id, self.index_dict, "titre"
                 )
 
             if texte_elem.text is not None:
                 self.texte_dict = self.treat_field(
-                    texte_elem.text, doc_id, self.texte_dict
+                    texte_elem.text, doc_id, self.index_dict, "texte"
                 )
 
-            self.save_to_tsv(self.titre_dict, output_dir / "index_titre.tsv")
-            self.save_to_tsv(self.texte_dict, output_dir / "index_texte.tsv")
+            self.save_to_tsv(self.titre_dict, output_dir / "index.tsv")
 
     def save_to_tsv(self, index_dict: dict, path: str | Path):
         data = []
@@ -73,6 +77,7 @@ class Index:
                 {
                     "token": token,
                     "freq": info["freq"],
+                    "section": info["section"],
                     "docs": ",".join(map(str, info["docs"])),
                 }
             )

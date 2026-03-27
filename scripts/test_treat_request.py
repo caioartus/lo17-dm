@@ -1,12 +1,13 @@
 from lo17_dm.Analyser import Analyser  # adapte le nom du fichier si besoin
 
 
-analyser = Analyser("./outputs/index_texte.tsv")
+analyser = Analyser("./outputs/index.tsv")
 
 tests = [
     "je veux des informtions s sur les orgnissasion de reshershe autur du plstic",
     "inaugration de lenemain",
     "donne moi une analyse",
+    "Documents qui prlent de vande",
 ]
 
 print("\n===== TESTS DE LA CLASSE ANALYSER =====\n")

@@ -82,15 +82,15 @@ class Analyser:
             len_m = len(mot)
             len_t = len(terme)
 
-            # (a) seuil minimal
+            # seuil minimal
             if len_m < seuilMin or len_t < seuilMin:
                 continue
 
-            # (b) difference de longueur
+            # difference de longueur
             if abs(len_m - len_t) > seuilMax:
                 continue
 
-            # (c) calcul du prefixe commun
+            # calcul du prefixe commun
             i = 0
             while i < min(len_m, len_t) and mot[i] == terme[i]:
                 i += 1
@@ -156,26 +156,3 @@ class Analyser:
                 best_terme = terme
 
         return best_terme
-
-
-lexique_test = {
-    "information": None,
-    "indexation": None,
-    "recherche": None,
-    "document": None,
-    "corpus": None,
-    "analyse": None,
-    "donnee": None,
-    "donner": None,
-    "machine": None,
-    "apprentissage": None,
-    "modele": None,
-    "texte": None,
-    "phrase": None,
-    "mot": None,
-    "erreur": None,
-    "correcteur": None,
-    "distance": None,
-    "prefixe": None,
-    "lemme": None,
-}
