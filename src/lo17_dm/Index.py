@@ -70,7 +70,6 @@ class Index:
         for document in self.xml_tree.iter("document"):
             article_text = self.get_required(document.find("article"), "article")
             doc_id = int(article_text)
-            print(doc_id)
 
             # Champs tokenises
             titre_text = self.get_required(document.find("titre"), "titre")
@@ -106,9 +105,10 @@ class Index:
             for section, text in raw_fields.items():
                 self.index_dict = self.add_raw(text, doc_id, self.index_dict, section)
 
-    def save_to_tsv(self, index_dict: dict, path: str | Path):
+    def save_to_tsv(self, output_dir: str | Path):
+        output_dir = Path(output_dir)
         data = []
-        for token, info in index_dict.items():
+        for token, info in self.index_dict.items():
             data.append(
                 {
                     "token": token,
@@ -118,4 +118,4 @@ class Index:
                 }
             )
         df = pd.DataFrame(data)
-        df.to_csv(path, sep="\t", index=False)
+        df.to_csv(output_dir / "index.tsv", sep="\t", index=False)

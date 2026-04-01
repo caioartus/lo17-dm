@@ -4,8 +4,7 @@ import sys
 from pathlib import Path
 
 from lo17_dm.DataCleaner import DataCleaner
-from lo17_dm.TFIDFProcessor import TFIDFProcessor
-from lo17_dm.Tokenizer import CorpusTokenizer
+
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__)))
 
@@ -19,7 +18,6 @@ out = Path(args.outdir)
 os.makedirs(out, exist_ok=True)
 
 
-# make stop words list from computed metrics
 cleaner = DataCleaner()
 
 cleaner.substitute(args.input, args.outdir)
