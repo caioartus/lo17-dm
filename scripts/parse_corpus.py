@@ -6,7 +6,6 @@ from pathlib import Path
 
 from lo17_dm.Parser import CorpusParser
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__)))
 
 argparser = argparse.ArgumentParser()
 argparser.add_argument(

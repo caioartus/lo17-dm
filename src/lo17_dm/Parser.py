@@ -76,12 +76,17 @@ class BulletinParser:
             for img in td.xpath(".//div[img]/img")
         ]
 
-        # extract author name from the string with other information
-        m = re.search(r"^(.*?)\s*-\s*(.*?)\s*-\s*email\s*:\s*(.*?)$", auteur_info)
+        # extrait l'auteur et ses infos avec du regex (très souple car il y a souvent des erreurs)
+
+        m = re.search(
+            r"^(.*?)\s*-\s*(.*?)\s*-\s*emai.*\s*:\s*(.*?)$", auteur_info, re.IGNORECASE
+        )
 
         if m:
             self.org, self.name, self.email = m.groups()
         else:
+            print("None found")
+            print(auteur_info)
             self.org, self.name, self.email = None, None, None
 
     def makeXML(self) -> str:
