@@ -90,3 +90,38 @@ En maintenant le même seuil de $tf-idf \le 0.7$ nous parvenons à éliminer des
 ### Amérliorations possibles
 
 // TODO : Table de hachage, arbres binaires, B-Tree
+
+
+## Traitement de l'input Autocorrecteur 
+
+### Implémentation
+// TODO
+
+### Problème avec la solution initiale
+
+Due à la condition du while dans l'agorithme de préfiltre, on stop la comparaison dés qu'une différence entre les deux chaines est trouvé. Concrétement c'est cette condition qui pose probleme `mot[i] == terme[i]` Ainsi si une erreur survient en début de mot, même si le reste du mot est très proche, il sera considéré comme loin car la boucle qui incrémente le nombre de lettre identiques se sera arrété avant d'aller au prochaines lettres.
+
+```python
+while i < min(len_m, len_t) and mot[i] == terme[i]: 
+                i += 1
+```
+
+Par exemple prenon le mot **échange** :
+
+Erreur en fin de mot : 
+```bash
+Input : échgne
+Output : échange (super ça marche)
+```
+
+Erreur en début de mot : 
+```bash
+Input : echange
+Output : erlangen (pas bon)
+```
+
+### Version corrigée
+
+Il suffit d'enlever cette condition et comparer le mot en entier. Cela réduit la rapidité de la recherche car on parcour à chaque fois le mot en entier mais garanti de ne pas pénaliser trop fortement les fautes en début de mot.
+
+Une approche plus subtile serait d'avoir un nombre d'erreurs authorisées avant d'arreter la comparaison. Ce seuil pourrait même être determiné selon la longeur du mot et le seuil minimal (seuilProx).

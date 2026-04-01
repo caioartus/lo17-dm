@@ -16,3 +16,12 @@ for req in tests:
     print(f"Requete : {req}")
     resultat = analyser.treat_input(req, "./outputs/sub_table.tsv")
     print(f"Correction : {resultat}\n")
+
+print("\n===== TESTS EN LIVE =====\n")
+
+while True:
+    txt = input("Entrer du text (quit pour quitter): ")
+    if txt == "quit":
+        break
+    resultat = analyser.treat_input(txt, "./outputs/sub_table.tsv")
+    print("Resultat: ", " ".join(resultat))

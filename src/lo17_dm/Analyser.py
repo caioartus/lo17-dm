@@ -23,8 +23,8 @@ class Analyser:
     def treat_input(self, text: str, sub_table_csv: str | Path) -> list[str]:
         # TODO - Do NOT treat stop words, just let them pass
         """Prend le texte brut et applique la tokenisation, la lemmatisation"""
-        stemmed_text = self.stemmer.transform(text)
-        stemmed_tokens = CorpusTokenizer.tokenize(stemmed_text)
+        stemmed_tokens = self.stemmer.transform_tolist(text)
+        print(stemmed_tokens)
         self.requete = stemmed_tokens
 
         # récupération de l'anti-dictionnaire
@@ -76,7 +76,6 @@ class Analyser:
         self, mot: str, lexique: list[str], seuilMin, seuilMax, seuilProx
     ) -> list[str]:
         candidats = []
-
         for terme in lexique:
             # Longueurs
             len_m = len(mot)
@@ -92,11 +91,22 @@ class Analyser:
 
             # calcul du prefixe commun
             i = 0
-            while i < min(len_m, len_t) and mot[i] == terme[i]:
-                i += 1
+            ident = 0
+            diff = 0
+            maxlen = max(len_m, len_t)
+            for i in range(min(len_m, len_t)):
+                if mot[i] == terme[i]:
+                    ident += 1
+                else:
+                    diff += 1
+
+                perreur = (diff / maxlen) * 100
+
+                if perreur > 100 - seuilProx:
+                    break
 
             # score de proximite = (nb lettres communes / longueur max) * 100
-            score = (i / max(len_m, len_t)) * 100
+            score = (ident / maxlen) * 100
 
             if score >= seuilProx:
                 candidats.append(terme)
