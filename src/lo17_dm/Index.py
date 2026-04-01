@@ -105,6 +105,16 @@ class Index:
             for section, text in raw_fields.items():
                 self.index_dict = self.add_raw(text, doc_id, self.index_dict, section)
 
+            # Traitement des légendes d'images
+            images_elem = document.find("images")
+            if images_elem is not None:
+                for image in images_elem.iter("image"):
+                    legende_elem = image.find("legendeImage")
+                    if legende_elem is not None and legende_elem.text:
+                        self.index_dict = self.add_raw(
+                            legende_elem.text, doc_id, self.index_dict, "legendeImage"
+                        )
+
     def save_to_tsv(self, output_dir: str | Path):
         output_dir = Path(output_dir)
         data = []
