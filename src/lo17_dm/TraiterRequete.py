@@ -2,23 +2,26 @@ from lo17_dm.AntiDict import AntiDict
 from lo17_dm.Tokenizer import CorpusTokenizer
 from lo17_dm.Stemmer import Stemmer, SpacyStemmer
 import re
-from datetime import datetime
 import pandas as pd
 from pathlib import Path
 
 
-class Analyser:
-    def __init__(self, index_path: str | Path, stemmer: Stemmer = SpacyStemmer()):
-        index_path = Path(index_path)
+class Pretraiteur:
+    def __init__(
+        self,
+        lemma_table_path: str | Path,
+        stemmer: Stemmer = SpacyStemmer(),
+    ):
+        lemma_table_path = Path(lemma_table_path)
 
-        if not index_path.exists():
-            raise FileNotFoundError("Index file not found.")
+        if not lemma_table_path.exists():
+            raise FileNotFoundError("Lemma file not found.")
 
         self.stemmer = stemmer
         self.requete: list[str] = []
         self.cleaned_tokens: list[str] = []
-        self.index = pd.read_csv(index_path, sep="\t")["token"].tolist()
-        self.index_set = set(self.index)
+        self.lemmas = pd.read_csv(lemma_table_path, sep="\t")["lemma"].tolist()
+        self.lemma_set = set(self.lemmas)
 
     def treat_input(self, text: str, sub_table_csv: str | Path) -> list[str]:
         # TODO - Do NOT treat stop words, just let them pass
@@ -40,7 +43,7 @@ class Analyser:
                 cleaned_tokens.append(token)
                 continue
             else:
-                candidat = self.treat_non_existant(token, self.index, 3, 4, 0.6)
+                candidat = self.treat_non_existant(token, self.lemmas, 3, 4, 0.6)
                 if candidat is not None:
                     cleaned_tokens.append(candidat)
         self.cleaned_tokens = cleaned_tokens
@@ -70,7 +73,7 @@ class Analyser:
 
     def in_index(self, token: str) -> bool:
         """Vérifie si un token présent dans l'index"""
-        return token in self.index_set
+        return token in self.lemma_set
 
     def generate_candidates(
         self, mot: str, lexique: list[str], seuilMin, seuilMax, seuilProx

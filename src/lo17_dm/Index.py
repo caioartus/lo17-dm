@@ -28,16 +28,18 @@ class Index:
         """Ajoute le text de facon brute à l'index avec seulement un traitement minimal"""
         # TODO - Voir si on met vraiment en lowercase
         treated = text.lower()  # On met en lowercase quand même
-        if treated not in index_dict:
-            index_dict[treated] = {
+        if section not in index_dict:
+            index_dict[section] = {}
+
+        if treated not in index_dict[section]:
+            index_dict[section][treated] = {
                 "freq": 1,
-                "section": section,
                 "docs": [document_id],
             }
         else:
-            index_dict[treated]["freq"] += 1
-            if document_id not in index_dict[treated]["docs"]:
-                index_dict[treated]["docs"].append(document_id)
+            index_dict[section][treated]["freq"] += 1
+            if document_id not in index_dict[section][treated]["docs"]:
+                index_dict[section][treated]["docs"].append(document_id)
 
         return index_dict
 
@@ -46,17 +48,19 @@ class Index:
     ) -> dict:
         """Traite un champ de text, retourne le dictionnaire mis a jour"""
         token_counts = Counter(CorpusTokenizer.tokenize(text))
+        if section not in index_dict:
+            index_dict[section] = {}
+
         for tok, count in token_counts.items():
-            if tok not in index_dict:
-                index_dict[tok] = {
+            if tok not in index_dict[section]:
+                index_dict[section][tok] = {
                     "freq": count,
-                    "section": section,
                     "docs": [document_id],
                 }
             else:
-                index_dict[tok]["freq"] += count
-                if document_id not in index_dict[tok]["docs"]:
-                    index_dict[tok]["docs"].append(document_id)
+                index_dict[section][tok]["freq"] += count
+                if document_id not in index_dict[section][tok]["docs"]:
+                    index_dict[section][tok]["docs"].append(document_id)
         return index_dict
 
     def build(self, output_dir: str | Path):
@@ -108,24 +112,33 @@ class Index:
             # Traitement des légendes d'images
             images_elem = document.find("images")
             if images_elem is not None:
-                for image in images_elem.iter("image"):
-                    legende_elem = image.find("legendeImage")
-                    if legende_elem is not None and legende_elem.text:
-                        self.index_dict = self.add_raw(
-                            legende_elem.text, doc_id, self.index_dict, "legendeImage"
-                        )
+                self.index_dict = self.add_raw(
+                    "image", doc_id, self.index_dict, "image"
+                )
 
     def save_to_tsv(self, output_dir: str | Path):
         output_dir = Path(output_dir)
-        data = []
-        for token, info in self.index_dict.items():
-            data.append(
-                {
-                    "token": token,
-                    "freq": info["freq"],
-                    "section": info["section"],
-                    "docs": ",".join(map(str, info["docs"])),
-                }
-            )
-        df = pd.DataFrame(data)
-        df.to_csv(output_dir / "index.tsv", sep="\t", index=False)
+        section_dfs: list[pd.DataFrame] = []
+
+        for section, section_data in self.index_dict.items():
+            data = []
+            for token, info in section_data.items():
+                data.append(
+                    {
+                        "token": token,
+                        "freq": info["freq"],
+                        "docs": ",".join(map(str, info["docs"])),
+                    }
+                )
+
+            if data:
+                section_df = pd.DataFrame(data).sort_values("freq", ascending=False)
+                section_dfs.append(section_df)
+                filename = f"index_{section}.tsv"
+                section_df.to_csv(output_dir / filename, sep="\t", index=False)
+        all_lemmas = (
+            pd.concat(section_dfs, axis=0)
+            .sort_values("freq")
+            .drop_duplicates("token")["token"]
+        )
+        all_lemmas.to_csv(output_dir / "lemmes_corpus.csv", index=False)

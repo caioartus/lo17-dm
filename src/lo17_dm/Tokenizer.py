@@ -23,7 +23,7 @@ class CorpusTokenizer:
     @staticmethod
     def simplify(sent: str) -> str:
         sent = sent.lower()  # Conversion en minuscules
-        sent = re.sub(r"\W+", "", sent)  # Suppression des caractères spéciaux
+        sent = re.sub(r"[^\w-]+", "", sent)  # Suppression des caractères spéciaux
         return sent.strip("\n").strip()
 
     @staticmethod

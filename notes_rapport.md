@@ -18,9 +18,11 @@ Nous utilisons etree de lxml pour construire le fichier html.
 
 ## Tokenisation
 
-Separation du text selon " ", "-" et '.
+Separation du text selon " ", et '.'
 Object CorpusTokeniser pour centraliser la logique en cas de changements.
 
+- Nous vons choisi de ne pas utiliser le tiret comme un delimiteur mais simplement de l'enlever
+arc-en-ciel devient arcenciel
 ## Anti-Dictionnaire
 
 Choix de la granularité (document = article ou bulletin)
@@ -125,3 +127,23 @@ Output : erlangen (pas bon)
 Il suffit d'enlever cette condition et comparer le mot en entier. Cela réduit la rapidité de la recherche car on parcour à chaque fois le mot en entier mais garanti de ne pas pénaliser trop fortement les fautes en début de mot.
 
 Une approche plus subtile serait d'avoir un nombre d'erreurs authorisées avant d'arreter la comparaison. Ce seuil pourrait même être determiné selon la longeur du mot et le seuil minimal (seuilProx).
+
+// TODO - faire mieux l'explication
+
+```python
+ i = 0
+            ident = 0
+            diff = 0
+            maxlen = max(len_m, len_t)
+            for i in range(min(len_m, len_t)):
+                if mot[i] == terme[i]:
+                    ident += 1
+                else:
+                    diff += 1
+
+                perreur = (diff / maxlen) * 100
+
+                if perreur > 100 - seuilProx:
+                    break
+
+```

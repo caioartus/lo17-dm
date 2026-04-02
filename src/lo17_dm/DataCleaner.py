@@ -84,7 +84,8 @@ class DataCleaner:
     def stem(self, text: str | None) -> str | None:
         if text is None:
             return None
-        return self.stemmer.transform(text)
+        res = self.stemmer.transform(text)
+        return res
 
     def substitute(
         self,

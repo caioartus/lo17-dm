@@ -1,7 +1,7 @@
-from lo17_dm.Analyser import Analyser  # adapte le nom du fichier si besoin
+from lo17_dm.TraiterRequete import Pretraiteur  # adapte le nom du fichier si besoin
 
 
-analyser = Analyser("./outputs/index.tsv")
+analyser = Pretraiteur("./outputs/index.tsv")
 
 tests = [
     "je veux des informtions s sur les orgnissasion de reshershe autur du plstic",
@@ -14,7 +14,7 @@ print("\n===== TESTS DE LA CLASSE ANALYSER =====\n")
 
 for req in tests:
     print(f"Requete : {req}")
-    resultat = analyser.treat_input(req, "./outputs/sub_table.tsv")
+    resultat = analyser.treat_input(req, "./outputs/spacy_stems.tsv")
     print(f"Correction : {resultat}\n")
 
 print("\n===== TESTS EN LIVE =====\n")
