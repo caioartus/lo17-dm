@@ -1,31 +1,83 @@
 from lo17_dm.AntiDict import AntiDict
-from lo17_dm.Tokenizer import CorpusTokenizer
 from lo17_dm.Stemmer import Stemmer, SpacyStemmer
 import re
 import pandas as pd
 from pathlib import Path
+from lo17_dm.DateExtractor import DateExtractor
 
 
 class Pretraiteur:
     def __init__(
         self,
         lemma_table_path: str | Path,
+        rubriques_index_path: str | Path,
         stemmer: Stemmer = SpacyStemmer(),
+        date_extractor: DateExtractor = DateExtractor(),
     ):
         lemma_table_path = Path(lemma_table_path)
+        rubriques_index_path = Path(rubriques_index_path)
 
         if not lemma_table_path.exists():
-            raise FileNotFoundError("Lemma file not found.")
+            raise FileNotFoundError("Lemma Table file not found.")
 
-        self.stemmer = stemmer
-        self.requete: list[str] = []
-        self.cleaned_tokens: list[str] = []
         self.lemmas = pd.read_csv(lemma_table_path, sep="\t")["lemma"].tolist()
         self.lemma_set = set(self.lemmas)
 
-    def treat_input(self, text: str, sub_table_csv: str | Path) -> list[str]:
-        # TODO - Do NOT treat stop words, just let them pass
-        """Prend le texte brut et applique la tokenisation, la lemmatisation"""
+        if not rubriques_index_path.exists():
+            raise FileNotFoundError("Rubriques Index file not found.")
+
+        self.rubriques = pd.read_csv(rubriques_index_path, sep="\t")["token"].to_list()
+
+        self.stemmer = stemmer
+        self.date_extractor = date_extractor
+        self.requete: list[str] = []
+        self.cleaned_tokens: list[str] = []
+
+        self.requete_dict: dict = {}
+
+    def treat_request(self, text: str, sub_table_csv: str | Path):
+        """Effectue le traitement complet de la requete, renvoi le dictionnaire de la requete"""
+        pass
+
+    def extract_rubriques(self, text):
+        """Extrait les rubriques et renvoi le text sans les rubriques"""
+        text_no_rubriques = text
+        self.requete_dict["rubriques"] = None
+
+        for rubrique in self.rubriques:
+            if not rubrique or not rubrique.strip():
+                continue
+
+            pattern = r"\b" + re.escape(rubrique.strip()) + r"\b"
+
+            # on check si une des rubriques est dans la requete avec un regex
+            if re.search(pattern, text_no_rubriques, flags=re.IGNORECASE):
+                text_no_rubriques = re.sub(
+                    pattern,
+                    "",
+                    text_no_rubriques,
+                    count=1,
+                    flags=re.IGNORECASE,
+                )
+                text_no_rubriques = re.sub(
+                    r"\s{2,}", " ", text_no_rubriques
+                ).strip()  # nettoyage leger pour enlever les doubles espaces etc.
+                self.requete_dict["rubriques"] = rubrique
+                return text_no_rubriques
+
+        return text_no_rubriques
+
+    def extract_dates(self, text):
+        """Utilise DateExtractor pour extraire les dates et retourne le text sans les dates"""
+
+        from_date, to_date, treated = self.date_extractor.extract(text)
+        self.requete_dict["from_date"] = from_date
+        self.requete_dict["to_date"] = to_date
+        return treated
+
+    def extract_key_words(self, text: str, sub_table_csv: str | Path) -> list[str]:
+        """Prend le texte brut et applique la tokenisation, la lemmatisation et renvoi les mots cles qui match"""
+
         stemmed_tokens = self.stemmer.transform_tolist(text)
         print(stemmed_tokens)
         self.requete = stemmed_tokens
@@ -47,6 +99,8 @@ class Pretraiteur:
                 if candidat is not None:
                     cleaned_tokens.append(candidat)
         self.cleaned_tokens = cleaned_tokens
+
+        self.requete_dict["key_words"] = cleaned_tokens
         return self.cleaned_tokens
 
     def is_date(self, token: str) -> bool:

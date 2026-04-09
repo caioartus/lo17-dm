@@ -1,7 +1,7 @@
-from lo17_dm.TraiterRequete import Pretraiteur  # adapte le nom du fichier si besoin
+from lo17_dm.Pretraiteur import Pretraiteur  # adapte le nom du fichier si besoin
 
 
-analyser = Pretraiteur("./outputs/index.tsv")
+analyser = Pretraiteur("./outputs/lemmes_corpus.tsv")
 
 tests = [
     "je veux des informtions s sur les orgnissasion de reshershe autur du plstic",
