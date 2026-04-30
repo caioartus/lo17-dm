@@ -1,11 +1,53 @@
 [project]
-name = "lo17-dm"
+name = "lo17_dm"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "beautifulsoup4>=4.14.3",
+    "fr-core-news-sm",
+    "ipykernel>=7.2.0",
     "lxml>=6.0.2",
+    "nltk>=3.9.3",
+    "pandas>=3.0.1",
+    "ruff>=0.15.4",
+    "scikit-learn>=1.8.0",
+    "seaborn>=0.13.2",
+    "spacy>=3.8.11",
+]
+
+[dependency-groups]
+dev = [
+    "mypy>=1.19.1",
     "ruff>=0.15.4",
 ]
+
+[tool.ruff]
+# Target version for syntax and library upgrades
+target-version = "py311"
+line-length = 88
+
+[tool.ruff.lint]
+# 1. Enable a balanced set of rule groups
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort (import sorting)
+    "B",   # flake8-bugbear (common design flaws)
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade (modernize syntax)
+]
+
+# 2. Specifically ignore rules that often cause "noise"
+ignore = [
+    "E501", # Ignore line length violations (let the formatter handle it)
+    "B008", # Allow function calls in default arguments (use with caution)
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.uv.sources]
+fr-core-news-sm = { url = "https://github.com/explosion/spacy-models/releases/download/fr_core_news_sm-3.8.0/fr_core_news_sm-3.8.0-py3-none-any.whl" }
