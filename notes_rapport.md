@@ -147,3 +147,15 @@ Une approche plus subtile serait d'avoir un nombre d'erreurs authorisées avant 
                     break
 
 ```
+
+
+## Recherche
+
+### Traitement des requetes
+
+1. Trouver dates
+2. Trouver rubriques
+3. Images ?
+4. Lemmatisation
+5. Sep opérateurs (ou puis et)
+6. Traiter interieur des clauses (rm stopwords) (si clause vide après traitement supprimer l'opérateur)

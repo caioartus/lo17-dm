@@ -39,6 +39,12 @@ class Pretraiteur:
         """Effectue le traitement complet de la requete, renvoi le dictionnaire de la requete"""
         pass
 
+    def extract_image(self, text) -> str:
+        """Trouve si la requete demande une image ou pas"""
+        # trouve les patterns dans le text
+        # determine
+        return treated_text
+
     def extract_rubriques(self, text):
         """Extrait les rubriques et renvoi le text sans les rubriques"""
         text_no_rubriques = text

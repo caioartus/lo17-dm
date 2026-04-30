@@ -50,13 +50,25 @@ class SpacyStemmer(Stemmer):
         spaces = [True] * (len(tokens) - 1) + [False]
         return spacy.tokens.Doc(self.nlp.vocab, words=tokens, spaces=spaces)
 
-    def _lemmatize_tokens(self, tokens: list[str]) -> list[str]:
+    def _lemmatize_tokens(self, tokens: list[str], add_dep: bool = False) -> list[str]:
         """Prend des tokens en entree et les transforme"""
         if not tokens:
             return []
         doc = self._make_spacy_doc(tokens)
         doc = self.nlp(doc)
+
         return [token.lemma_ for token in doc]
+
+    def _lemmatize_with_dep(
+        self, tokens: list[str], add_dep: bool = False
+    ) -> list[str]:
+        """Prend des tokens en entree et les transforme, retourne une list de dictionnaires avec lemmes et dep"""
+        if not tokens:
+            return []
+        doc = self._make_spacy_doc(tokens)
+        doc = self.nlp(doc)
+
+        return [{"lemma": token.lemma_, "dep": token.dep_} for token in doc]
 
     def transform_tolist(self, text: str) -> list[str]:
         """Renvoi la liste des tokens lemmatisees a partir d'un text en entree"""
