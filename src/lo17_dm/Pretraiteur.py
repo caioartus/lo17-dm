@@ -20,7 +20,7 @@ class Pretraiteur:
         if not lemma_table_path.exists():
             raise FileNotFoundError("Lemma Table file not found.")
 
-        self.lemmas = pd.read_csv(lemma_table_path, sep="\t")["lemma"].tolist()
+        self.lemmas = pd.read_csv(lemma_table_path, sep="\t")["token"].tolist()
         self.lemma_set = set(self.lemmas)
 
         if not rubriques_index_path.exists():
@@ -37,12 +37,43 @@ class Pretraiteur:
 
     def treat_request(self, text: str, sub_table_csv: str | Path):
         """Effectue le traitement complet de la requete, renvoi le dictionnaire de la requete"""
-        pass
+        treated = self.extract_dates(text)
+        treated = self.extract_image(treated)
+        treated = self.extract_rubriques(treated)
+        treated = self.extract_key_words(treated, sub_table_csv)
 
     def extract_image(self, text) -> str:
-        """Trouve si la requete demande une image ou pas"""
-        # trouve les patterns dans le text
-        # determine
+        """Trouve si la requête demande une image ou pas.
+        Détecte les patterns demandant explicitement avec/sans image,
+        les retire du texte, et met à jour requete_dict.
+        """
+        # Pattern pour "sans image" (négation)
+        sans_image_pattern = re.compile(
+            r"\bsans\s+(?:des\s+)?(?:image|images)\b[.\s]*", re.IGNORECASE
+        )
+
+        # Pattern pour demandes d'image (avec/qui ont/contenant)
+        avec_image_pattern = re.compile(
+            r"\b(?:avec|qui\s+ont|contenant)\s+(?:des\s+|une\s+)?(?:image|images)\b[.\s]*",
+            re.IGNORECASE,
+        )
+
+        treated_text = text
+
+        # Vérifier "sans image" en premier (priorité si ambigu)
+        if sans_image_pattern.search(treated_text):
+            self.requete_dict["image"] = False
+            treated_text = sans_image_pattern.sub("", treated_text).strip()
+            return treated_text
+
+        # Vérifier demandes positives d'image
+        if avec_image_pattern.search(treated_text):
+            self.requete_dict["image"] = True
+            treated_text = avec_image_pattern.sub("", treated_text).strip()
+            return treated_text
+
+        # Aucun pattern trouvé
+        self.requete_dict["image"] = None
         return treated_text
 
     def extract_rubriques(self, text):
@@ -76,14 +107,16 @@ class Pretraiteur:
     def extract_dates(self, text):
         """Utilise DateExtractor pour extraire les dates et retourne le text sans les dates"""
 
-        from_date, to_date, treated = self.date_extractor.extract(text)
+        from_date, to_date, antidate, treated = self.date_extractor.extract(text)
         self.requete_dict["from_date"] = from_date
         self.requete_dict["to_date"] = to_date
+        self.requete_dict["anti_date"] = antidate
+
         return treated
 
     def extract_key_words(self, text: str, sub_table_csv: str | Path) -> list[str]:
         """Prend le texte brut et applique la tokenisation, la lemmatisation et renvoi les mots cles qui match"""
-
+        return
         stemmed_tokens = self.stemmer.transform_tolist(text)
         print(stemmed_tokens)
         self.requete = stemmed_tokens
@@ -97,9 +130,13 @@ class Pretraiteur:
             if token in antidict.stopwords:
                 continue
             # verifie dans l'ordre donc si c'est un nombre ou une date ou regarde pas dans l'index
-            if self.is_date(token) or self.is_number(token) or self.in_index(token):
+            if self.is_number(token):
+                continue
+
+            if self.in_index(token):
                 cleaned_tokens.append(token)
                 continue
+
             else:
                 candidat = self.treat_non_existant(token, self.lemmas, 3, 4, 0.6)
                 if candidat is not None:
@@ -108,20 +145,6 @@ class Pretraiteur:
 
         self.requete_dict["key_words"] = cleaned_tokens
         return self.cleaned_tokens
-
-    def is_date(self, token: str) -> bool:
-        """Check if a token represents a date (YYYY-MM-DD, DD/MM/YYYY, MM/DD/YYYY, or a year)"""
-        # Check common date formats
-        date_patterns = [
-            r"^\d{4}-\d{2}-\d{2}$",  # YYYY-MM-DD
-            r"^\d{2}/\d{2}/\d{4}$",  # DD/MM/YYYY or MM/DD/YYYY
-            r"^\d{1,2}/\d{1,2}/\d{4}$",  # Flexible day/month
-        ]
-
-        for pattern in date_patterns:
-            if re.match(pattern, token):
-                return True
-        return False
 
     def is_number(self, token: str) -> bool:
         """Check if a token represents a number (integer or float)"""
