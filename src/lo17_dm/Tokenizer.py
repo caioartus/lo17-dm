@@ -75,6 +75,7 @@ class CorpusTokenizer:
         df = pd.DataFrame(doc_dict)
         self.table = df
 
+    # ================================ A RETIRER ??? ================================
     def save_table(self, directory: str | Path):
         if self.table is None:
             raise RuntimeError("IDF non calculé. Appelez compute_tf_idf() d'abord.")
