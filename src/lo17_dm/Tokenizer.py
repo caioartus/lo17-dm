@@ -32,7 +32,7 @@ class CorpusTokenizer:
     @staticmethod
     def tokenize(text: str) -> list[str]:
         """Splits and simplifies text into list of tokens"""
-        delimiters = ["'", " "]
+        delimiters = ["'", " ", "’"]
         pattern = "|".join(re.escape(d) for d in delimiters)
         result = re.split(pattern, text)
         result = [

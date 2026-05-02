@@ -1,5 +1,7 @@
 from lo17_dm.KeyWordExtractor import KeyWordExtractor
 from lo17_dm.Stemmer import SpacyStemmer
+from lo17_dm.Correcteur import Correcteur
+import pandas as pd
 import os
 
 sentences = [
@@ -92,9 +94,12 @@ sentences = [
     "Retournez les articles dont le titre contient le mot nucléaire."
 ]
 
+lemmas = pd.read_csv("data/lexique.csv", sep="\t")["token"].tolist()
+correcteur = Correcteur(lemmas)
+
 extractor = KeyWordExtractor(
-    lemma_table_path="data/lexique.csv",
-    stopwords_file="data/stopwords.txt"
+    stopwords_file="data/stopwords.txt",
+    correcteur=correcteur
 )
 
 for s in sentences[:10]:

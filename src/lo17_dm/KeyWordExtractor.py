@@ -1,13 +1,10 @@
 from lo17_dm.AntiDict import AntiDict
 from lo17_dm.Stemmer import Stemmer, SpacyStemmer
+from lo17_dm.Correcteur import Correcteur
 from pathlib import Path
 import pandas as pd
 import re
 
-
-LEXIQUE_SEUIL_MIN = 3
-LEXIQUE_SEUIL_MAX = 4
-LEXIQUE_SEUIL_PROX = 0.6
 
 REQUETE_STOPWORDS = [
     # pronoms / sujets inutiles
@@ -114,6 +111,8 @@ RE_TITRE = (
     r"titre\s+poss[èe]de\s+le\s+mot)"
 )
 
+RE_TITRE_POST = r"dans\s+le\s+titre"
+
 RE_CONTENU = (
     r"(?:parlent|"
     r"parle|"
@@ -146,15 +145,14 @@ RE_PREFIX_CLEAN = r"^(?:de|du|des|d|la|le|les|l|un|une)\s+"
 
 
 class KeyWordExtractor:
-    def __init__(self, lemma_table_path: str | Path, stopwords_file: str | Path, stemmer: Stemmer = SpacyStemmer()):
+    def __init__(
+        self,
+        stopwords_file: str | Path,
+        correcteur: Correcteur,
+        stemmer: Stemmer = SpacyStemmer(),
+    ):
         self.stopwords_file = Path(stopwords_file)
-        lemma_table_path = Path(lemma_table_path)
-
-        if not lemma_table_path.exists():
-            raise FileNotFoundError("Lemma Table file not found.")
-
-        self.lemmas = pd.read_csv(lemma_table_path, sep="\t")["token"].tolist()
-        self.lemma_set = set(self.lemmas)
+        self.correcteur = correcteur
         self.antidict = AntiDict()
 
         with open(self.stopwords_file, "r", encoding="utf-8") as f:
@@ -173,7 +171,7 @@ class KeyWordExtractor:
         # -----------------------------
         def handle_exclude(m):
             block = m.group(1).strip()
-            clean = self._normalize_terms(block)
+            clean = self.normalize_terms(block)
             if clean:
                 results["exclude"].extend(clean)
                 print("exclude : ", clean)
@@ -197,6 +195,16 @@ class KeyWordExtractor:
 
         text = re.sub(
             rf"{RE_TITRE}\s+(.+?)(?=(?:{RE_TITRE}|{RE_CONTENU}|{RE_NEGATION}|$))",
+            handle_titre,
+            text,
+            flags=re.IGNORECASE,
+        )
+
+        # -----------------------------
+        # TITRE POST : "contenant ... dans le titre"
+        # -----------------------------
+        text = re.sub(
+            rf"(?:contenant|contient)\s+(.+?)\s+{RE_TITRE_POST}",
             handle_titre,
             text,
             flags=re.IGNORECASE,
@@ -235,7 +243,7 @@ class KeyWordExtractor:
             for term in re.split(RE_AND, or_part):
                 term = re.sub(RE_PREFIX_CLEAN, "", term.strip())
 
-                clean = self._normalize_terms(term)
+                clean = self.normalize_terms(term)
                 if clean:
                     and_group.extend(clean)
 
@@ -244,123 +252,21 @@ class KeyWordExtractor:
 
         return groups
 
-    def _normalize_terms(self, text: str) -> list[str]:
+    def normalize_terms(self, text: str) -> list[str]:
         """
         nettoyage + stemming + correction fautes
         """
 
         tokens = self.stemmer.transform_tolist(text)
-
+        print("tokens : ", tokens)
         cleaned = []
 
         for token in tokens:
             if token in self.antidict.stopwords:
                 continue
 
-            if self._is_number(token):
-                continue
-
-            if self._in_index(token):
-                cleaned.append(token)
-            else:
-                candidate = self._treat_non_existant(token, self.lemmas, LEXIQUE_SEUIL_MIN, LEXIQUE_SEUIL_MAX, LEXIQUE_SEUIL_PROX)
-                if candidate:
-                    cleaned.append(candidate)
+            candidate = self.correcteur.corrige(token)
+            if candidate:
+                cleaned.append(candidate)
 
         return cleaned
-
-    # =========================================================
-    # HELPERS
-    # =========================================================
-
-    def _in_index(self, token: str) -> bool:
-        return token in self.lemma_set
-
-    def _is_number(self, token: str) -> bool:
-        try:
-            float(token)
-            return True
-        except ValueError:
-            return False
-
-    def _treat_non_existant(
-        self,
-        mot: str,
-        lexique: list[str],
-        seuilMin: int,
-        seuilMax: int,
-        seuilProx: float,
-    ) -> str | None:
-        candidates = self._generate_candidates(
-            mot,
-            lexique,
-            seuilMin,
-            seuilMax,
-            seuilProx,
-        )
-
-        if not candidates:
-            return None
-
-        if len(candidates) == 1:
-            return candidates[0]
-
-        return min(candidates, key=lambda terme: self._levenshtein(mot, terme))
-
-    def _generate_candidates(
-        self,
-        mot: str,
-        lexique: list[str],
-        seuilMin: int,
-        seuilMax: int,
-        seuilProx: float,
-    ) -> list[str]:
-        candidates = []
-        len_m = len(mot)
-
-        for terme in lexique:
-            len_t = len(terme)
-
-            if len_m < seuilMin or len_t < seuilMin:
-                continue
-
-            if abs(len_m - len_t) > seuilMax:
-                continue
-
-            maxlen = max(len_m, len_t)
-            ident = diff = 0
-
-            for i in range(min(len_m, len_t)):
-                if mot[i] == terme[i]:
-                    ident += 1
-                else:
-                    diff += 1
-
-                if (diff / maxlen) * 100 > 100 - seuilProx:
-                    break
-
-            if (ident / maxlen) * 100 >= seuilProx:
-                candidates.append(terme)
-
-        return candidates
-
-    def _levenshtein(self, a: str, b: str) -> int:
-        dp = [[0] * (len(b) + 1) for _ in range(len(a) + 1)]
-
-        for i in range(len(a) + 1):
-            dp[i][0] = i
-
-        for j in range(len(b) + 1):
-            dp[0][j] = j
-
-        for i in range(1, len(a) + 1):
-            for j in range(1, len(b) + 1):
-                cost = 0 if a[i - 1] == b[j - 1] else 1
-
-                dp[i][j] = min(
-                    dp[i - 1][j] + 1,
-                    dp[i][j - 1] + 1,
-                    dp[i - 1][j - 1] + cost,
-                )
-
-        return dp[-1][-1]

@@ -72,7 +72,9 @@ class SpacyStemmer(Stemmer):
 
     def transform_tolist(self, text: str) -> list[str]:
         """Renvoi la liste des tokens lemmatisees a partir d'un text en entree"""
+        #print([tok for tok in CorpusTokenizer.tokenize(text) if tok])
         tokens = [tok for tok in CorpusTokenizer.tokenize(text) if tok]
+        
         return self._lemmatize_tokens(tokens)
 
     def save_table(self, outdir: str):

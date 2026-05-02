@@ -107,10 +107,11 @@ class Index:
                 self.index_dict = self.add_raw("image", doc_id, "image")
 
     def save_to_tsv(self, output_dir: str | Path, all_lemmas_fname: str):
-        '''
+        """
         Sauvegarde :
         * l'entiereté des lemmes dans "{output_dir}/{all_lemmas_fname}.tsv"
-        * les index correspondant à chaque section dans "{output_dir}/index_{section}.tsv"'''
+        * les index correspondant à chaque section dans "{output_dir}/index_{section}.tsv"
+        """
         output_dir = Path(output_dir)
         index_dir = output_dir / "index"
         index_dir.mkdir(parents=True, exist_ok=True)
@@ -129,7 +130,8 @@ class Index:
 
             if data:
                 section_df = pd.DataFrame(data).sort_values("freq", ascending=False)
-                section_dfs.append(section_df)
+                if section == "titre" or section == "texte":
+                    section_dfs.append(section_df)
                 filename = f"index_{section}.tsv"
                 section_df.to_csv(index_dir / filename, sep="\t", index=False)
         all_lemmas = (

@@ -1,5 +1,6 @@
 from lo17_dm.AntiDict import AntiDict
 from lo17_dm.Stemmer import Stemmer, SpacyStemmer
+from lo17_dm.Correcteur import Correcteur
 import re
 import pandas as pd
 from pathlib import Path
@@ -30,11 +31,14 @@ class Pretraiteur:
         if not stop_words_path.exists():
             raise FileNotFoundError("Stop Words file not found.")
 
+        self.lemmas = pd.read_csv(lemma_table_path, sep="\t")["token"].to_list()
+        self.correcteur = Correcteur(self.lemmas)
+
         self.rubriques = pd.read_csv(rubriques_index_path, sep="\t")["token"].to_list()
         self.stemmer = stemmer
         self.date_extractor = date_extractor
         self.keyword_extractor = keyword_extractor or KeyWordExtractor(
-            lemma_table_path, stop_words_path, stemmer
+            stop_words_path, self.correcteur, stemmer
         )
 
         self.requete_dict: dict = {}
@@ -42,11 +46,8 @@ class Pretraiteur:
     def treat_request(self, text: str) -> dict :
         """Effectue le traitement complet de la requete, renvoi le dictionnaire de la requete"""
         treated = self.extract_dates(text)
-        print("after date extraction : ", treated)
         treated = self.extract_image(treated)
-        print("after image extraction : ", treated)
         treated = self.extract_rubriques(treated)
-        print("after rubriques extraction : ", treated)
         treated = self.extract_key_words(treated)
         return treated
 

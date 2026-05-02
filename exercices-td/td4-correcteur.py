@@ -1,6 +1,8 @@
 import argparse
-from lo17_dm.Pretraiteur import Pretraiteur
-
+import pandas as pd
+from lo17_dm.Correcteur import Correcteur
+from lo17_dm.Stemmer import SpacyStemmer
+from lo17_dm.KeyWordExtractor import KeyWordExtractor
 
 def main():
     parser = argparse.ArgumentParser()
@@ -8,15 +10,23 @@ def main():
     parser.add_argument("--lemmes", default="./outputs/lemmes_corpus.tsv",
                         help="Path to the TSV lemma table")
 
-    parser.add_argument("--stems", default="./outputs/spacy_stems.tsv",
-                        help="Path to the TSV stem table")
-
-    parser.add_argument("--subtable", default="./outputs/sub_table.tsv",
-                        help="Path to the TSV substitution table")
+    parser.add_argument("--stopwords", default="./outputs/stop_words.tsv",
+                        help="Path to the TSV stop words")
 
     args = parser.parse_args()
 
-    analyser = Pretraiteur(args.lemmes)
+    # Chargement des lemmes pour initialiser le Correcteur
+    try:
+        lemmas = pd.read_csv(args.lemmes, sep="\t")["token"].tolist()
+    except Exception as e:
+        print(f"Erreur lors du chargement des lemmes : {e}")
+        return
+
+    correcteur = Correcteur(lemmas)
+    stemmer = SpacyStemmer()
+    
+    # On utilise KeyWordExtractor pour avoir le même pipeline que dans le projet
+    extractor = KeyWordExtractor(args.stopwords, correcteur, stemmer)
 
     tests = [
         "je veux des informtions s sur les orgnissasion de reshershe autur du plstic",
@@ -25,21 +35,24 @@ def main():
         "Documents qui prlent de vande",
     ]
 
-    print("\n===== TESTS DE LA CLASSE ANALYSER =====\n")
+    print("\n===== TESTS DU PIPELINE DE NORMALISATION =====\n")
 
     for req in tests:
         print(f"Requete : {req}")
-        resultat = analyser.treat_input(req, args.stems)
-        print(f"Correction : {resultat}\n")
+        resultat = extractor.normalize_terms(req)
+        print(f"Normalisation : {resultat}\n")
 
     print("\n===== TESTS EN LIVE =====\n")
 
     while True:
-        txt = input("Entrer du texte (quit pour quitter): ")
-        if txt == "quit":
+        try:
+            txt = input("Entrer du texte (quit pour quitter): ")
+            if txt == "quit":
+                break
+            resultat = extractor.normalize_terms(txt)
+            print("Resultat :", " ".join(resultat))
+        except (EOFError, KeyboardInterrupt):
             break
-        resultat = analyser.treat_input(txt, args.subtable)
-        print("Resultat :", " ".join(resultat))
 
 
 if __name__ == "__main__":
