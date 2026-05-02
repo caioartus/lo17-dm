@@ -20,8 +20,8 @@ def main() -> None:
         sentence = raw_line.strip()
         if not sentence:
             continue
-
-        pretraiteur.treat_request(sentence, sub_table_csv="../outputs/sub_table.tsv")
+        print(sentence)
+        pretraiteur.treat_request(sentence, sub_table_csv="./outputs/sub_table.tsv")
 
         print(pretraiteur.requete_dict)
 
