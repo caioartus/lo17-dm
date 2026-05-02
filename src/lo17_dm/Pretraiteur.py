@@ -6,7 +6,6 @@ from pathlib import Path
 from lo17_dm.DateExtractor import DateExtractor
 from lo17_dm.KeyWordExtractor import KeyWordExtractor
 
-REQUETE_STOPWORDS = ["je", "veux", "nous", "souhaitons", ""]
 
 
 class Pretraiteur:
@@ -14,6 +13,7 @@ class Pretraiteur:
         self,
         lemma_table_path: str | Path,
         rubriques_index_path: str | Path,
+        stop_words_path: str | Path,
         stemmer: Stemmer = SpacyStemmer(),
         date_extractor: DateExtractor = DateExtractor(),
         keyword_extractor: KeyWordExtractor
@@ -21,27 +21,34 @@ class Pretraiteur:
     ):
         lemma_table_path = Path(lemma_table_path)
         rubriques_index_path = Path(rubriques_index_path)
+        stop_words_path = Path(stop_words_path)
 
         if not lemma_table_path.exists():
             raise FileNotFoundError("Lemma Table file not found.")
         if not rubriques_index_path.exists():
             raise FileNotFoundError("Rubriques Index file not found.")
+        if not stop_words_path.exists():
+            raise FileNotFoundError("Stop Words file not found.")
 
         self.rubriques = pd.read_csv(rubriques_index_path, sep="\t")["token"].to_list()
         self.stemmer = stemmer
         self.date_extractor = date_extractor
         self.keyword_extractor = keyword_extractor or KeyWordExtractor(
-            lemma_table_path, stemmer
+            lemma_table_path, stop_words_path, stemmer
         )
 
         self.requete_dict: dict = {}
 
-    def treat_request(self, text: str, sub_table_csv: str | Path) -> dict :
+    def treat_request(self, text: str) -> dict :
         """Effectue le traitement complet de la requete, renvoi le dictionnaire de la requete"""
         treated = self.extract_dates(text)
+        print("after date extraction : ", treated)
         treated = self.extract_image(treated)
+        print("after image extraction : ", treated)
         treated = self.extract_rubriques(treated)
-        treated = self.extract_key_words(treated, sub_table_csv)
+        print("after rubriques extraction : ", treated)
+        treated = self.extract_key_words(treated)
+        return treated
 
     def extract_image(self, text) -> str:
         """Trouve si la requête demande une image ou pas.
@@ -114,9 +121,9 @@ class Pretraiteur:
 
         return treated
 
-    def extract_key_words(self, text: str, sub_table_csv: str | Path):
+    def extract_key_words(self, text: str):
         """Delegates keyword extraction to KeyWordExtractor and stores results."""
-        results = self.keyword_extractor.extract(text, sub_table_csv)
+        results = self.keyword_extractor.extract(text)
         self.requete_dict["titre"] = results["titre"]
         self.requete_dict["contenu"] = results["contenu"]
         self.requete_dict["exclude"] = results["exclude"]

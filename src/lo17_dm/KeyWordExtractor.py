@@ -5,6 +5,10 @@ import pandas as pd
 import re
 
 
+LEXIQUE_SEUIL_MIN = 3
+LEXIQUE_SEUIL_MAX = 4
+LEXIQUE_SEUIL_PROX = 0.6
+
 REQUETE_STOPWORDS = [
     # pronoms / sujets inutiles
     "je",
@@ -86,6 +90,9 @@ REQUETE_STOPWORDS = [
     "mentionnant",
     "mentionne",
     "mentionnent",
+    "écrire",
+    "paraitre",
+    "parler",
     # connecteurs qu’on gère séparément
     "et",
     "ou",
@@ -108,19 +115,30 @@ RE_TITRE = (
 )
 
 RE_CONTENU = (
-    r"(?:parlent?\s+de|"
-    r"parle\s+de|"
-    r"traitant\s+de|"
-    r"traitent\s+de|"
+    r"(?:parlent|"
+    r"parle|"
+    r"parlant|"
+    r"traitant|"
+    r"traitent|"
     r"sur|"
     r"[ée]voquant|"
     r"mentionnant|"
+    r"contenant|"
+    r"mentionnent|"
+    r"impliquant|"
+    r"impliquent|"
     r"concernent|"
     r"[ée]voquent)"
 )
 
-RE_NEGATION = r"\b(?:pas\s+de|sans|non\s+pas)\b"
-RE_OR = r"\bou\b"
+RE_NEGATION = r"\b(?:pas\s+de|sans|non\s+pas|pas\b)"
+RE_OR = (
+    r"\bou\b|"
+    r"\bsoit\s+de"
+    r"\bsoit\s+des"
+    r"\bsoit\s+du"
+    r"\bsoit\s+de"
+)
 RE_AND = r"\bet\b"
 
 # retire articles parasites devant le vrai mot
@@ -137,55 +155,68 @@ class KeyWordExtractor:
 
         self.lemmas = pd.read_csv(lemma_table_path, sep="\t")["token"].tolist()
         self.lemma_set = set(self.lemmas)
+        self.antidict = AntiDict()
+
+        with open(self.stopwords_file, "r", encoding="utf-8") as f:
+            corpus_stopwords = set(f.read().splitlines())
+        self.antidict.add_manual_stopwords(corpus_stopwords | set(REQUETE_STOPWORDS))
+
         self.stemmer = stemmer
 
     def extract(self, text: str) -> dict:
         text = text.lower()
-
-        antidict = AntiDict()
-        with open(self.stopwords_file, "r", encoding="utf-8") as f:
-            corpus_stopwords = set(f.read().splitlines())
-        antidict.add_manual_stopwords(corpus_stopwords | set(REQUETE_STOPWORDS))
-
+        print("text in extractor : ", text)
         results = {"titre": [], "contenu": [], "exclude": []}
 
         # -----------------------------
-        # TITRE : plusieurs occurrences possibles
-        # ex:
-        # "titre contient X ou le contenu parle de Y"
+        # EXCLUSIONS (on traite ca d'abord comme ça pas de confusion avec titre/contenu)
         # -----------------------------
-        for match in re.finditer(
-            rf"{RE_TITRE}\s+(.+?)(?=(?:{RE_TITRE}|{RE_CONTENU}|{RE_NEGATION}|$))",
+        def handle_exclude(m):
+            block = m.group(1).strip()
+            clean = self._normalize_terms(block)
+            if clean:
+                results["exclude"].extend(clean)
+                print("exclude : ", clean)
+            return " " * len(m.group(0))
+
+        text = re.sub(
+            rf"{RE_NEGATION}\s+(.+?)(?=(?:{RE_TITRE}|{RE_CONTENU}|$))",
+            handle_exclude,
             text,
-            re.IGNORECASE,
-        ):
-            block = match.group(1).strip()
-            results["titre"].extend(self._parse_logic_block(block, antidict))
+            flags=re.IGNORECASE,
+        )
+
+        # -----------------------------
+        # TITRE : plusieurs occurrences possibles
+        # -----------------------------
+        def handle_titre(m):
+            block = m.group(1).strip()
+            results["titre"].extend(self._parse_logic_block(block))
+            print("titre : ", block)
+            return " " * len(m.group(0))
+
+        text = re.sub(
+            rf"{RE_TITRE}\s+(.+?)(?=(?:{RE_TITRE}|{RE_CONTENU}|{RE_NEGATION}|$))",
+            handle_titre,
+            text,
+            flags=re.IGNORECASE,
+        )
 
         # -----------------------------
         # CONTENU : plusieurs occurrences possibles
-        # ex:
-        # "parlent de X ou des Y"
         # -----------------------------
-        for match in re.finditer(
-            rf"{RE_CONTENU}\s+(.+?)(?=(?:{RE_TITRE}|{RE_CONTENU}|{RE_NEGATION}|$))",
-            text,
-            re.IGNORECASE,
-        ):
-            block = match.group(1).strip()
-            results["contenu"].extend(self._parse_logic_block(block, antidict))
+        def handle_contenu(m):
+            block = m.group(1).strip()
+            results["contenu"].extend(self._parse_logic_block(block))
+            print("contenu : ", block)
+            return " " * len(m.group(0))
 
-        # -----------------------------
-        # EXCLUSIONS
-        # -----------------------------
-        for ex in re.findall(
-            rf"{RE_NEGATION}\s+(.+?)(?=(?:{RE_TITRE}|{RE_CONTENU}|$))",
+        text = re.sub(
+            rf"{RE_CONTENU}\s+(.+?)(?=(?:{RE_TITRE}|{RE_CONTENU}|{RE_NEGATION}|$))",
+            handle_contenu,
             text,
-            re.IGNORECASE,
-        ):
-            clean = self._normalize_term(ex.strip(), antidict)
-            if clean:
-                results["exclude"].append(clean)
+            flags=re.IGNORECASE,
+        )
 
         return results
 
@@ -193,7 +224,7 @@ class KeyWordExtractor:
     # LOGIC PARSING
     # =========================================================
 
-    def _parse_logic_block(self, text: str, antidict: AntiDict) -> list[list[str]]:
+    def _parse_logic_block(self, text: str) -> list[list[str]]:
         groups = []
 
         # split sur OU
@@ -204,26 +235,26 @@ class KeyWordExtractor:
             for term in re.split(RE_AND, or_part):
                 term = re.sub(RE_PREFIX_CLEAN, "", term.strip())
 
-                clean = self._normalize_term(term, antidict)
+                clean = self._normalize_terms(term)
                 if clean:
-                    and_group.append(clean)
+                    and_group.extend(clean)
 
             if and_group:
                 groups.append(and_group)
 
         return groups
 
-    def _normalize_term(self, term: str, antidict: AntiDict) -> str | None:
+    def _normalize_terms(self, text: str) -> list[str]:
         """
         nettoyage + stemming + correction fautes
         """
 
-        tokens = self.stemmer.transform_tolist(term)
+        tokens = self.stemmer.transform_tolist(text)
 
         cleaned = []
 
         for token in tokens:
-            if token in antidict.stopwords or token in REQUETE_STOPWORDS:
+            if token in self.antidict.stopwords:
                 continue
 
             if self._is_number(token):
@@ -232,14 +263,11 @@ class KeyWordExtractor:
             if self._in_index(token):
                 cleaned.append(token)
             else:
-                candidate = self._treat_non_existant(token, self.lemmas, 3, 4, 0.6)
+                candidate = self._treat_non_existant(token, self.lemmas, LEXIQUE_SEUIL_MIN, LEXIQUE_SEUIL_MAX, LEXIQUE_SEUIL_PROX)
                 if candidate:
                     cleaned.append(candidate)
 
-        if not cleaned:
-            return None
-
-        return " ".join(cleaned)
+        return cleaned
 
     # =========================================================
     # HELPERS

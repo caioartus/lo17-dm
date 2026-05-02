@@ -97,15 +97,13 @@ RE_ANTI = re.compile(
 )
 
 # ---------------------------------------------------------------------------
-# Nettoyage cosmétique du texte après suppression des dates
+# Nettoyage du texte après suppression des dates
 # ---------------------------------------------------------------------------
 
 RE_CLEANUP = [
-    (re.compile(r"\s{2,}"), " "),
-    (re.compile(r"\s+([?.!,;])"), r"\1"),
     (
-        re.compile(  # prépositions orphelines en fin de groupe
-            r"\b(?:de|du|des|en|le|la|l')\b(?=\s*(?:et|ou|mais|,|\.|\?|!|$))",
+        re.compile(  # prépositions et participes orphelins en fin de groupe
+            r"\b(?:de|du|des|en|le|la|l'|(?:(?:(?:é|e)crits|publi(?:é|e)s|paru)\w*\s+(?:en|apr(?:è|e)s|avant|entre|depuis|dans|le|la|du|de)))\b(?=\s*(?:et|ou|mais|,|\.|\?|!|$))",
             re.IGNORECASE,
         ),
         "",
@@ -229,8 +227,8 @@ class DateExtractor:
         puis supprime la correspondance du texte."""
         m = pattern.search(text)
         if m:
-            handler(m)
-            text = pattern.sub("", text, count=1)
+            if handler(m) : 
+                text = pattern.sub("", text, count=1)
         return text
 
     def extract(self, text: str) -> tuple[str | None, str | None, str | None, str]:
@@ -243,26 +241,36 @@ class DateExtractor:
             end = self._parse_fragment(m.group("end"))
             if start and end:
                 self._update_bounds(start[0], end[1])
+                return True
+            return False
 
         def handle_from(m):
             parsed = self._parse_fragment(m.group("date"))
             if parsed:
                 self._update_bounds(parsed[0], None)
+                return True
+            return False
 
         def handle_to(m):
             parsed = self._parse_fragment(m.group("date"))
             if parsed:
                 self._update_bounds(None, parsed[1])
+                return True
+            return False
 
         def handle_date(m):
             parsed = self._parse_fragment(m.group(0))
             if parsed:
                 self._update_bounds(*parsed)
+                return True
+            return False
 
         def handle_anti(m):
             parsed = self._parse_anti_fragment(m.group("date"))
             if parsed:
                 self.anti_date = parsed
+                return True
+            return False
 
         # Les négations sont traitées en premier pour ne pas interférer avec
         # les autres patterns qui pourraient capturer les mêmes fragments.
@@ -275,6 +283,7 @@ class DateExtractor:
         text = self._apply(RE_MONTH_YEAR, text, handle_date)
         text = self._apply(RE_YEAR, text, handle_date)
 
+        # nettoyage des mots qui ne servent plus a rien
         for pattern, repl in RE_CLEANUP:
             text = pattern.sub(repl, text)
 
