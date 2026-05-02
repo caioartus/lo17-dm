@@ -3,13 +3,19 @@ from pathlib import Path
 
 from lo17_dm.Pretraiteur import Pretraiteur
 
+SCRIPT_DIR = Path(__file__).parent
+
+LEMMA_TABLE_PATH = SCRIPT_DIR / "../outputs/lemmes_corpus.tsv"
+RUBRIQUES_INDEX_PATH = SCRIPT_DIR / "../outputs/index/index_rubrique.tsv"
+SUB_TABLE_CSV_PATH = SCRIPT_DIR / "../outputs/sub_table.tsv"
+
 
 def main() -> None:
     file_path = Path("./test_data/test_requetes.txt")
 
     pretraiteur = Pretraiteur(
-        lemma_table_path="outputs/lemmes_corpus.csv",
-        rubriques_index_path="outputs/index_rubrique.tsv",
+        lemma_table_path=LEMMA_TABLE_PATH,
+        rubriques_index_path=RUBRIQUES_INDEX_PATH,
     )
     content = file_path.read_text(encoding="utf-8")
 

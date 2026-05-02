@@ -128,7 +128,8 @@ RE_PREFIX_CLEAN = r"^(?:de|du|des|d|la|le|les|l|un|une)\s+"
 
 
 class KeyWordExtractor:
-    def __init__(self, lemma_table_path: str | Path, stemmer: Stemmer = SpacyStemmer()):
+    def __init__(self, lemma_table_path: str | Path, stopwords_file: str | Path, stemmer: Stemmer = SpacyStemmer()):
+        self.stopwords_file = Path(stopwords_file)
         lemma_table_path = Path(lemma_table_path)
 
         if not lemma_table_path.exists():
@@ -138,11 +139,13 @@ class KeyWordExtractor:
         self.lemma_set = set(self.lemmas)
         self.stemmer = stemmer
 
-    def extract(self, text: str, sub_table_csv: str | Path) -> dict:
+    def extract(self, text: str) -> dict:
         text = text.lower()
 
         antidict = AntiDict()
-        antidict.build_from_file(sub_table_csv)
+        with open(self.stopwords_file, "r", encoding="utf-8") as f:
+            corpus_stopwords = set(f.read().splitlines())
+        antidict.add_manual_stopwords(corpus_stopwords | set(REQUETE_STOPWORDS))
 
         results = {"titre": [], "contenu": [], "exclude": []}
 
