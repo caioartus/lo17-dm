@@ -1,0 +1,125 @@
+@startuml
+
+skinparam defaultFontName Helvetica
+
+skinparam class {
+    BackgroundColor White
+    BorderColor #555555
+    BorderThickness 1.5
+    HeaderBackgroundColor #DDEEFF
+    FontStyle bold
+    AttributeFontSize 11
+    AttributeFontColor #222222
+    StereotypeFontColor #555555
+    StereotypeFontSize 11
+}
+
+skinparam arrow {
+    Color #444444
+    FontColor #444444
+    FontSize 11
+    Thickness 1.2
+}
+
+skinparam note {
+    BackgroundColor #FFFDE7
+    BorderColor #999900
+    FontSize 11
+}
+
+skinparam shadowing false
+skinparam roundCorner 8
+skinparam nodesep 80
+skinparam ranksep 30
+
+class "2-clean_data.py" <<script>> {
+    --
+    args : [-indir, -inname, \n      -outdir, -outname]
+}
+
+note left of "2-clean_data.py"
+Crée le fichier
+"clean_corpus.xml"
+end note
+
+class AntiDict <<TD2>> {
+    - _tokens_list : list[str] | None
+    - stopwords : set[str] | None
+    - sub_table : DataFrame | None
+    ---
+    + get_stopwords() : set[str] | None
+    + add_manual_stopwords(manual_stopwords : set[str] | None) : set[str] | None
+    + build_stopwords(df_tf_idf : DataFrame | None, 
+     .                          tf_idf_path : Path | None, thresh : float) : set[str]
+    + build_sub_table() : DataFrame
+}
+
+class CorpusTokenizer <<TD1>> {
+    ---
+    + {static} tokenize(text : str) : list[str]
+}
+
+abstract class Stemmer {
+    ---
+    + make_table(text : str) : DataFrame
+    + transform(text : str) : str
+    + transform_tolist(text : str) : list[str]
+    + save_table(outdir : str) : void
+}
+
+note top of Stemmer
+    Reçoit les tokens pré-traités par
+    CorpusTokenizer plutôt que le texte
+    brut, pour garantir la cohérence
+    de la tokenisation avec le pipeline.
+end note
+
+class SpacyStemmer {
+    - nlp : Language
+    - lemma_table : DataFrame
+    ---
+    + make_table(text : str) : DataFrame
+    + transform(text : str) : str
+    + transform_tolist(text : str) : list[str]
+    + save_table(outdir : str) : void
+
+    - _make_spacy_doc(tokens : list[str]) : Doc
+    - _lemmatize_tokens(tokens : list[str]) : list[str]
+    - _lemmatize_with_dep(tokens : list[str]) : list[dict]
+}
+
+class SnowStemmer {
+    - model : SnowballStemmer
+    - lemma_table : DataFrame
+    - stemed_tokens : list[str]
+    ---
+    + make_table(text : str) : DataFrame
+    + transform(text : str) : str
+}
+
+class DataCleaner {
+    - _stemmer : Stemmer
+    - stopwords : set[str]
+    - _sub_table : DataFrame | None
+    ---
+    + get_stopwords() : set[str] | None
+    + get_all_lemmas() : set[str] | None
+    + build_sub_table(df_tf_idf : DataFrame) : void
+    + apply_substitue_to_xml(input_path : str | Path, output_path : str | Path) : void
+
+    - _stem(text : str | None) : str
+    - _substitue(text : str) : str
+}
+
+Stemmer        <|--  SpacyStemmer
+Stemmer        <|--  SnowStemmer
+
+CorpusTokenizer  <. Stemmer: «uses»
+
+DataCleaner    ..>   AntiDict    : «uses»
+DataCleaner    ..>   Stemmer     : «uses»
+DataCleaner    ..>   CorpusTokenizer : «uses»
+
+"2-clean_data.py" .> DataCleaner : «instantiates»
+
+@enduml

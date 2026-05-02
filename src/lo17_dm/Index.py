@@ -9,7 +9,7 @@ from lo17_dm.Tokenizer import CorpusTokenizer
 
 class Index:
     def __init__(self):
-        self.xml_tree: etree._Element | None = None
+        self._xml_tree: etree._Element | None = None
         self.index_dict: dict = {}
 
     def get_required(self, elem: etree._Element | None, name: str) -> str:
@@ -22,56 +22,48 @@ class Index:
         path = Path(path)
         if not path.exists():
             raise FileNotFoundError("Path provided does not exist")
-        self.xml_tree = etree.ElementTree().parse(path)
+        self._xml_tree = etree.ElementTree().parse(path)
 
-    def add_raw(self, text: str, document_id: int, index_dict: dict, section: str):
-        """Ajoute le text de facon brute à l'index avec seulement un traitement minimal"""
-        # TODO - Voir si on met vraiment en lowercase
-        treated = text.lower()  # On met en lowercase quand même
-        if section not in index_dict:
-            index_dict[section] = {}
+    def add_raw(self, text: str, document_id: int, section: str):
+        """Ajoute le text de facon brute à l'index avec un traitement minimal"""
+        treated = text.lower()  # On choisit de mettre en lowercase
+        if section not in self.index_dict:
+            self.index_dict[section] = {}
 
-        if treated not in index_dict[section]:
-            index_dict[section][treated] = {
-                "freq": 1,
-                "docs": [document_id],
-            }
+        if treated not in self.index_dict[section]:
+            self.index_dict[section][treated] = {"freq": 1, "docs": [document_id]}
         else:
-            index_dict[section][treated]["freq"] += 1
-            if document_id not in index_dict[section][treated]["docs"]:
-                index_dict[section][treated]["docs"].append(document_id)
+            self.index_dict[section][treated]["freq"] += 1
+            if document_id not in self.index_dict[section][treated]["docs"]: # vérification
+                self.index_dict[section][treated]["docs"].append(document_id)
 
-        return index_dict
+        return self.index_dict
 
     def treat_field(
-        self, text: str, document_id: int, index_dict: dict, section: str
+        self, text: str, document_id: int, section: str
     ) -> dict:
         """Traite un champ de text, retourne le dictionnaire mis a jour"""
         token_counts = Counter(CorpusTokenizer.tokenize(text))
-        if section not in index_dict:
-            index_dict[section] = {}
+        if section not in self.index_dict:
+            self.index_dict[section] = {}
 
         for tok, count in token_counts.items():
-            if tok not in index_dict[section]:
-                index_dict[section][tok] = {
+            if tok not in self.index_dict[section]:
+                self.index_dict[section][tok] = {
                     "freq": count,
                     "docs": [document_id],
                 }
             else:
-                index_dict[section][tok]["freq"] += count
-                if document_id not in index_dict[section][tok]["docs"]:
-                    index_dict[section][tok]["docs"].append(document_id)
-        return index_dict
+                self.index_dict[section][tok]["freq"] += count
+                if document_id not in self.index_dict[section][tok]["docs"]:
+                    self.index_dict[section][tok]["docs"].append(document_id)
+        return self.index_dict
 
-    def build(self, output_dir: str | Path):
+    def build(self):
         """Construit l'index inversé pour le titre et le text"""
-        assert self.xml_tree is not None, "Load XML before calling this function"
+        assert self._xml_tree is not None, "Load XML before calling this function"
 
-        output_dir = Path(output_dir)
-        if not output_dir.exists():
-            raise FileNotFoundError("Output directory doesn't exist.")
-
-        for document in self.xml_tree.iter("document"):
+        for document in self._xml_tree.iter("document"):
             article_text = self.get_required(document.find("article"), "article")
             doc_id = int(article_text)
 
@@ -102,22 +94,26 @@ class Index:
             # Traitement des champs tokenisés
             for section, text in tokenized_fields.items():
                 self.index_dict = self.treat_field(
-                    text, doc_id, self.index_dict, section
+                    text, doc_id, section
                 )
 
             # Traitement des champs bruts
             for section, text in raw_fields.items():
-                self.index_dict = self.add_raw(text, doc_id, self.index_dict, section)
+                self.index_dict = self.add_raw(text, doc_id, section)
 
             # Traitement des légendes d'images
             images_elem = document.find("images")
             if images_elem is not None:
-                self.index_dict = self.add_raw(
-                    "image", doc_id, self.index_dict, "image"
-                )
+                self.index_dict = self.add_raw("image", doc_id, "image")
 
-    def save_to_tsv(self, output_dir: str | Path):
+    def save_to_tsv(self, output_dir: str | Path, all_lemmas_fname: str):
+        '''
+        Sauvegarde :
+        * l'entiereté des lemmes dans "{output_dir}/{all_lemmas_fname}.tsv"
+        * les index correspondant à chaque section dans "{output_dir}/index_{section}.tsv"'''
         output_dir = Path(output_dir)
+        index_dir = output_dir / "index"
+        index_dir.mkdir(parents=True, exist_ok=True)
         section_dfs: list[pd.DataFrame] = []
 
         for section, section_data in self.index_dict.items():
@@ -135,10 +131,11 @@ class Index:
                 section_df = pd.DataFrame(data).sort_values("freq", ascending=False)
                 section_dfs.append(section_df)
                 filename = f"index_{section}.tsv"
-                section_df.to_csv(output_dir / filename, sep="\t", index=False)
+                section_df.to_csv(index_dir / filename, sep="\t", index=False)
         all_lemmas = (
             pd.concat(section_dfs, axis=0)
             .sort_values("freq")
             .drop_duplicates("token")["token"]
         )
-        all_lemmas.to_csv(output_dir / "lemmes_corpus.csv", index=False)
+        all_lemmas_filename = f"{all_lemmas_fname}.tsv"
+        all_lemmas.to_csv(output_dir / all_lemmas_filename, index=False)

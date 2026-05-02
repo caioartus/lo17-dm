@@ -1,0 +1,138 @@
+@startuml
+
+skinparam defaultFontName Helvetica
+
+skinparam class {
+BackgroundColor White
+BorderColor #555555
+BorderThickness 1.5
+HeaderBackgroundColor #DDEEFF
+FontStyle bold
+AttributeFontSize 11
+AttributeFontColor #222222
+StereotypeFontColor #555555
+StereotypeFontSize 11
+}
+
+skinparam arrow {
+Color #444444
+FontColor #444444
+FontSize 11
+Thickness 1.2
+}
+
+skinparam note {
+BackgroundColor #FFFDE7
+BorderColor #999900
+FontSize 11
+}
+
+skinparam shadowing false
+skinparam roundCorner 8
+skinparam nodesep 80
+skinparam ranksep 30
+
+class "3-make_index.py" <<script>> {
+    --
+    args : [-indir, -inname, -outdir, outname]
+}
+
+note left of "3-make_index.py"
+Crée les fichier 
+"lemmes_corpus.tsv"
+"index_{section}.tsv"
+end note
+
+class "1-parse_corpus.py" <<script>> {
+    --
+    args : -indir, [-outdir, outname]
+}
+
+note left of "1-parse_corpus.py"
+Crée le fichier 
+"corpus.xml" 
+end note
+
+class BulletinParser {
+- path : Path
+- content : str
+- soup : BeautifulSoup
+- dom: _Element
+- title: str
+- rubrique : str
+- date : str
+- num_article: str
+- num_buletin: str
+- text : str
+- images : list[dict]
+- info_contact : str
+- org: str | None
+- name : str | None
+- email: str | None
+---
++ load() : void
++ extract_data() : void
++ makeXML() : str
+}
+
+note left of BulletinParser
+Gère l'extraction d'un unique
+fichier HTML via XPath.
+Le parsing HTML est réalisé en
+deux passes : BeautifulSoup
+puis etree.
+end note
+
+class CorpusParser {
+- folder_path : Path
+- documents : list[BulletinParser]
+- xml_str : str
+---
++ parseFiles() : void
++ makeXML() : str
++ save_xml(path : str | Path) : void
+}
+
+class CorpusTokenizer {
+- tree : ElementTree | None
+- table: DataFrame | None
+---
++ load_xml(path : str | Path) : void
++ tokenize_corpus() : DataFrame
++ save_table(outfile_path : Path) : void
++ get_table() : DataFrame | None
+
++ {static} simplify(sent : str) : str
++ {static} simplify_many(tokenlist : list[str]) : list[str]
++ {static} tokenize(text : str) : list[str]
+}
+
+class Index {
+- xml_tree : _Element | None
+- index_dict : dict
+---
++ load_xml(path : str | Path) : void
++ build() : void
++ save_to_tsv(output_dir : str | Path, all_lemmas_fname: str) : void
+
++ get_required(elem : _Element | None, name : str) : str
++ add_raw(text : str, doc_id : int, section : str) : dict
++ treat_field(text : str, doc_id : int, section : str) : dict
+}
+
+note top of Index
+Construit les fichiers inverses
+à partir du corpus XML.
+Distingue champs tokenisés
+(titre, texte) et champs bruts
+(date, rubrique, auteur...).
+end note
+
+"1-parse_corpus.py" ..> CorpusParser : «instantiates»
+"3-make_index.py" ..> Index: «instantiates»
+
+CorpusParser *--BulletinParser
+Index <. CorpusParser : «produces XML consumed by»
+Index ..> CorpusTokenizer : «uses»
+
+@enduml
