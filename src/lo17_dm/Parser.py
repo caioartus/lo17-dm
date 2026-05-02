@@ -145,5 +145,5 @@ class CorpusParser:
     def save_xml(self, path: str | Path) -> None:
         """Save in XML file"""
         path = Path(path)
-        with open(path, "w") as f:
+        with open(path, "w", encoding="utf-8") as f:
             f.write(self.xml_str)

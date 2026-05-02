@@ -1,30 +1,39 @@
 import argparse
-import os
-import sys
-from os import makedirs
 from pathlib import Path
-
 from lo17_dm.Parser import CorpusParser
 
+OUTPUTS = Path(__file__).parent.parent / "outputs"
+FILENAME = "corpus"
 
-argparser = argparse.ArgumentParser()
-argparser.add_argument(
-    "--input", help="Path to folder containing all of the html files", required=True
-)
-argparser.add_argument(
-    "--outdir",
-    help="Path to directory where output xml file will be saved",
-    required=False,
-    default="./outputs",
-)
-args = argparser.parse_args()
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--indir", required=True,
+                        help="Path to folder containing all HTML files")
 
-input = Path(args.input)
-out = Path(args.outdir)
-makedirs(out, exist_ok=True)
+    parser.add_argument("--outdir", default=OUTPUTS,
+                        help="Directory where the XML file will be saved")
 
-corpus = CorpusParser(input)
-corpus.parseFiles()
-corpus.makeXML()
-corpus.save_xml(os.path.join(out, "corpus.xml"))
-print("Saved XML to ", out)
+    parser.add_argument("--outname", default=FILENAME,
+                        help="Name of the XML file to generate")
+
+
+    args = parser.parse_args()
+    assert "." not in args.outname, "Il faut préciser uniquement le nom du fichier (sans .xml)"
+
+    indir = Path(args.indir)
+    outdir = Path(args.outdir)
+    outdir.mkdir(parents=True, exist_ok=True)
+
+    filename = f"{args.outname}.xml"
+    outfile = outdir / filename
+
+    corpus = CorpusParser(indir)
+    corpus.parseFiles()
+    corpus.makeXML()
+    corpus.save_xml(outfile)
+
+    print(f"Saved XML to {outfile}")
+
+
+if __name__ == "__main__":
+    main()

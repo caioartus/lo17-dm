@@ -35,7 +35,7 @@ class Pretraiteur:
 
         self.requete_dict: dict = {}
 
-    def treat_request(self, text: str, sub_table_csv: str | Path):
+    def treat_request(self, text: str, sub_table_csv: str | Path) -> dict :
         """Effectue le traitement complet de la requete, renvoi le dictionnaire de la requete"""
         treated = self.extract_dates(text)
         treated = self.extract_image(treated)

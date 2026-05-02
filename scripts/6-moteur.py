@@ -9,8 +9,8 @@ from lo17_dm.SearchEngine import SearchEngine
 
 OUTPUTS = Path(__file__).parent.parent / "outputs"
 CORPUS = OUTPUTS / "clean_corpus.xml"
-LEMMA_TABLE = OUTPUTS / "lemmes_corpus.csv"
-RUBRIQUE_INDEX = OUTPUTS / "index_rubrique.tsv"
+LEMMA_TABLE = OUTPUTS / "lemmes_corpus.tsv"
+RUBRIQUE_INDEX = OUTPUTS / "index" / "index_rubrique.tsv"
 SUB_TABLE = OUTPUTS / "sub_table.tsv"
 
 SEP = "─" * 78

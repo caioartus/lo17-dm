@@ -11,7 +11,7 @@ class SearchEngine:
     """Charge les index inversés et le corpus, puis exécute des requêtes booléennes classées."""
 
     def __init__(self, output_dir: str | Path, corpus_path: str | Path):
-        self.output_dir = Path(output_dir)
+        self.output_dir: Path = Path(output_dir)
         self.indexes: dict[str, dict[str, set[int]]] = {}
         self.documents: dict[int, dict] = {}
         self._load_indexes()
@@ -23,7 +23,7 @@ class SearchEngine:
 
     def _load_indexes(self) -> None:
         for name in ("titre", "texte", "rubrique", "bulletin", "date", "auteur", "contact", "image"):
-            path = self.output_dir / f"index_{name}.tsv"
+            path = self.output_dir / "index" / f"index_{name}.tsv"
             if not path.exists():
                 continue
             df = pd.read_csv(path, sep="\t", dtype=str)

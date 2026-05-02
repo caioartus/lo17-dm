@@ -32,18 +32,34 @@ skinparam roundCorner 8
 skinparam nodesep 80
 skinparam ranksep 30
 
-class "3-make_stemmer_tabs.py" <<script>> {
+class "2-clean_data.py" <<script>> {
     --
-    Applique SpacyStemmer et SnowStemmer\nsur nostopwords_corpus.xml
+    args : [-indir, -inname, \n      -outdir, -outname]
 }
 
-class "3-clean_data.py" <<script>> {
-    --
-    args : --input, --outdir
+note left of "2-clean_data.py"
+Crée le fichier
+"clean_corpus.xml"
+end note
+
+class AntiDict <<TD2>> {
+    - _tokens_list : list[str] | None
+    - stopwords : set[str] | None
+    - sub_table : DataFrame | None
+    ---
+    + get_stopwords() : set[str] | None
+    + add_manual_stopwords(manual_stopwords : set[str] | None) : set[str] | None
+    + build_stopwords(df_tf_idf : DataFrame | None, 
+     .                          tf_idf_path : Path | None, thresh : float) : set[str]
+    + build_sub_table() : DataFrame
+}
+
+class CorpusTokenizer <<TD1>> {
+    ---
+    + {static} tokenize(text : str) : list[str]
 }
 
 abstract class Stemmer {
-    - lemma_table : DataFrame
     ---
     + make_table(text : str) : DataFrame
     + transform(text : str) : str
@@ -51,7 +67,7 @@ abstract class Stemmer {
     + save_table(outdir : str) : void
 }
 
-note right of Stemmer
+note top of Stemmer
     Reçoit les tokens pré-traités par
     CorpusTokenizer plutôt que le texte
     brut, pour garantir la cohérence
@@ -60,6 +76,7 @@ end note
 
 class SpacyStemmer {
     - nlp : Language
+    - lemma_table : DataFrame
     ---
     + make_table(text : str) : DataFrame
     + transform(text : str) : str
@@ -72,44 +89,37 @@ class SpacyStemmer {
 }
 
 class SnowStemmer {
-    - model        : SnowballStemmer
+    - model : SnowballStemmer
+    - lemma_table : DataFrame
     - stemed_tokens : list[str]
     ---
     + make_table(text : str) : DataFrame
     + transform(text : str) : str
 }
 
-class AntiDict <<TD2>> {
-    - stopwords  : set | None
-    - sub_table  : DataFrame | None
-    ---
-    + build_from_file(path : str | Path) : void
-    + build_stopwords(tf_idf : DataFrame) : set
-    + build_sub_table(token_list : list) : DataFrame
-}
-
-class CorpusTokenizer <<TD1>> {
-    ---
-    + {static} tokenize(text : str) : list[str]
-}
-
 class DataCleaner {
+    - _stemmer : Stemmer
+    - stopwords : set[str]
+    - _sub_table : DataFrame | None
     ---
-    + substitute(input : str, outdir : str) : void
-    + save_xml(path : str) : void
+    + get_stopwords() : set[str] | None
+    + get_all_lemmas() : set[str] | None
+    + build_sub_table(df_tf_idf : DataFrame) : void
+    + apply_substitue_to_xml(input_path : str | Path, output_path : str | Path) : void
+
+    - _stem(text : str | None) : str
+    - _substitue(text : str) : str
 }
 
 Stemmer        <|--  SpacyStemmer
 Stemmer        <|--  SnowStemmer
 
-SpacyStemmer   ..>   CorpusTokenizer : «uses»
-SnowStemmer    ..>   CorpusTokenizer : «uses»
+CorpusTokenizer  <. Stemmer: «uses»
 
-AntiDict       ..>   Stemmer    : «uses output of»
+DataCleaner    ..>   AntiDict    : «uses»
+DataCleaner    ..>   Stemmer     : «uses»
+DataCleaner    ..>   CorpusTokenizer : «uses»
 
-"3-make_stemmer_tabs.py" ..> SpacyStemmer : «instantiates»
-"3-make_stemmer_tabs.py" ..> SnowStemmer  : «instantiates»
-"3-clean_data.py"        ..> DataCleaner  : «instantiates»
-"3-clean_data.py"        ..> AntiDict     : «uses»
+"2-clean_data.py" .> DataCleaner : «instantiates»
 
 @enduml
