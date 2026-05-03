@@ -30,21 +30,28 @@ _MONTHS = "|".join(MONTH_NAMES)
 # Patterns de reconnaissance de dates positives
 # ---------------------------------------------------------------------------
 
+# Mots-clés qui marquent souvent la fin d'une zone de date dans une requête
+_DATE_STOP_WORDS = (
+    r"parlant|parle|parlent|traitant|traitent|évoquant|évoque|évoquent|"
+    r"mentionnant|mentionne|mentionnent|contenant|concernent|sur|dans|titre|rubrique"
+)
+_SEP = rf"(?=[.?,;]|\b(?:{_DATE_STOP_WORDS})\b|$)"
+
 # "entre le <date> et le <date>"
 RE_RANGE = re.compile(
-    r"\bentre\s+(?:le\s+)?(?P<start>[^.?,;]+?)\s+et\s+(?:le\s+)?(?P<end>[^.?,;]+?)(?=[.?,;]|$)",
+    rf"\bentre\s+(?:le\s+)?(?P<start>[^.?,;]+?)\s+et\s+(?:le\s+)?(?P<end>[^.?,;]+?){_SEP}",
     re.IGNORECASE,
 )
 
 # "à partir de / après / publié(s) après <date>"
 RE_FROM = re.compile(
-    r"\b(?:à\s+partir\s+de|à\s+partir\s+du|à\s+partir|après|publiés?\s+après)\s+(?:le\s+)?(?P<date>[^.?,;]+?)(?=[.?,;]|$)",
+    rf"\b(?:à\s+partir\s+de|à\s+partir\s+du|à\s+partir|après|publiés?\s+après)\s+(?:le\s+)?(?P<date>[^.?,;]+?){_SEP}",
     re.IGNORECASE,
 )
 
 # "avant / jusqu'au / jusqu'à <date>"
 RE_TO = re.compile(
-    r"\b(?:avant(?:\s+le)?|jusqu'\s*(?:au|à)(?:\s+le)?)\s+(?P<date>[^.?,;]+?)(?=[.?,;]|$)",
+    rf"\b(?:avant(?:\s+le)?|jusqu'\s*(?:au|à)(?:\s+le)?)\s+(?P<date>[^.?,;]+?){_SEP}",
     re.IGNORECASE,
 )
 
@@ -92,7 +99,7 @@ _NEGATION_PREFIX = (
 )
 
 RE_ANTI = re.compile(
-    rf"\b{_NEGATION_PREFIX}(?P<date>[^.?,;]+?)(?=[.?,;]|$)",
+    rf"\b{_NEGATION_PREFIX}(?P<date>[^.?,;]+?){_SEP}",
     re.IGNORECASE,
 )
 
@@ -228,6 +235,7 @@ class DateExtractor:
         m = pattern.search(text)
         if m:
             if handler(m) : 
+                print(m.group(0))
                 text = pattern.sub("", text, count=1)
         return text
 

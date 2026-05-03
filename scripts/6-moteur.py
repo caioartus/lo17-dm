@@ -12,6 +12,7 @@ CORPUS = OUTPUTS / "clean_corpus.xml"
 LEMMA_TABLE = OUTPUTS / "lemmes_corpus.tsv"
 RUBRIQUE_INDEX = OUTPUTS / "index" / "index_rubrique.tsv"
 SUB_TABLE = OUTPUTS / "sub_table.tsv"
+STOPWORD_PATH = OUTPUTS / "stop_words.tsv"
 
 SEP = "─" * 78
 
@@ -94,6 +95,7 @@ def main() -> None:
     pretraiteur = Pretraiteur(
         lemma_table_path=LEMMA_TABLE,
         rubriques_index_path=RUBRIQUE_INDEX,
+        stop_words_path=STOPWORD_PATH,
     )
     engine = SearchEngine(output_dir=OUTPUTS, corpus_path=CORPUS)
 
@@ -128,7 +130,7 @@ def main() -> None:
         operator = "OR" if " ou " in query.lower() else "AND"
 
         t0 = time.perf_counter()
-        requete_dict = pretraiteur.treat_request(query, SUB_TABLE)
+        requete_dict = pretraiteur.treat_request(query)
         results = engine.search(requete_dict, keyword_operator=operator)
         elapsed_ms = (time.perf_counter() - t0) * 1000
 

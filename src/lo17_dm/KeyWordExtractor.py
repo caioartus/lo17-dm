@@ -88,6 +88,7 @@ REQUETE_STOPWORDS = [
     "mentionne",
     "mentionnent",
     "écrire",
+    "contenir",
     "paraitre",
     "parler",
     # connecteurs qu’on gère séparément
@@ -127,7 +128,8 @@ RE_CONTENU = (
     r"impliquant|"
     r"impliquent|"
     r"concernent|"
-    r"[ée]voquent)"
+    r"[ée]voquent|"
+    r"possédant)"
 )
 
 RE_NEGATION = r"\b(?:pas\s+de|sans|non\s+pas|pas\b)"
