@@ -92,29 +92,6 @@ class SearchEngine:
     # Recherche dans les index                                              #
     # ------------------------------------------------------------------ #
 
-    def _lookup_keyword(
-        self,
-        keyword: str,
-        fields: tuple[str, ...] = ("texte", "titre"),
-    ) -> set[int]:
-        result: set[int] = set()
-        kw = keyword.lower().strip()
-        for field in fields:
-            result |= self.indexes.get(field, {}).get(kw, set())
-        return result
-
-    def _lookup_rubrique(self, rubrique: str) -> set[int]:
-        idx = self.indexes.get("rubrique", {})
-        key = rubrique.lower().strip()
-        if key in idx:
-            return idx[key]
-        # Correspondance partielle (sous-chaîne)
-        result: set[int] = set()
-        for token, docs in idx.items():
-            if key in token or token in key:
-                result |= docs
-        return result
-
     def _matches_anti_date(self, doc_date: datetime, anti_date: str) -> bool:
         """Vérifie si doc_date correspond au motif anti_date (ex: '*/06/*' pour juin)."""
         parts = anti_date.split("/")
@@ -132,95 +109,88 @@ class SearchEngine:
             return False
         return True
 
-    def _filter_by_date(
-        self,
-        from_date: str | None,
-        to_date: str | None,
-        anti_date: str | None,
-    ) -> set[int]:
-        fd = self._parse_date(from_date) if from_date else None
-        td = self._parse_date(to_date) if to_date else None
-        result: set[int] = set()
-        for doc_id, doc in self.documents.items():
-            dt = self._parse_date(doc["date"])
-            if dt is None:
-                continue
-            if fd and dt < fd:
-                continue
-            if td and dt > td:
-                continue
-            if anti_date and self._matches_anti_date(dt, anti_date):
-                continue
-            result.add(doc_id)
-        return result
+
 
     def _lookup_image(self, has_image: bool) -> set[int]:
         docs_with_image = self.indexes.get("image", {}).get("image", set())
         return docs_with_image if has_image else self._all_doc_ids() - docs_with_image
 
-    # ------------------------------------------------------------------ #
-    # Score de pertinence                                                   #
-    # ------------------------------------------------------------------ #
+    def _get_okay_dates(self, start: datetime | None, end: datetime | None, anti: str | None) -> set[int]:
+        good_docs = set()
+        """Finds documents with acceptable dates among those available in the index"""
+        date_idx = self.indexes.get("date", {})
+        for datestr, docs in date_idx.items():
+            date = self._parse_date(datestr)
+            if date is None:
+                continue
+            # si dans les bornes (ou borne pas defini) et si pas antidate
+            if (start is None or date >= start) and (end is None or date <= end) and (anti is None or not self._matches_anti_date(date, anti)):
+                good_docs.update(docs)
+        return good_docs
+        
+    def search(self, requete_dict: dict) -> list[dict]:
 
-    def _score(self, doc_id: int, keywords: list[str]) -> float:
-        """Score booléen classé : +3 par mot-clé dans le titre, +1 dans le texte."""
-        score = 0.0
-        for kw in keywords:
-            kw_lower = kw.lower()
-            if doc_id in self.indexes.get("titre", {}).get(kw_lower, set()):
-                score += 3.0
-            if doc_id in self.indexes.get("texte", {}).get(kw_lower, set()):
-                score += 1.0
-        return score
-
-    # ------------------------------------------------------------------ #
-    # API publique                                                          #
-    # ------------------------------------------------------------------ #
-
-    def search(self, requete_dict: dict, keyword_operator: str = "AND") -> list[dict]:
-        """
-        Exécute la recherche booléenne classée.
-
-        keyword_operator : "AND" → tous les mots-clés doivent être présents,
-                           "OR"  → au moins un mot-clé doit être présent.
-
-        Retourne une liste de dicts document triée par score décroissant.
-        """
-        candidate_docs: set[int] | None = None
-
-        # Filtre rubrique (toujours AND avec le reste)
-        rubrique = requete_dict.get("rubriques")
-        if rubrique:
-            candidate_docs = self._intersect(candidate_docs, self._lookup_rubrique(rubrique))
+        # Rubrique, toujours OU
+        rubriques = requete_dict.get("rubriques")
+        has_rubrique = set()
+        if rubriques : 
+            for rubrique in rubriques : 
+                has_rubrique |= self.indexes["rubrique"].get(rubrique, set())
 
         # Filtre date
-        from_date = requete_dict.get("from_date")
-        to_date = requete_dict.get("to_date")
+        from_date = self._parse_date(requete_dict.get("from_date"))
+        to_date = self._parse_date(requete_dict.get("to_date"))
         anti_date = requete_dict.get("anti_date")
-        if from_date or to_date or anti_date:
-            candidate_docs = self._intersect(
-                candidate_docs, self._filter_by_date(from_date, to_date, anti_date)
-            )
+        
+        date_ok = self._get_okay_dates(from_date, to_date, anti_date)
+        has_date_filter = bool(from_date or to_date or anti_date)
 
         # Filtre image
-        has_image = requete_dict.get("image")
-        if has_image is not None:
-            candidate_docs = self._intersect(candidate_docs, self._lookup_image(has_image))
+        image_val = requete_dict.get("image")
+        has_image_docs = self._lookup_image(image_val) if image_val is not None else set()
+            
+        # Mots-clés titre (DNF : (a ET b) OU (c ET d))
+        titre_docs = set()
+        titre_groups = requete_dict.get("titre", [])
+        for and_group in titre_groups:
+            and_docs_list = [self.indexes.get("titre", {}).get(word, set()) for word in and_group]
+            if and_docs_list:
+                titre_docs |= set.intersection(*and_docs_list)
+        
+        # Mots-clés contenu (DNF : (a ET b) OU (c ET d))
+        keywords_docs = set()
+        contenu_groups = requete_dict.get("contenu", [])
+        for and_group in contenu_groups:
+            and_docs_list = [self.indexes.get("texte", {}).get(word, set()) for word in and_group]
+            if and_docs_list:
+                keywords_docs |= set.intersection(*and_docs_list)
+        
+        # Exclusion (toujours ET NOT)
+        exclude_docs = set()
+        for word in requete_dict.get("exclude", []):
+            exclude_docs |= self.indexes.get("texte", {}).get(word, set())
+            exclude_docs |= self.indexes.get("titre", {}).get(word, set())
 
-        # Mots-clés
-        keywords: list[str] = requete_dict.get("key_words") or []
-        if keywords:
-            if keyword_operator.upper() == "OR":
-                kw_union: set[int] = set()
-                for kw in keywords:
-                    kw_union |= self._lookup_keyword(kw)
-                candidate_docs = self._intersect(candidate_docs, kw_union)
-            else:  # AND
-                for kw in keywords:
-                    candidate_docs = self._intersect(candidate_docs, self._lookup_keyword(kw))
+        # --- INTERSECTION FINALE ---
+        candidate_docs = self._all_doc_ids()
+        
+        if rubriques:
+            candidate_docs &= has_rubrique
+        if has_date_filter:
+            candidate_docs &= date_ok
+        if image_val is not None:
+            candidate_docs &= has_image_docs
+        if titre_groups:
+            candidate_docs &= titre_docs
+        if contenu_groups:
+            candidate_docs &= keywords_docs
+        
+        candidate_docs -= exclude_docs
 
-        if candidate_docs is None:
-            return []
+        # --- SCORE ET RÉSULTATS ---
+        all_keywords = []
+        for gp in titre_groups + contenu_groups:
+            all_keywords.extend(gp)
 
         results: list[dict] = []
         for doc_id in candidate_docs:
@@ -229,7 +199,7 @@ class SearchEngine:
             doc = dict(self.documents[doc_id])
             doc["score"] = self._score(doc_id, keywords)
             results.append(doc)
-
+      
         results.sort(key=lambda d: d["score"], reverse=True)
         return results
 
