@@ -39,7 +39,13 @@ _SEP = rf"(?=[.?,;]|\b(?:{_DATE_STOP_WORDS})\b|$)"
 
 # "entre le <date> et le <date>"
 RE_RANGE = re.compile(
-    rf"\bentre\s+(?:le\s+)?(?P<start>[^.?,;]+?)\s+et\s+(?:le\s+)?(?P<end>[^.?,;]+?){_SEP}",
+    rf"\b(?:publi(?:é|e)s?|parus?)?\s*entre\s+(?:le\s+)?(?P<start>[^.?,;]+?)\s+et\s+(?:le\s+)?(?P<end>[^.?,;]+?){_SEP}",
+    re.IGNORECASE,
+)
+
+# "de <date> à <date>"
+RE_RANGE_DE_A = re.compile(
+    rf"\b(?:publi(?:é|e)s?|parus?)?\s*de\s+(?P<start>[^.?,;]+?)\s+[aà]\s+(?P<end>[^.?,;]+?){_SEP}",
     re.IGNORECASE,
 )
 
@@ -284,6 +290,7 @@ class DateExtractor:
         # les autres patterns qui pourraient capturer les mêmes fragments.
         text = self._apply(RE_ANTI, text, handle_anti)
         text = self._apply(RE_RANGE, text, handle_range)
+        text = self._apply(RE_RANGE_DE_A, text, handle_range)
         text = self._apply(RE_FROM, text, handle_from)
         text = self._apply(RE_TO, text, handle_to)
         text = self._apply(RE_DATE_NUMERIC, text, handle_date)

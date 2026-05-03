@@ -128,6 +128,17 @@ class SearchEngine:
                 good_docs.update(docs)
         return good_docs
         
+    def _score(self, doc_id: int, keywords: list[str]) -> float:
+        """Score booléen classé : +3 par mot-clé dans le titre, +1 dans le texte."""
+        score = 0.0
+        for kw in keywords:
+            kw_lower = kw.lower()
+            if doc_id in self.indexes.get("titre", {}).get(kw_lower, set()):
+                score += 3.0
+            if doc_id in self.indexes.get("texte", {}).get(kw_lower, set()):
+                score += 1.0
+        return score
+
     def search(self, requete_dict: dict) -> list[dict]:
 
         # Rubrique, toujours OU
@@ -168,22 +179,27 @@ class SearchEngine:
         # Exclusion (toujours ET NOT)
         exclude_docs = set()
         for word in requete_dict.get("exclude", []):
-            exclude_docs |= self.indexes.get("texte", {}).get(word, set())
-            exclude_docs |= self.indexes.get("titre", {}).get(word, set())
+            exclude_docs |= self.indexes["texte"].get(word, set())
+            exclude_docs |= self.indexes["titre"].get(word, set())
 
         # --- INTERSECTION FINALE ---
-        candidate_docs = self._all_doc_ids()
-        
-        if rubriques:
-            candidate_docs &= has_rubrique
-        if has_date_filter:
-            candidate_docs &= date_ok
-        if image_val is not None:
-            candidate_docs &= has_image_docs
-        if titre_groups:
-            candidate_docs &= titre_docs
-        if contenu_groups:
-            candidate_docs &= keywords_docs
+        # On regroupe tous les filtres actifs
+        active_filters = []
+        if rubriques: active_filters.append(has_rubrique)
+        if has_date_filter: active_filters.append(date_ok)
+        if image_val is not None: active_filters.append(has_image_docs)
+        if titre_groups: active_filters.append(titre_docs)
+        if contenu_groups: active_filters.append(keywords_docs)
+
+        if active_filters:
+            # OPTIMISATION : on trie par taille pour commencer par l'ensemble le plus petit
+            active_filters.sort(key=len)
+            candidate_docs = active_filters[0].copy()
+            for f in active_filters[1:]:
+                candidate_docs &= f
+        else:
+            # Si aucune contrainte, on prend tout (ou set() si vous préférez)
+            candidate_docs = self._all_doc_ids()
         
         candidate_docs -= exclude_docs
 
@@ -197,7 +213,7 @@ class SearchEngine:
             if doc_id not in self.documents:
                 continue
             doc = dict(self.documents[doc_id])
-            doc["score"] = self._score(doc_id, keywords)
+            doc["score"] = self._score(doc_id, all_keywords)
             results.append(doc)
       
         results.sort(key=lambda d: d["score"], reverse=True)

@@ -8,7 +8,7 @@ from lo17_dm.Pretraiteur import Pretraiteur
 from lo17_dm.SearchEngine import SearchEngine
 
 OUTPUTS = Path(__file__).parent.parent / "outputs"
-CORPUS = OUTPUTS / "clean_corpus.xml"
+CORPUS = OUTPUTS / "corpus.xml"
 LEMMA_TABLE = OUTPUTS / "lemmes_corpus.tsv"
 RUBRIQUE_INDEX = OUTPUTS / "index" / "index_rubrique.tsv"
 SUB_TABLE = OUTPUTS / "sub_table.tsv"
@@ -126,18 +126,14 @@ def main() -> None:
 
         sort_by = SORT_LABELS.get(sort_choice, "relevance")
 
-        # Détection de l'opérateur : "ou" → OR, sinon AND
-        operator = "OR" if " ou " in query.lower() else "AND"
-
         t0 = time.perf_counter()
         requete_dict = pretraiteur.treat_request(query)
-        results = engine.search(requete_dict, keyword_operator=operator)
+        results = engine.search(requete_dict)
         elapsed_ms = (time.perf_counter() - t0) * 1000
 
         keywords: list[str] = requete_dict.get("key_words") or []
 
         print(f"\n  Analyse : {requete_dict}")
-        print(f"  Opérateur mots-clés : {operator}")
 
         display_results(results, keywords, engine, sort_by)
         print(f"  Temps de réponse : {elapsed_ms:.1f} ms\n")
