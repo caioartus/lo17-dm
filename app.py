@@ -191,6 +191,83 @@ def api_reset_queries():
     return jsonify({"ok": True})
 
 
+def _structural_excluded(requete_dict: dict) -> tuple[set[int], list[str]]:
+    """Retourne (docs exclus par contraintes structurelles, descriptions des contraintes)."""
+    all_ids = engine._all_doc_ids()
+    sets: list[set[int]] = []
+    labels: list[str] = []
+
+    rubriques = requete_dict.get("rubriques")
+    if rubriques:
+        rub_docs: set[int] = set()
+        for r in rubriques:
+            rub_docs |= engine.indexes.get("rubrique", {}).get(r, set())
+        sets.append(rub_docs)
+        labels.append("rubrique=" + ", ".join(rubriques))
+
+    from_dt = engine._parse_date(requete_dict.get("from_date"))
+    to_dt   = engine._parse_date(requete_dict.get("to_date"))
+    anti    = requete_dict.get("anti_date")
+    if from_dt or to_dt or anti:
+        sets.append(engine._get_okay_dates(from_dt, to_dt, anti))
+        parts = []
+        if from_dt: parts.append(f"depuis {requete_dict['from_date']}")
+        if to_dt:   parts.append(f"jusqu'au {requete_dict['to_date']}")
+        if anti:    parts.append(f"anti-date {anti}")
+        labels.append("date: " + ", ".join(parts))
+
+    image_val = requete_dict.get("image")
+    if image_val is not None:
+        sets.append(engine._lookup_image(image_val))
+        labels.append("avec image" if image_val else "sans image")
+
+    if not sets:
+        return set(), []
+
+    passing = sets[0].copy()
+    for s in sets[1:]:
+        passing &= s
+
+    return all_ids - passing, labels
+
+
+@app.route("/api/prefill", methods=["POST"])
+def api_prefill():
+    with _db() as conn:
+        query_rows = conn.execute("SELECT id, query FROM queries ORDER BY id").fetchall()
+
+    summary = []
+    with _db() as conn:
+        for row in query_rows:
+            qid = row["id"]
+            requete_dict = pretraiteur.treat_request(row["query"])
+            excluded, labels = _structural_excluded(requete_dict)
+
+            if not excluded:
+                summary.append({"query_id": qid, "new": 0, "total_excluded": 0, "constraints": labels})
+                continue
+
+            already = {
+                r[0]: r[1]
+                for r in conn.execute(
+                    "SELECT doc_id, is_relevant FROM annotations WHERE query_id=?", (qid,)
+                ).fetchall()
+            }
+            new_count = 0
+            for doc_id in excluded:
+                if already.get(doc_id) != 1:      # ne jamais écraser "pertinent"
+                    if already.get(doc_id) is None: # n'insérer que si non annoté
+                        conn.execute(
+                            "INSERT INTO annotations (query_id, doc_id, is_relevant) VALUES (?,?,?)",
+                            (qid, doc_id, 0),
+                        )
+                        new_count += 1
+
+            summary.append({"query_id": qid, "new": new_count, "total_excluded": len(excluded), "constraints": labels})
+
+    return jsonify(summary)
+
+
 @app.route("/api/docs")
 def api_docs():
     sort_by = request.args.get("sort", "date_asc")

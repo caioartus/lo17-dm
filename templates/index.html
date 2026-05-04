@@ -226,6 +226,7 @@
       <button class="sort-btn" data-afilter="all"      id="af-all">Tous</button>
       <button class="sort-btn" data-afilter="unseen"   id="af-unseen">Non vus</button>
       <button class="sort-btn" id="config-btn" style="margin-left:.6rem;">⚙️ Requêtes</button>
+      <button class="sort-btn" id="prefill-btn">🔄 Pré-filtrer</button>
       <button class="sort-btn" id="export-btn" style="background:var(--accent);border-color:var(--accent);color:#fff;">Exporter Python ↗</button>
     </div>
   </div>
@@ -283,6 +284,24 @@
     </div>
   </aside>
 </main>
+
+<!-- Prefill modal -->
+<div id="prefill-modal" style="display:none;">
+  <div class="modal-overlay" onclick="closePrefill(event)">
+    <div class="modal-box" onclick="event.stopPropagation()" style="max-width:620px;">
+      <h2>🔄 Pré-filtrage automatique</h2>
+      <p style="font-size:.78rem;color:var(--muted);">
+        Analyse les contraintes structurelles (rubrique, date, image) de chaque requête
+        et marque les documents exclus comme <em>non pertinents</em>.
+        Les annotations <em>pertinentes</em> manuelles ne sont jamais écrasées.
+      </p>
+      <div id="prefill-results" style="overflow-y:auto;max-height:55vh;margin-top:.5rem;"></div>
+      <div class="modal-actions" style="border-top:1px solid var(--border);padding-top:.8rem;">
+        <button class="btn-primary" onclick="closePrefill()">Fermer</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- Config modal -->
 <div id="config-modal" style="display:none;">
@@ -757,6 +776,60 @@ document.addEventListener('keydown', e=>{
     }
   }
 });
+
+// ═══════════════════════════════════════════════════════
+//  Pré-filtrage automatique
+// ═══════════════════════════════════════════════════════
+$('prefill-btn').addEventListener('click', runPrefill);
+
+async function runPrefill() {
+  const btn = $('prefill-btn');
+  btn.textContent = '⏳ Analyse…'; btn.disabled = true;
+  try {
+    const data = await fetch('/api/prefill', {method:'POST'}).then(r=>r.json());
+    showPrefillResults(data);
+    loadAnnotationData();
+  } catch(e) {
+    alert('Erreur lors du pré-filtrage.');
+  } finally {
+    btn.textContent = '🔄 Pré-filtrer'; btn.disabled = false;
+  }
+}
+
+function showPrefillResults(data) {
+  const qMap = Object.fromEntries(queries.map(q=>[q.id, q]));
+  const totalNew = data.reduce((s,r)=>s+r.new, 0);
+
+  $('prefill-results').innerHTML = `
+    <p style="font-size:.83rem;margin-bottom:.8rem;">
+      <strong style="color:var(--accent2)">${totalNew}</strong>
+      annotation${totalNew!==1?'s':''} ajoutée${totalNew!==1?'s':''} au total.
+    </p>
+    ${data.map(r=>{
+      const q = qMap[r.query_id];
+      const label = q ? escHtml(q.query.length>65 ? q.query.slice(0,65)+'…' : q.query) : '?';
+      const hasC  = r.constraints.length > 0;
+      const icon  = !hasC ? '○' : r.new > 0 ? '✓' : '↺';
+      const color = !hasC ? 'var(--muted)' : r.new > 0 ? 'var(--green)' : 'var(--score-color)';
+      const detail = hasC
+        ? `<em>${r.constraints.map(escHtml).join(' · ')}</em>
+           → <strong>${r.total_excluded}</strong> docs exclus
+           <span style="color:var(--muted)">(${r.new} nouveau${r.new!==1?'x':''})</span>`
+        : `<span style="color:var(--muted)">Aucune contrainte structurelle détectée</span>`;
+      return `<div style="padding:.5rem 0;border-bottom:1px solid var(--border);">
+        <div style="font-size:.82rem;font-weight:600;margin-bottom:.2rem;">
+          <span style="color:${color};margin-right:.35rem">${icon}</span>Q${r.query_id} — ${label}
+        </div>
+        <div style="font-size:.75rem;padding-left:1.3rem;">${detail}</div>
+      </div>`;
+    }).join('')}`;
+  $('prefill-modal').style.display = '';
+}
+
+function closePrefill(e) {
+  if (!e || e.target === $('prefill-modal').querySelector('.modal-overlay'))
+    $('prefill-modal').style.display = 'none';
+}
 
 // ═══════════════════════════════════════════════════════
 //  Configuration des requêtes
