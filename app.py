@@ -7,17 +7,17 @@ from pathlib import Path
 from flask import Flask, jsonify, render_template, request, send_from_directory
 
 sys.path.insert(0, str(Path(__file__).parent / "src"))
-GROUND_TRUTH = [
-    {"id": 1,  "query": "Je veux les articles de la rubrique Focus parlant d'innovation.", "operator": "AND"},
-    {"id": 2,  "query": "Quels sont les articles parus entre le 3 mars 2013 et le 4 mai 2013 évoquant les Etats-Unis ?", "operator": "AND"},
-    {"id": 3,  "query": "je veux voir les articles de la rubrique Focus et publiés entre 30/08/2011 et 29/09/2011.", "operator": "AND"},
-    {"id": 4,  "query": "Quels sont les articles dont le titre contient le terme 'marché' et le mot 'projet' ?", "operator": "AND"},
-    {"id": 5,  "query": "Quels sont les articles parlant de la Russie ou du Japon ?", "operator": "OR"},
-    {"id": 6,  "query": "Rechercher tous les articles sur le CNRS et l'innovation à partir de 2013.", "operator": "AND"},
-    {"id": 7,  "query": "Je veux les articles de 2014 et de la rubrique Focus et parlant de la santé.", "operator": "AND"},
-    {"id": 8,  "query": "Lister tous les articles dont la rubrique est Focus et qui ont des images.", "operator": "AND"},
-    {"id": 9,  "query": "Quels sont les articles dont le titre contient biocarburant ou le contenu parle des bioénergies ?", "operator": "AND"},
-    {"id": 10, "query": "Je souhaites avoir tout les articles donc la rubrique est focus ou Actualités Innovations et qui contiennent les mots chercheurs et paris", "operator": "AND"},
+QUERIES = [
+    {"id": 1,  "query": "Je veux les articles de la rubrique Focus parlant d'innovation."},
+    {"id": 2,  "query": "Quels sont les articles parus entre le 3 mars 2013 et le 4 mai 2013 évoquant les Etats-Unis ?"},
+    {"id": 3,  "query": "je veux voir les articles de la rubrique Focus et publiés entre 30/08/2011 et 29/09/2011."},
+    {"id": 4,  "query": "Quels sont les articles dont le titre contient le terme 'marché' et le mot 'projet' ?"},
+    {"id": 5,  "query": "Quels sont les articles parlant de la Russie ou du Japon ?"},
+    {"id": 6,  "query": "Rechercher tous les articles sur le CNRS et l'innovation à partir de 2013."},
+    {"id": 7,  "query": "Je veux les articles de 2014 et de la rubrique Focus et parlant de la santé."},
+    {"id": 8,  "query": "Lister tous les articles dont la rubrique est Focus et qui ont des images."},
+    {"id": 9,  "query": "Quels sont les articles dont le titre contient biocarburant ou le contenu parle des bioénergies ?"},
+    {"id": 10, "query": "Je souhaites avoir tout les articles donc la rubrique est focus ou Actualités Innovations et qui contiennent les mots chercheurs et paris"},
 ]
 from lo17_dm.Pretraiteur import Pretraiteur
 from lo17_dm.SearchEngine import SearchEngine
@@ -60,13 +60,12 @@ def _init_db():
         )""")
         conn.execute("""CREATE TABLE IF NOT EXISTS queries (
             id       INTEGER PRIMARY KEY AUTOINCREMENT,
-            query    TEXT NOT NULL,
-            operator TEXT NOT NULL DEFAULT 'AND'
+            query    TEXT NOT NULL
         )""")
         if conn.execute("SELECT COUNT(*) FROM queries").fetchone()[0] == 0:
             conn.executemany(
-                "INSERT INTO queries (id, query, operator) VALUES (?,?,?)",
-                [(q["id"], q["query"], q["operator"]) for q in GROUND_TRUTH],
+                "INSERT INTO queries (id, query) VALUES (?,?)",
+                [(q["id"], q["query"]) for q in QUERIES],
             )
 
 
@@ -153,13 +152,13 @@ def browse():
 @app.route("/api/queries")
 def api_queries():
     with _db() as conn:
-        rows = conn.execute("SELECT id, query, operator FROM queries ORDER BY id").fetchall()
-    return jsonify([{"id": r["id"], "query": r["query"], "operator": r["operator"]} for r in rows])
+        rows = conn.execute("SELECT id, query FROM queries ORDER BY id").fetchall()
+    return jsonify([{"id": r["id"], "query": r["query"]} for r in rows])
 
 
 @app.route("/api/queries", methods=["PUT"])
 def api_save_queries():
-    data = request.get_json()  # [{id: int|null, query: str, operator: str}]
+    data = request.get_json()  # [{id: int|null, query: str}]
     with _db() as conn:
         existing_ids = {r[0] for r in conn.execute("SELECT id FROM queries").fetchall()}
         new_ids = {q["id"] for q in data if q.get("id") is not None}
@@ -170,11 +169,10 @@ def api_save_queries():
             text = q["query"].strip()
             if not text:
                 continue
-            op = q.get("operator", "AND")
             if q.get("id") is not None and q["id"] in existing_ids:
-                conn.execute("UPDATE queries SET query=?, operator=? WHERE id=?", (text, op, q["id"]))
+                conn.execute("UPDATE queries SET query=? WHERE id=?", (text, q["id"]))
             else:
-                conn.execute("INSERT INTO queries (query, operator) VALUES (?,?)", (text, op))
+                conn.execute("INSERT INTO queries (query) VALUES (?)", (text,))
     return jsonify({"ok": True})
 
 
@@ -185,8 +183,8 @@ def api_reset_queries():
         conn.execute("DELETE FROM queries")
         conn.execute("DELETE FROM sqlite_sequence WHERE name='queries'")
         conn.executemany(
-            "INSERT INTO queries (id, query, operator) VALUES (?,?,?)",
-            [(q["id"], q["query"], q["operator"]) for q in GROUND_TRUTH],
+            "INSERT INTO queries (id, query) VALUES (?,?)",
+            [(q["id"], q["query"]) for q in QUERIES],
         )
     return jsonify({"ok": True})
 
@@ -313,15 +311,14 @@ def api_export():
     for row in rows:
         relevant.setdefault(row["query_id"], []).append(row["doc_id"])
 
-    lines = ["GROUND_TRUTH: list[dict] = ["]
-    for q in GROUND_TRUTH:
+    lines = ["QUERIES: list[dict] = ["]
+    for q in QUERIES:
         ids = relevant.get(q["id"], [])
         ids_str = "{" + ", ".join(str(i) for i in ids) + "}" if ids else "set()"
         lines += [
             "    {",
             f'        "id": {q["id"]},',
             f'        "query": {repr(q["query"])},',
-            f'        "operator": {repr(q["operator"])},',
             f'        "relevant_ids": {ids_str},',
             "    },",
         ]

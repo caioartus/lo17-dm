@@ -103,8 +103,8 @@ class Index:
 
             # Traitement des légendes d'images
             images_elem = document.find("images")
-            if images_elem is not None:
-                self.index_dict = self.add_raw("image", doc_id, "image")
+            if images_elem is not None and len(list(images_elem)) > 0 : 
+                    self.index_dict = self.add_raw("image", doc_id, "image")
 
     def save_to_tsv(self, output_dir: str | Path, all_lemmas_fname: str):
         """
