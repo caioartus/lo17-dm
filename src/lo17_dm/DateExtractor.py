@@ -241,7 +241,7 @@ class DateExtractor:
         m = pattern.search(text)
         if m:
             if handler(m) : 
-                print(m.group(0))
+                #print(m.group(0))
                 text = pattern.sub("", text, count=1)
         return text
 

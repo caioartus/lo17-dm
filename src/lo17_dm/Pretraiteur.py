@@ -46,7 +46,7 @@ class Pretraiteur:
     def treat_request(self, text: str) -> dict :
         """Effectue le traitement complet de la requete, renvoi le dictionnaire de la requete"""
         treated = self.extract_dates(text)
-        print("after date extraction: ", treated)
+        #print("after date extraction: ", treated)
         treated = self.extract_image(treated)
         treated = self.extract_rubriques(treated)
         treated = self.extract_key_words(treated)
