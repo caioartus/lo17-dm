@@ -6,19 +6,7 @@ from pathlib import Path
 
 from flask import Flask, jsonify, render_template, request, send_from_directory
 
-sys.path.insert(0, str(Path(__file__).parent / "src"))
-QUERIES = [
-    {"id": 1,  "query": "Je veux les articles de la rubrique Focus parlant d'innovation."},
-    {"id": 2,  "query": "Quels sont les articles parus entre le 3 mars 2013 et le 4 mai 2013 évoquant les Etats-Unis ?"},
-    {"id": 3,  "query": "je veux voir les articles de la rubrique Focus et publiés entre 30/08/2011 et 29/09/2011."},
-    {"id": 4,  "query": "Quels sont les articles dont le titre contient le terme 'marché' et le mot 'projet' ?"},
-    {"id": 5,  "query": "Quels sont les articles parlant de la Russie ou du Japon ?"},
-    {"id": 6,  "query": "Rechercher tous les articles sur le CNRS et l'innovation à partir de 2013."},
-    {"id": 7,  "query": "Je veux les articles de 2014 et de la rubrique Focus et parlant de la santé."},
-    {"id": 8,  "query": "Lister tous les articles dont la rubrique est Focus et qui ont des images."},
-    {"id": 9,  "query": "Quels sont les articles dont le titre contient biocarburant ou le contenu parle des bioénergies ?"},
-    {"id": 10, "query": "Je souhaites avoir tout les articles donc la rubrique est focus ou Actualités Innovations et qui contiennent les mots chercheurs et paris"},
-]
+
 from lo17_dm.Pretraiteur import Pretraiteur
 from lo17_dm.SearchEngine import SearchEngine
 
@@ -26,13 +14,22 @@ app = Flask(__name__)
 
 OUTPUTS = Path(__file__).parent / "outputs"
 CORPUS = OUTPUTS / "corpus.xml"
+QUERIES_PATH = Path(__file__).parent / "test_data" / "eval_requetes.txt"
 LEMMA_TABLE = OUTPUTS / "lemmes_corpus.tsv"
 RUBRIQUE_INDEX = OUTPUTS / "index" / "index_rubrique.tsv"
 STOPWORD_PATH = OUTPUTS / "stop_words.tsv"
 DATA_DIR = Path(__file__).parent / "data" / "BULLETINS"
 DB_PATH = OUTPUTS / "annotations.db"
 
+sys.path.insert(0, str(Path(__file__).parent / "src"))
 
+# load evaluation queries from file
+QUERIES = []
+id = 0
+with open(QUERIES_PATH) as f :  
+    for line in f : 
+        QUERIES.append({"id" : id, "query" : line})
+        id += 1
 
 print("Chargement du moteur de recherche…")
 pretraiteur = Pretraiteur(
