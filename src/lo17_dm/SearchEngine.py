@@ -17,10 +17,6 @@ class SearchEngine:
         self._load_indexes()
         self._load_corpus(Path(corpus_path))
 
-    # ------------------------------------------------------------------ #
-    # Chargement                                                           #
-    # ------------------------------------------------------------------ #
-
     def _load_indexes(self) -> None:
         for name in ("titre", "texte", "rubrique", "bulletin", "date", "auteur", "contact", "image"):
             path = self.output_dir / "index" / f"index_{name}.tsv"
@@ -60,9 +56,6 @@ class SearchEngine:
                 "has_image": has_image,
             }
 
-    # ------------------------------------------------------------------ #
-    # Utilitaires internes                                                  #
-    # ------------------------------------------------------------------ #
 
     @staticmethod
     def _parse_date(date_str: str) -> datetime | None:
@@ -92,7 +85,7 @@ class SearchEngine:
         """Regroupe les articles par valeur de `field` (par article, par rubrique, par bulletin)"""
         groups: dict[str, list[dict]] = {}
         for doc in results:
-            key = doc.get(field) or "—"
+            key = doc.get(field) or "-"
             groups.setdefault(key, []).append(doc)
 
         grouped = []
