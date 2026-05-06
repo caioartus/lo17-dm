@@ -87,11 +87,32 @@ class SearchEngine:
     @staticmethod
     def _union(a: set[int] | None, b: set[int]) -> set[int]:
         return b if a is None else a | b
+    
+    def _group_by(self, results: list[dict], field: str) -> list[dict]:
+        """Regroupe les articles par valeur de `field` (par article, par rubrique, par bulletin)"""
+        groups: dict[str, list[dict]] = {}
+        for doc in results:
+            key = doc.get(field) or "—"
+            groups.setdefault(key, []).append(doc)
+
+        grouped = []
+        for key, articles in groups.items():
+            articles.sort(key=lambda d: d["score"], reverse=True)
+            grouped.append({
+                field: key,
+                "articles": articles,
+                "score": max(a["score"] for a in articles),
+            })
+
+        grouped.sort(key=lambda g: g["score"], reverse=True)
+        return grouped
+
 
     # ------------------------------------------------------------------ #
     # Recherche dans les index                                              #
     # ------------------------------------------------------------------ #
 
+    # TO DO : Pourquoi pas _matches_date aussi ?
     def _matches_anti_date(self, doc_date: datetime, anti_date: str) -> bool:
         """Vérifie si doc_date correspond au motif anti_date (ex: '*/06/*' pour juin)."""
         parts = anti_date.split("/")
@@ -128,6 +149,7 @@ class SearchEngine:
                 good_docs.update(docs)
         return good_docs
         
+    # TO DO : Complètement con -> à retirer
     def _score(self, doc_id: int, keywords: list[str]) -> float:
         """Score booléen classé : +3 par mot-clé dans le titre, +1 dans le texte."""
         score = 0.0
@@ -140,26 +162,27 @@ class SearchEngine:
         return score
 
     def search(self, requete_dict: dict) -> list[dict]:
+        type_doc = requete_dict.get("type_doc", "articles")
 
         # Rubrique, toujours OU
-        rubriques = requete_dict.get("rubriques")
+        rubriques = requete_dict.get("rubrique")
         has_rubrique = set()
-        if rubriques : 
-            for rubrique in rubriques : 
-                has_rubrique |= self.indexes["rubrique"].get(rubrique, set())
+        if rubriques:
+            for rubrique in rubriques:
+                has_rubrique |= self.indexes.get("rubrique", {}).get(rubrique, set())
 
         # Filtre date
         from_date = self._parse_date(requete_dict.get("from_date"))
         to_date = self._parse_date(requete_dict.get("to_date"))
         anti_date = requete_dict.get("anti_date")
-        
+
         date_ok = self._get_okay_dates(from_date, to_date, anti_date)
         has_date_filter = bool(from_date or to_date or anti_date)
 
         # Filtre image
         image_val = requete_dict.get("image")
         has_image_docs = self._lookup_image(image_val) if image_val is not None else set()
-            
+
         # Mots-clés titre (DNF : (a ET b) OU (c ET d))
         titre_docs = set()
         titre_groups = requete_dict.get("titre", [])
@@ -167,7 +190,7 @@ class SearchEngine:
             and_docs_list = [self.indexes.get("titre", {}).get(word, set()) for word in and_group]
             if and_docs_list:
                 titre_docs |= set.intersection(*and_docs_list)
-        
+
         # Mots-clés contenu (DNF : (a ET b) OU (c ET d))
         keywords_docs = set()
         contenu_groups = requete_dict.get("contenu", [])
@@ -175,15 +198,14 @@ class SearchEngine:
             and_docs_list = [self.indexes.get("texte", {}).get(word, set()) for word in and_group]
             if and_docs_list:
                 keywords_docs |= set.intersection(*and_docs_list)
-        
+
         # Exclusion (toujours ET NOT)
         exclude_docs = set()
         for word in requete_dict.get("exclude", []):
-            exclude_docs |= self.indexes["texte"].get(word, set())
-            exclude_docs |= self.indexes["titre"].get(word, set())
+            exclude_docs |= self.indexes.get("texte", {}).get(word, set())
+            exclude_docs |= self.indexes.get("titre", {}).get(word, set())
 
         # --- INTERSECTION FINALE ---
-        # On regroupe tous les filtres actifs
         active_filters = []
         if rubriques: active_filters.append(has_rubrique)
         if has_date_filter: active_filters.append(date_ok)
@@ -192,15 +214,13 @@ class SearchEngine:
         if contenu_groups: active_filters.append(keywords_docs)
 
         if active_filters:
-            # OPTIMISATION : on trie par taille pour commencer par l'ensemble le plus petit
             active_filters.sort(key=len)
             candidate_docs = active_filters[0].copy()
             for f in active_filters[1:]:
                 candidate_docs &= f
         else:
-            # Si aucune contrainte, on prend tout (ou set() si vous préférez)
             candidate_docs = self._all_doc_ids()
-        
+
         candidate_docs -= exclude_docs
 
         # --- SCORE ET RÉSULTATS ---
@@ -215,8 +235,13 @@ class SearchEngine:
             doc = dict(self.documents[doc_id])
             doc["score"] = self._score(doc_id, all_keywords)
             results.append(doc)
-      
+
         results.sort(key=lambda d: d["score"], reverse=True)
+
+        if type_doc == "bulletins":
+            return self._group_by(results, "bulletin")
+        elif type_doc == "rubrique":
+            return self._group_by(results, "rubrique")
         return results
 
     def get_snippet(self, doc_id: int, keywords: list[str], context_len: int = 200) -> str:

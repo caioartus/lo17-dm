@@ -1,3 +1,4 @@
+import json
 import sqlite3
 import sys
 import time
@@ -86,33 +87,64 @@ def search():
     sort_by = request.args.get("sort", "relevance")
 
     if not query:
-        return jsonify({"results": [], "query_dict": {}, "elapsed_ms": 0, "count": 0, "keywords": []})
+        return jsonify({"results": [], "query_dict": {}, "elapsed_ms": 0, "count": 0, "keywords": [], "type_doc": "articles"})
 
     t0 = time.perf_counter()
     requete_dict = pretraiteur.treat_request(query)
     results = engine.search(requete_dict)
     elapsed_ms = (time.perf_counter() - t0) * 1000
 
+    type_doc = requete_dict.get("type_doc", "articles")
     keywords: list[str] = requete_dict.get("key_words") or []
 
-    if sort_by == "date_asc":
-        results = sorted(results, key=_DATE_KEY)
-    elif sort_by == "date_desc":
-        results = sorted(results, key=_DATE_KEY, reverse=True)
+    if type_doc in ("bulletins", "rubrique"):
+        field = "bulletin" if type_doc == "bulletins" else "rubrique"
+        if sort_by == "date_asc":
+            results = sorted(results, key=lambda g: min(
+                (_DATE_KEY(a) for a in g["articles"]), default=datetime.min
+            ))
+        elif sort_by == "date_desc":
+            results = sorted(results, key=lambda g: max(
+                (_DATE_KEY(a) for a in g["articles"]), default=datetime.min
+            ), reverse=True)
 
-    output = []
-    for doc in results:
-        output.append({
-            "id": doc["id"],
-            "titre": doc["titre"],
-            "rubrique": doc["rubrique"],
-            "date": doc["date"],
-            "bulletin": doc["bulletin"],
-            "auteur": doc["auteur"],
-            "score": doc["score"],
-            "snippet": engine.get_snippet(doc["id"], keywords),
-            "has_image": doc.get("has_image", False),
-        })
+        output = []
+        for group in results:
+            articles_out = [
+                {
+                    "id": doc["id"],
+                    "titre": doc["titre"],
+                    "rubrique": doc["rubrique"],
+                    "date": doc["date"],
+                    "bulletin": doc["bulletin"],
+                    "auteur": doc["auteur"],
+                    "score": doc["score"],
+                    "snippet": engine.get_snippet(doc["id"], keywords),
+                    "has_image": doc.get("has_image", False),
+                }
+                for doc in group["articles"]
+            ]
+            output.append({field: group[field], "articles": articles_out, "score": group["score"]})
+    else:
+        if sort_by == "date_asc":
+            results = sorted(results, key=_DATE_KEY)
+        elif sort_by == "date_desc":
+            results = sorted(results, key=_DATE_KEY, reverse=True)
+
+        output = [
+            {
+                "id": doc["id"],
+                "titre": doc["titre"],
+                "rubrique": doc["rubrique"],
+                "date": doc["date"],
+                "bulletin": doc["bulletin"],
+                "auteur": doc["auteur"],
+                "score": doc["score"],
+                "snippet": engine.get_snippet(doc["id"], keywords),
+                "has_image": doc.get("has_image", False),
+            }
+            for doc in results
+        ]
 
     return jsonify({
         "results": output,
@@ -120,6 +152,7 @@ def search():
         "elapsed_ms": round(elapsed_ms, 1),
         "count": len(output),
         "keywords": keywords,
+        "type_doc": type_doc,
     })
 
 
@@ -192,7 +225,7 @@ def _structural_excluded(requete_dict: dict) -> tuple[set[int], list[str]]:
     sets: list[set[int]] = []
     labels: list[str] = []
 
-    rubriques = requete_dict.get("rubriques")
+    rubriques = requete_dict.get("rubrique")
     if rubriques:
         rub_docs: set[int] = set()
         for r in rubriques:
@@ -301,21 +334,22 @@ def api_save_annotation():
 @app.route("/api/export")
 def api_export():
     with _db() as conn:
-        rows = conn.execute(
+        query_rows = conn.execute("SELECT id, query FROM queries ORDER BY id").fetchall()
+        ann_rows = conn.execute(
             "SELECT query_id, doc_id FROM annotations WHERE is_relevant=1 ORDER BY query_id, doc_id"
         ).fetchall()
     relevant: dict[int, list[int]] = {}
-    for row in rows:
+    for row in ann_rows:
         relevant.setdefault(row["query_id"], []).append(row["doc_id"])
 
     lines = ["QUERIES: list[dict] = ["]
-    for q in QUERIES:
+    for q in query_rows:
         ids = relevant.get(q["id"], [])
         ids_str = "{" + ", ".join(str(i) for i in ids) + "}" if ids else "set()"
         lines += [
             "    {",
             f'        "id": {q["id"]},',
-            f'        "query": {repr(q["query"])},',
+            f'        "query": {json.dumps(q["query"].strip(), ensure_ascii=False)},',
             f'        "relevant_ids": {ids_str},',
             "    },",
         ]

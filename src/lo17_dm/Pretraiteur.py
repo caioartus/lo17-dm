@@ -45,12 +45,32 @@ class Pretraiteur:
 
     def treat_request(self, text: str) -> dict :
         """Effectue le traitement complet de la requete, renvoi le dictionnaire de la requete"""
+        self.requete_dict = {}
+        self.extract_type_doc(text)
         treated = self.extract_dates(text)
-        #print("after date extraction: ", treated)
         treated = self.extract_image(treated)
         treated = self.extract_rubriques(treated)
         treated = self.extract_key_words(treated)
         return treated
+
+    def extract_type_doc(self, text: str) -> None:
+        """Détermine le type de documents à retourner selon le premier mot-clé de type trouvé."""
+        patterns = {
+            "articles": r"\b(?:article|articles)\b",
+            "bulletins": r"\b(?:bulletin|bulletins)\b",
+            "rubrique": r"\b(?:rubrique|rubriques)\b",
+        }
+
+        first_pos = len(text)
+        type_doc = "articles"  # valeur par défaut si aucun mot-clé trouvé
+
+        for doc_type, pattern in patterns.items():
+            match = re.search(pattern, text, re.IGNORECASE)
+            if match and match.start() < first_pos:
+                first_pos = match.start()
+                type_doc = doc_type
+
+        self.requete_dict["type_doc"] = type_doc
 
     def extract_image(self, text) -> str:
         """Trouve si la requête demande une image ou pas.
