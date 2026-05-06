@@ -178,7 +178,7 @@ requete = {
     date_min :
     date_max :
     anti_date_min : 
-    anti_date_max :
+    anti_date_max : 
     rubrique :
     anti_rubrique : 
     titre : 

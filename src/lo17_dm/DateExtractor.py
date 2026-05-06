@@ -30,21 +30,34 @@ _MONTHS = "|".join(MONTH_NAMES)
 # Patterns de reconnaissance de dates positives
 # ---------------------------------------------------------------------------
 
+# Mots-clés qui marquent souvent la fin d'une zone de date dans une requête
+_DATE_STOP_WORDS = (
+    r"parlant|parle|parlent|traitant|traitent|évoquant|évoque|évoquent|"
+    r"mentionnant|mentionne|mentionnent|contenant|concernent|sur|dans|titre|rubrique"
+)
+_SEP = rf"(?=[.?,;]|\b(?:{_DATE_STOP_WORDS})\b|$)"
+
 # "entre le <date> et le <date>"
 RE_RANGE = re.compile(
-    r"\bentre\s+(?:le\s+)?(?P<start>[^.?,;]+?)\s+et\s+(?:le\s+)?(?P<end>[^.?,;]+?)(?=[.?,;]|$)",
+    rf"\b(?:publi(?:é|e)s?|parus?)?\s*entre\s+(?:le\s+)?(?P<start>[^.?,;]+?)\s+et\s+(?:le\s+)?(?P<end>[^.?,;]+?){_SEP}",
+    re.IGNORECASE,
+)
+
+# "de <date> à <date>"
+RE_RANGE_DE_A = re.compile(
+    rf"\b(?:publi(?:é|e)s?|parus?)?\s*de\s+(?P<start>[^.?,;]+?)\s+[aà]\s+(?P<end>[^.?,;]+?){_SEP}",
     re.IGNORECASE,
 )
 
 # "à partir de / après / publié(s) après <date>"
 RE_FROM = re.compile(
-    r"\b(?:à\s+partir\s+de|à\s+partir\s+du|à\s+partir|après|publiés?\s+après)\s+(?:le\s+)?(?P<date>[^.?,;]+?)(?=[.?,;]|$)",
+    rf"\b(?:à\s+partir\s+de|à\s+partir\s+du|à\s+partir|après|publiés?\s+après)\s+(?:le\s+)?(?P<date>[^.?,;]+?){_SEP}",
     re.IGNORECASE,
 )
 
 # "avant / jusqu'au / jusqu'à <date>"
 RE_TO = re.compile(
-    r"\b(?:avant(?:\s+le)?|jusqu'\s*(?:au|à)(?:\s+le)?)\s+(?P<date>[^.?,;]+?)(?=[.?,;]|$)",
+    rf"\b(?:avant(?:\s+le)?|jusqu'\s*(?:au|à)(?:\s+le)?)\s+(?P<date>[^.?,;]+?){_SEP}",
     re.IGNORECASE,
 )
 
@@ -92,20 +105,18 @@ _NEGATION_PREFIX = (
 )
 
 RE_ANTI = re.compile(
-    rf"\b{_NEGATION_PREFIX}(?P<date>[^.?,;]+?)(?=[.?,;]|$)",
+    rf"\b{_NEGATION_PREFIX}(?P<date>[^.?,;]+?){_SEP}",
     re.IGNORECASE,
 )
 
 # ---------------------------------------------------------------------------
-# Nettoyage cosmétique du texte après suppression des dates
+# Nettoyage du texte après suppression des dates
 # ---------------------------------------------------------------------------
 
 RE_CLEANUP = [
-    (re.compile(r"\s{2,}"), " "),
-    (re.compile(r"\s+([?.!,;])"), r"\1"),
     (
-        re.compile(  # prépositions orphelines en fin de groupe
-            r"\b(?:de|du|des|en|le|la|l')\b(?=\s*(?:et|ou|mais|,|\.|\?|!|$))",
+        re.compile(  # prépositions et participes orphelins en fin de groupe
+            r"\b(?:de|du|des|en|le|la|l'|(?:(?:(?:é|e)crits|publi(?:é|e)s|paru)\w*\s+(?:en|apr(?:è|e)s|avant|entre|depuis|dans|le|la|du|de)))\b(?=\s*(?:et|ou|mais|,|\.|\?|!|$))",
             re.IGNORECASE,
         ),
         "",
@@ -229,8 +240,9 @@ class DateExtractor:
         puis supprime la correspondance du texte."""
         m = pattern.search(text)
         if m:
-            handler(m)
-            text = pattern.sub("", text, count=1)
+            if handler(m) : 
+                #print(m.group(0))
+                text = pattern.sub("", text, count=1)
         return text
 
     def extract(self, text: str) -> tuple[str | None, str | None, str | None, str]:
@@ -243,31 +255,42 @@ class DateExtractor:
             end = self._parse_fragment(m.group("end"))
             if start and end:
                 self._update_bounds(start[0], end[1])
+                return True
+            return False
 
         def handle_from(m):
             parsed = self._parse_fragment(m.group("date"))
             if parsed:
                 self._update_bounds(parsed[0], None)
+                return True
+            return False
 
         def handle_to(m):
             parsed = self._parse_fragment(m.group("date"))
             if parsed:
                 self._update_bounds(None, parsed[1])
+                return True
+            return False
 
         def handle_date(m):
             parsed = self._parse_fragment(m.group(0))
             if parsed:
                 self._update_bounds(*parsed)
+                return True
+            return False
 
         def handle_anti(m):
             parsed = self._parse_anti_fragment(m.group("date"))
             if parsed:
                 self.anti_date = parsed
+                return True
+            return False
 
         # Les négations sont traitées en premier pour ne pas interférer avec
         # les autres patterns qui pourraient capturer les mêmes fragments.
         text = self._apply(RE_ANTI, text, handle_anti)
         text = self._apply(RE_RANGE, text, handle_range)
+        text = self._apply(RE_RANGE_DE_A, text, handle_range)
         text = self._apply(RE_FROM, text, handle_from)
         text = self._apply(RE_TO, text, handle_to)
         text = self._apply(RE_DATE_NUMERIC, text, handle_date)
@@ -275,6 +298,7 @@ class DateExtractor:
         text = self._apply(RE_MONTH_YEAR, text, handle_date)
         text = self._apply(RE_YEAR, text, handle_date)
 
+        # nettoyage des mots qui ne servent plus a rien
         for pattern, repl in RE_CLEANUP:
             text = pattern.sub(repl, text)
 

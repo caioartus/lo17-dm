@@ -48,6 +48,7 @@ def main():
 
     cleaner = DataCleaner(manual_stopwords=MANUAL_STOPWORDS)
     cleaner.build_sub_table(df_tf_idf)
+    cleaner.export_stop_words(OUTPUTS /"stop_words.tsv")
     cleaner.apply_substitue_to_xml(input_xml, output_xml)
 
     print(f"Cleaned XML saved to {output_xml}")

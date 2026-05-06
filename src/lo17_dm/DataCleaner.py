@@ -19,6 +19,15 @@ class DataCleaner:
     def get_stopwords(self) -> set[str] | None:
         return self.stopwords
     
+    def export_stop_words(self, output_path: str | Path) -> None:
+        """Export les stopwords dans un fichier texte"""
+        assert self.stopwords is not None, "Aucun stopword à exporter"
+        output_path = Path(output_path)
+        with open(output_path, "w", encoding="utf-8") as f:
+            for sw in self.stopwords:
+                f.write(f"{sw}\n")
+        print(f"Stopwords exportés dans {output_path}")    
+
     def get_all_lemmas(self) -> set[str] | None:
         assert self._sub_table is not None, (
             "La table de substitution est vide, appeler build_sub_table()"

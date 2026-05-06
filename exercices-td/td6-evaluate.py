@@ -25,9 +25,11 @@ from lo17_dm.Pretraiteur import Pretraiteur
 from lo17_dm.SearchEngine import SearchEngine
 
 OUTPUTS = Path(__file__).parent.parent / "outputs"
+OUTPUTS_INDEX = OUTPUTS / "index"
 CORPUS = OUTPUTS / "clean_corpus.xml"
-LEMMA_TABLE = OUTPUTS / "lemmes_corpus.csv"
-RUBRIQUE_INDEX = OUTPUTS / "index_rubrique.tsv"
+LEMMA_TABLE = OUTPUTS / "lemmes_corpus.tsv"
+RUBRIQUE_INDEX = OUTPUTS_INDEX / "index_rubrique.tsv"
+STOP_WORDS = OUTPUTS / "stop_words.tsv"
 SUB_TABLE = OUTPUTS / "sub_table.tsv"
 
 N_TIMING_RUNS = 100
@@ -146,6 +148,7 @@ def run_evaluation() -> None:
     pretraiteur = Pretraiteur(
         lemma_table_path=LEMMA_TABLE,
         rubriques_index_path=RUBRIQUE_INDEX,
+        stop_words_path=STOP_WORDS
     )
     engine = SearchEngine(output_dir=OUTPUTS, corpus_path=CORPUS)
     print(f"  {len(engine.documents)} documents chargés.\n")
@@ -157,8 +160,10 @@ def run_evaluation() -> None:
     quality_rows: list[dict] = []
 
     for test in GROUND_TRUTH:
-        requete_dict = pretraiteur.treat_request(test["query"], SUB_TABLE)
-        results = engine.search(requete_dict, keyword_operator=test["operator"])
+        requete_dict = pretraiteur.treat_request(test["query"])
+        #requete_dict = pretraiteur.treat_request(test["query"], SUB_TABLE)
+        results = engine.search(requete_dict)
+        #results = engine.search(requete_dict, keyword_operator=test["operator"])
         retrieved_ids = {doc["id"] for doc in results}
         relevant_ids: set[int] = test["relevant_ids"]
 
@@ -207,8 +212,10 @@ def run_evaluation() -> None:
         times: list[float] = []
         for _ in range(N_TIMING_RUNS):
             t0 = time.perf_counter()
-            rd = pretraiteur.treat_request(test["query"], SUB_TABLE)
-            engine.search(rd, keyword_operator=test["operator"])
+            rd = pretraiteur.treat_request(test["query"])
+            #rd = pretraiteur.treat_request(test["query"], SUB_TABLE)
+            engine.search(rd)
+            #engine.search(rd, keyword_operator=test["operator"])
             times.append((time.perf_counter() - t0) * 1000)
 
         all_times.extend(times)
