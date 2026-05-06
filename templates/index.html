@@ -1207,881 +1207,886 @@
     </div>
 
     <script>
-      // ═══════════════════════════════════════════════════════
-      //  Utilitaires
-      // ═══════════════════════════════════════════════════════
-      function escHtml(s) {
-        return String(s ?? "")
-          .replace(/&/g, "&amp;")
-          .replace(/</g, "&lt;")
-          .replace(/>/g, "&gt;")
-          .replace(/"/g, "&quot;");
-      }
-      function escRe(s) {
-        return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-      }
-      function highlight(text, kws) {
-        if (!kws?.length || !text) return escHtml(text);
-        let r = escHtml(text);
-        kws.forEach((k) => {
-          r = r.replace(new RegExp(`(${escRe(k)})`, "gi"), "<mark>$1</mark>");
-        });
-        return r;
-      }
-      function pageWindow(page, pages) {
-        const s = new Set([1, pages]);
-        for (let i = Math.max(1, page - 2); i <= Math.min(pages, page + 2); i++)
-          s.add(i);
-        return [...s].sort((a, b) => a - b);
-      }
+            // ═══════════════════════════════════════════════════════
+            //  Utilitaires
+            // ═══════════════════════════════════════════════════════
+            function escHtml(s) {
+              return String(s ?? "")
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;");
+            }
+            function escRe(s) {
+              return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+            }
+            function highlight(text, kws) {
+              if (!kws?.length || !text) return escHtml(text);
+              let r = escHtml(text);
+              kws.forEach((k) => {
+                r = r.replace(new RegExp(`(${escRe(k)})`, "gi"), "<mark>$1</mark>");
+              });
+              return r;
+            }
+            function pageWindow(page, pages) {
+              const s = new Set([1, pages]);
+              for (let i = Math.max(1, page - 2); i <= Math.min(pages, page + 2); i++)
+                s.add(i);
+              return [...s].sort((a, b) => a - b);
+            }
 
-      // ═══════════════════════════════════════════════════════
-      //  État global
-      // ═══════════════════════════════════════════════════════
-      let mode = "search";
-      let searchSort = "relevance";
-      let browseSort = "date_asc";
-      let browsePage = 1;
-      let annotSort = "date_asc";
-      let annotFilter = "all";
-      let annotPage = 1;
-      const ANNOT_PER = 30;
+            // ═══════════════════════════════════════════════════════
+            //  État global
+            // ═══════════════════════════════════════════════════════
+            let mode = "search";
+            let searchSort = "relevance";
+            let browseSort = "date_asc";
+            let browsePage = 1;
+            let annotSort = "date_asc";
+            let annotFilter = "all";
+            let annotPage = 1;
+            const ANNOT_PER = 30;
 
-      let allDocs = []; // [{id,titre,rubrique,date,has_image}]
-      let annotations = {}; // {queryId: {docId: 0|1}}
-      let queries = []; // [{id,query}]
-      let filteredDocs = []; // subset of allDocs after filter
-      let focusedRowIdx = -1; // keyboard navigation index in current page
+            let allDocs = []; // [{id,titre,rubrique,date,has_image}]
+            let annotations = {}; // {queryId: {docId: 0|1}}
+            let queries = []; // [{id,query}]
+            let filteredDocs = []; // subset of allDocs after filter
+            let focusedRowIdx = -1; // keyboard navigation index in current page
 
-      // ═══════════════════════════════════════════════════════
-      //  DOM refs
-      // ═══════════════════════════════════════════════════════
-      const $ = (id) => document.getElementById(id);
-      const tabSearch = $("tab-search"),
-        tabBrowse = $("tab-browse"),
-        tabAnnotate = $("tab-annotate");
-      const searchCtrl = $("search-controls"),
-        browseCtrl = $("browse-controls"),
-        annotCtrl = $("annotate-controls-header");
-      const searchCol = $("search-col"),
-        browseCol = $("browse-col"),
-        annotCol = $("annotate-col");
-      const sidebar = $("sidebar");
-      const browseStat = $("browse-stats"),
-        tipsCard = $("tips-card"),
-        qaEl = $("query-analysis");
-      const statusEl = $("status");
-      const welcomeMsg = $("welcome-msg");
-      const searchInput = $("search-input");
+            // ═══════════════════════════════════════════════════════
+            //  DOM refs
+            // ═══════════════════════════════════════════════════════
+            const $ = (id) => document.getElementById(id);
+            const tabSearch = $("tab-search"),
+              tabBrowse = $("tab-browse"),
+              tabAnnotate = $("tab-annotate");
+            const searchCtrl = $("search-controls"),
+              browseCtrl = $("browse-controls"),
+              annotCtrl = $("annotate-controls-header");
+            const searchCol = $("search-col"),
+              browseCol = $("browse-col"),
+              annotCol = $("annotate-col");
+            const sidebar = $("sidebar");
+            const browseStat = $("browse-stats"),
+              tipsCard = $("tips-card"),
+              qaEl = $("query-analysis");
+            const statusEl = $("status");
+            const welcomeMsg = $("welcome-msg");
+            const searchInput = $("search-input");
 
-      // ═══════════════════════════════════════════════════════
-      //  Mode switching
-      // ═══════════════════════════════════════════════════════
-      function setMode(m) {
-        mode = m;
-        [tabSearch, tabBrowse, tabAnnotate].forEach((t) =>
-          t.classList.remove("active"),
-        );
-        [searchCtrl, browseCtrl, annotCtrl].forEach(
-          (c) => (c.style.display = "none"),
-        );
-        searchCol.style.display = "none";
-        browseCol.style.display = "none";
-        annotCol.style.display = "none";
-        browseStat.style.display = "none";
-        tipsCard.style.display = "none";
-        sidebar.style.display = "";
+            // ═══════════════════════════════════════════════════════
+            //  Mode switching
+            // ═══════════════════════════════════════════════════════
+            function setMode(m) {
+              mode = m;
+              [tabSearch, tabBrowse, tabAnnotate].forEach((t) =>
+                t.classList.remove("active"),
+              );
+              [searchCtrl, browseCtrl, annotCtrl].forEach(
+                (c) => (c.style.display = "none"),
+              );
+              searchCol.style.display = "none";
+              browseCol.style.display = "none";
+              annotCol.style.display = "none";
+              browseStat.style.display = "none";
+              tipsCard.style.display = "none";
+              sidebar.style.display = "";
 
-        if (m === "search") {
-          tabSearch.classList.add("active");
-          searchCtrl.style.display = "";
-          searchCol.style.display = "block";
-          tipsCard.style.display = "block";
-          qaEl.style.display = "none";
-        } else if (m === "browse") {
-          tabBrowse.classList.add("active");
-          browseCtrl.style.display = "";
-          browseCol.style.display = "block";
-          browseStat.style.display = "block";
-          browsePage = 1;
-          doBrowse();
-        } else {
-          tabAnnotate.classList.add("active");
-          annotCtrl.style.display = "";
-          annotCol.style.display = "block";
-          sidebar.style.display = "none";
-          loadAnnotationData();
-        }
-        statusEl.innerHTML = "";
-      }
+              if (m === "search") {
+                tabSearch.classList.add("active");
+                searchCtrl.style.display = "";
+                searchCol.style.display = "block";
+                tipsCard.style.display = "block";
+                qaEl.style.display = "none";
+              } else if (m === "browse") {
+                tabBrowse.classList.add("active");
+                browseCtrl.style.display = "";
+                browseCol.style.display = "block";
+                browseStat.style.display = "block";
+                browsePage = 1;
+                doBrowse();
+              } else {
+                tabAnnotate.classList.add("active");
+                annotCtrl.style.display = "";
+                annotCol.style.display = "block";
+                sidebar.style.display = "none";
+                loadAnnotationData();
+              }
+              statusEl.innerHTML = "";
+            }
 
-      tabSearch.addEventListener("click", () => setMode("search"));
-      tabBrowse.addEventListener("click", () => setMode("browse"));
-      tabAnnotate.addEventListener("click", () => setMode("annotate"));
+            tabSearch.addEventListener("click", () => setMode("search"));
+            tabBrowse.addEventListener("click", () => setMode("browse"));
+            tabAnnotate.addEventListener("click", () => setMode("annotate"));
 
-      // ═══════════════════════════════════════════════════════
-      //  Recherche
-      // ═══════════════════════════════════════════════════════
-      document
-        .getElementById("search-btn")
-        .addEventListener("click", () => doSearch(searchInput.value.trim()));
-      searchInput.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") doSearch(searchInput.value.trim());
-      });
+            // ═══════════════════════════════════════════════════════
+            //  Recherche
+            // ═══════════════════════════════════════════════════════
+            document
+              .getElementById("search-btn")
+              .addEventListener("click", () => doSearch(searchInput.value.trim()));
+            searchInput.addEventListener("keydown", (e) => {
+              if (e.key === "Enter") doSearch(searchInput.value.trim());
+            });
 
-      document.querySelectorAll("#search-sort-row .sort-btn").forEach((b) => {
-        b.addEventListener("click", () => {
-          document
-            .querySelectorAll("#search-sort-row .sort-btn")
-            .forEach((x) => x.classList.remove("active"));
-          b.classList.add("active");
-          searchSort = b.dataset.sort;
-          if (currentQuery) doSearch(currentQuery);
-        });
-      });
+            document.querySelectorAll("#search-sort-row .sort-btn").forEach((b) => {
+              b.addEventListener("click", () => {
+                document
+                  .querySelectorAll("#search-sort-row .sort-btn")
+                  .forEach((x) => x.classList.remove("active"));
+                b.classList.add("active");
+                searchSort = b.dataset.sort;
+                if (currentQuery) doSearch(currentQuery);
+              });
+            });
 
-      document.querySelectorAll(".tips code").forEach((el) => {
-        el.addEventListener("click", () => {
-          searchInput.value = el.textContent;
-          doSearch(el.textContent);
-        });
-      });
+            document.querySelectorAll(".tips code").forEach((el) => {
+              el.addEventListener("click", () => {
+                searchInput.value = el.textContent;
+                doSearch(el.textContent);
+              });
+            });
 
-      let currentQuery = "";
-      function doSearch(q) {
-        if (!q) return;
-        currentQuery = q;
-        welcomeMsg.style.display = "none";
-        $("results").innerHTML = '<div class="spinner"></div>';
-        statusEl.innerHTML = "";
-        qaEl.style.display = "none";
-        fetch(`/search?q=${encodeURIComponent(q)}&sort=${searchSort}`)
-          .then((r) => r.json())
-          .then(renderResults)
-          .catch(() => {
-            $("results").innerHTML =
-              '<div class="state-msg"><div class="icon">⚠️</div><p>Erreur.</p></div>';
-          });
-      }
+            let currentQuery = "";
+            function doSearch(q) {
+              if (!q) return;
+              currentQuery = q;
+              welcomeMsg.style.display = "none";
+              $("results").innerHTML = '<div class="spinner"></div>';
+              statusEl.innerHTML = "";
+              qaEl.style.display = "none";
+              fetch(`/search?q=${encodeURIComponent(q)}&sort=${searchSort}`)
+                .then((r) => r.json())
+                .then(renderResults)
+                .catch(() => {
+                  $("results").innerHTML =
+                    '<div class="state-msg"><div class="icon">⚠️</div><p>Erreur.</p></div>';
+                });
+            }
 
-      function renderResults({
-        results,
-        query_dict,
-        elapsed_ms,
-        count,
-        keywords,
-        type_doc,
-      }) {
-        type_doc = type_doc || "articles";
-        const labelSing = type_doc === "bulletins" ? "bulletin" : type_doc === "rubrique" ? "rubrique" : "document";
-        const labelPlur = type_doc === "bulletins" ? "bulletins" : type_doc === "rubrique" ? "rubriques" : "documents";
-        statusEl.innerHTML =
-          count > 0
-            ? `<span class="count">${count}</span> ${count > 1 ? labelPlur : labelSing} trouvé${count > 1 ? "s" : ""} <span class="timing">${elapsed_ms} ms</span>`
-            : `<span>Aucun résultat</span> <span class="timing">${elapsed_ms} ms</span>`;
-        renderQueryAnalysis(query_dict);
-        if (!results.length) {
-          $("results").innerHTML =
-            '<div class="state-msg"><div class="icon">😕</div><p>Aucun document ne correspond.</p></div>';
-          return;
-        }
-        $("results").innerHTML = "";
+            function renderResults({
+              results,
+              query_dict,
+              elapsed_ms,
+              count,
+              keywords,
+              type_doc,
+            }) {
+              type_doc = type_doc || "articles";
+              const labelSing = type_doc === "bulletins" ? "bulletin" : type_doc === "rubrique" ? "rubrique" : "document";
+              const labelPlur = type_doc === "bulletins" ? "bulletins" : type_doc === "rubrique" ? "rubriques" : "documents";
+              statusEl.innerHTML =
+                count > 0
+                  ? `<span class="count">${count}</span> ${count > 1 ? labelPlur : labelSing} trouvé${count > 1 ? "s" : ""} <span class="timing">${elapsed_ms} ms</span>`
+                  : `<span>Aucun résultat</span> <span class="timing">${elapsed_ms} ms</span>`;
+              renderQueryAnalysis(query_dict);
+              if (!results.length) {
+                $("results").innerHTML =
+                  '<div class="state-msg"><div class="icon">😕</div><p>Aucun document ne correspond.</p></div>';
+                return;
+              }
+              $("results").innerHTML = "";
 
-        if (type_doc === "bulletins" || type_doc === "rubrique") {
-          const field = type_doc === "bulletins" ? "bulletin" : "rubrique";
-          results.forEach((group, i) => {
-            const articles = group.articles || [];
-            const card = document.createElement("div");
-            card.className = "group-card";
-            card.style.animationDelay = `${Math.min(i * 30, 200)}ms`;
-            const groupLabel = type_doc === "bulletins"
-              ? `Bulletin ${escHtml(group[field] || "—")}`
-              : escHtml(group[field] || "—");
-            const articlesHtml = articles.map((doc) => {
-              const rubTag = type_doc === "bulletins"
-                ? `<span class="rubrique-tag">${escHtml(doc.rubrique || "—")}</span>`
-                : "";
-              const bulletinMeta = type_doc === "rubrique"
-                ? `<span>Bulletin&nbsp;${escHtml(doc.bulletin || "—")}</span>`
-                : "";
-              return `<div class="group-article-item">
-                <div class="card-top">
-                  ${rubTag}
-                  <a class="card-title" href="/document/${doc.id}" target="_blank">${escHtml(doc.titre || "Sans titre")}</a>
-                </div>
-                <div class="card-meta">
-                  <span>${escHtml(doc.date || "—")}</span>
-                  ${bulletinMeta}
-                  ${doc.auteur ? `<span>${escHtml(doc.auteur)}</span>` : ""}
-                  ${doc.has_image ? '<span class="badge-image">🖼 Image</span>' : ""}
-                </div>
-                ${doc.snippet ? `<div class="card-snippet">${highlight(doc.snippet, keywords)}</div>` : ""}
-              </div>`;
-            }).join("");
-            card.innerHTML = `
-              <div class="group-header">
-                <span class="group-header-title">${groupLabel}</span>
-                <span class="group-header-count">${articles.length} article${articles.length > 1 ? "s" : ""}</span>
+              if (type_doc === "bulletins" || type_doc === "rubrique") {
+                const field = type_doc === "bulletins" ? "bulletin" : "rubrique";
+                results.forEach((group, i) => {
+                  const articles = group.articles || [];
+                  const card = document.createElement("div");
+                  card.className = "group-card";
+                  card.style.animationDelay = `${Math.min(i * 30, 200)}ms`;
+                  const groupLabel = type_doc === "bulletins"
+                    ? `Bulletin ${escHtml(group[field] || "—")}`
+                    : escHtml(group[field] || "—");
+                  const articlesHtml = articles.map((doc) => {
+                    const rubTag = type_doc === "bulletins"
+                      ? `<span class="rubrique-tag">${escHtml(doc.rubrique || "—")}</span>`
+                      : "";
+                    const bulletinMeta = type_doc === "rubrique"
+                      ? `<span>Bulletin&nbsp;${escHtml(doc.bulletin || "—")}</span>`
+                      : "";
+                    return `<div class="group-article-item">
+                      <div class="card-top">
+                        ${rubTag}
+                        <a class="card-title" href="/document/${doc.id}" target="_blank">${escHtml(doc.titre || "Sans titre")}</a>
+                      </div>
+                      <div class="card-meta">
+                        <span>${escHtml(doc.date || "—")}</span>
+                        ${bulletinMeta}
+                        ${doc.auteur ? `<span>${escHtml(doc.auteur)}</span>` : ""}
+                        ${doc.has_image ? '<span class="badge-image">🖼 Image</span>' : ""}
+                      </div>
+                      ${doc.snippet ? `<div class="card-snippet">${highlight(doc.snippet, keywords)}</div>` : ""}
+                    </div>`;
+                  }).join("");
+                  card.innerHTML = `
+                    <div class="group-header">
+                      <span class="group-header-title">${groupLabel}</span>
+                      <span class="group-header-count">${articles.length} article${articles.length > 1 ? "s" : ""}</span>
+                    </div>
+                    <div class="group-articles">${articlesHtml}</div>`;
+                  $("results").appendChild(card);
+                });
+              } else {
+                const maxScore = Math.max(...results.map((r) => r.score), 1);
+                results.forEach((doc, i) => {
+                  const card = document.createElement("div");
+                  card.className = "result-card";
+                  card.style.animationDelay = `${Math.min(i * 30, 200)}ms`;
+                  const pct = ((doc.score / maxScore) * 100).toFixed(0);
+                  card.innerHTML = `
+              <div class="card-top"><span class="rubrique-tag">${escHtml(doc.rubrique || "—")}</span>
+                <a class="card-title" href="/document/${doc.id}" target="_blank">${escHtml(doc.titre || "Sans titre")}</a></div>
+              <div class="card-meta">
+                <span>${escHtml(doc.date || "—")}</span>
+                <span>Bulletin&nbsp;${escHtml(doc.bulletin || "—")}</span>
+                ${doc.auteur ? `<span>${escHtml(doc.auteur)}</span>` : ""}
+                ${doc.has_image ? '<span class="badge-image">🖼 Image</span>' : ""}
               </div>
-              <div class="group-articles">${articlesHtml}</div>`;
-            $("results").appendChild(card);
-          });
-        } else {
-          const maxScore = Math.max(...results.map((r) => r.score), 1);
-          results.forEach((doc, i) => {
-            const card = document.createElement("div");
-            card.className = "result-card";
-            card.style.animationDelay = `${Math.min(i * 30, 200)}ms`;
-            const pct = ((doc.score / maxScore) * 100).toFixed(0);
-            card.innerHTML = `
-        <div class="card-top"><span class="rubrique-tag">${escHtml(doc.rubrique || "—")}</span>
-          <a class="card-title" href="/document/${doc.id}" target="_blank">${escHtml(doc.titre || "Sans titre")}</a></div>
-        <div class="card-meta">
-          <span>${escHtml(doc.date || "—")}</span>
-          <span>Bulletin&nbsp;${escHtml(doc.bulletin || "—")}</span>
-          ${doc.auteur ? `<span>${escHtml(doc.auteur)}</span>` : ""}
-          ${doc.has_image ? '<span class="badge-image">🖼 Image</span>' : ""}
-        </div>
-        ${doc.snippet ? `<div class="card-snippet">${highlight(doc.snippet, keywords)}</div>` : ""}
-        <div class="card-footer">
-          <div class="score-bar-wrap"><span>Score</span><div class="score-bar"><div class="score-bar-fill" style="width:${pct}%"></div></div><span class="score-val">${doc.score}</span></div>
-          <a class="open-link" href="/document/${doc.id}" target="_blank">Ouvrir →</a>
-        </div>`;
-            $("results").appendChild(card);
-          });
-        }
-      }
+              ${doc.snippet ? `<div class="card-snippet">${highlight(doc.snippet, keywords)}</div>` : ""}
+              <div class="card-footer">
+                <div class="score-bar-wrap"><span>Score</span><div class="score-bar"><div class="score-bar-fill" style="width:${pct}%"></div></div><span class="score-val">${doc.score}</span></div>
+                <a class="open-link" href="/document/${doc.id}" target="_blank">Ouvrir →</a>
+              </div>`;
+                  $("results").appendChild(card);
+                });
+              }
+            }
 
-      function renderQueryAnalysis(qd) {
-        if (!qd || !Object.keys(qd).length) {
-          qaEl.style.display = "none";
-          return;
-        }
-        qaEl.style.display = "block";
-        const fields = [
-          ["Type", "type_doc"],
-          ["Mots-clés", "key_words"],
-          ["Titre", "titre"],
-          ["Contenu", "contenu"],
-          ["Rubriques", "rubrique"],
-          ["Exclus", "exclude"],
-          ["De", "from_date"],
-          ["À", "to_date"],
-          ["Anti-date", "anti_date"],
-          ["Image", "image"],
-        ];
-        let html = "";
-        fields.forEach(([label, key]) => {
-          const val = qd[key];
-          if (val === undefined || val === null) return;
-          if (Array.isArray(val) && val.length === 0) return;
-          let display = Array.isArray(val)
-            ? val
-                .flat()
-                .map((v) => `<span class="qa-tag">${escHtml(String(v))}</span>`)
-                .join("")
-            : typeof val === "boolean"
-              ? `<span class="qa-tag">${val ? "oui" : "non"}</span>`
-              : `<span class="qa-tag">${escHtml(String(val))}</span>`;
-          html += `<div class="qa-item"><span class="qa-label">${label}</span><span class="qa-value">${display}</span></div>`;
-        });
-        $("qa-content").innerHTML =
-          html ||
-          '<span style="color:var(--muted);font-size:.78rem">Requête vide</span>';
-      }
+            function renderQueryAnalysis(qd) {
+              if (!qd || !Object.keys(qd).length) {
+                qaEl.style.display = "none";
+                return;
+              }
+              qaEl.style.display = "block";
+              const fields = [
+                ["Type", "type_doc"],
+                ["Mots-clés", "key_words"],
+                ["Titre", "titre"],
+                ["Contenu", "contenu"],
+                ["Rubriques", "rubrique"],
+                ["Exclus", "exclude"],
+                ["De", "from_date"],
+                ["À", "to_date"],
+                ["Anti-date", "anti_date"],
+                ["Image", "image"],
+              ];
+              let html = "";
+              fields.forEach(([label, key]) => {
+                const val = qd[key];
+                if (val === undefined || val === null) return;
+                if (Array.isArray(val) && val.length === 0) return;
+                let display = Array.isArray(val)
+                  ? val
+                      .flat()
+                      .map((v) => `<span class="qa-tag">${escHtml(String(v))}</span>`)
+                      .join("")
+                  : typeof val === "boolean"
+                    ? `<span class="qa-tag">${val ? "oui" : "non"}</span>`
+                    : `<span class="qa-tag">${escHtml(String(val))}</span>`;
+                html += `<div class="qa-item"><span class="qa-label">${label}</span><span class="qa-value">${display}</span></div>`;
+              });
+              $("qa-content").innerHTML =
+                html ||
+                '<span style="color:var(--muted);font-size:.78rem">Requête vide</span>';
+            }
 
-      // ═══════════════════════════════════════════════════════
-      //  Catalogue
-      // ═══════════════════════════════════════════════════════
-      document.querySelectorAll("[data-bsort]").forEach((b) => {
-        b.addEventListener("click", () => {
-          document
-            .querySelectorAll("[data-bsort]")
-            .forEach((x) => x.classList.remove("active"));
-          b.classList.add("active");
-          browseSort = b.dataset.bsort;
-          browsePage = 1;
-          doBrowse();
-        });
-      });
-
-      function doBrowse() {
-        $("browse-list").innerHTML = '<div class="spinner"></div>';
-        $("browse-pagination").innerHTML = "";
-        statusEl.innerHTML = "";
-        fetch(`/browse?sort=${browseSort}&page=${browsePage}`)
-          .then((r) => r.json())
-          .then(renderBrowse)
-          .catch(() => {
-            $("browse-list").innerHTML =
-              '<div class="state-msg"><div class="icon">⚠️</div><p>Erreur.</p></div>';
-          });
-      }
-
-      function renderBrowse({ docs, total, page, pages, per_page }) {
-        browsePage = page;
-        const from = (page - 1) * per_page + 1,
-          to = Math.min(page * per_page, total);
-        statusEl.innerHTML = `<span class="count">${total}</span> articles — affichage <span class="count">${from}–${to}</span>`;
-        $("browse-stats-content").innerHTML = `
-    <div class="stat-row"><span class="stat-label">Total</span><span class="stat-val">${total} articles</span></div>
-    <div class="stat-row"><span class="stat-label">Page</span><span class="stat-val">${page} / ${pages}</span></div>
-    <div class="stat-row"><span class="stat-label">Tri</span><span class="stat-val">${browseSort === "date_asc" ? "↑ Croissant" : "↓ Décroissant"}</span></div>`;
-        if (!docs.length) {
-          $("browse-list").innerHTML =
-            '<div class="state-msg"><div class="icon">📭</div><p>Aucun article.</p></div>';
-          return;
-        }
-        $("browse-list").innerHTML = `
-    <table class="catalogue-table"><thead><tr>
-      <th>Date</th><th>Rubrique</th><th>Titre</th><th>🖼</th><th></th>
-    </tr></thead><tbody>
-    ${docs
-      .map(
-        (d) => `<tr>
-      <td class="cat-date">${escHtml(d.date || "—")}</td>
-      <td class="cat-rubrique"><span class="rubrique-tag">${escHtml(d.rubrique || "—")}</span></td>
-      <td class="cat-titre"><a href="/document/${d.id}" target="_blank">${escHtml(d.titre || "Sans titre")}</a></td>
-      <td class="cat-img">${d.has_image ? "🖼" : ""}</td>
-      <td class="cat-open"><a class="open-link" href="/document/${d.id}" target="_blank">Ouvrir</a></td>
-    </tr>`,
-      )
-      .join("")}
-    </tbody></table>`;
-        renderPagination("browse-pagination", page, pages, (p) => {
-          browsePage = p;
-          doBrowse();
-        });
-      }
-
-      function renderPagination(containerId, page, pages, goFn) {
-        const container = $(containerId);
-        if (pages <= 1) {
-          container.innerHTML = "";
-          return;
-        }
-        let html = `<button class="page-btn" data-page="${page - 1}" ${page > 1 ? "" : "disabled"}>‹ Préc.</button>`;
-        let last = 0;
-        pageWindow(page, pages).forEach((n) => {
-          if (n - last > 1) html += `<span class="page-ellipsis">…</span>`;
-          html += `<button class="page-btn ${n === page ? "active" : ""}" data-page="${n}">${n}</button>`;
-          last = n;
-        });
-        html += `<button class="page-btn" data-page="${page + 1}" ${page < pages ? "" : "disabled"}>Suiv. ›</button>`;
-        container.innerHTML = html;
-        container.querySelectorAll(".page-btn:not([disabled])").forEach((btn) => {
-          btn.addEventListener("click", () => goFn(parseInt(btn.dataset.page)));
-        });
-      }
-
-      // ═══════════════════════════════════════════════════════
-      //  Annotation
-      // ═══════════════════════════════════════════════════════
-      document.querySelectorAll("[data-asort]").forEach((b) => {
-        b.addEventListener("click", () => {
-          document
-            .querySelectorAll("[data-asort]")
-            .forEach((x) => x.classList.remove("active"));
-          b.classList.add("active");
-          annotSort = b.dataset.asort;
-          annotPage = 1;
-          applyFilter();
-        });
-      });
-      $("af-all").addEventListener("click", () => {
-        annotFilter = "all";
-        updateFilterBtns();
-        annotPage = 1;
-        applyFilter();
-      });
-      $("af-unseen").addEventListener("click", () => {
-        annotFilter = "unseen";
-        updateFilterBtns();
-        annotPage = 1;
-        applyFilter();
-      });
-      function updateFilterBtns() {
-        $("af-all").classList.toggle("active", annotFilter === "all");
-        $("af-unseen").classList.toggle("active", annotFilter === "unseen");
-      }
-
-      async function loadAnnotationData() {
-        $("annot-list").innerHTML = '<div class="spinner"></div>';
-        $("query-legend").innerHTML = "";
-        try {
-          [queries, allDocs, annotations] = await Promise.all([
-            fetch("/api/queries").then((r) => r.json()),
-            fetch(`/api/docs?sort=${annotSort}`).then((r) => r.json()),
-            fetch("/api/annotations").then((r) => r.json()),
-          ]);
-          annotPage = 1;
-          applyFilter();
-          renderQueryLegend();
-        } catch (e) {
-          $("annot-list").innerHTML =
-            '<div class="state-msg"><div class="icon">⚠️</div><p>Erreur de chargement.</p></div>';
-        }
-      }
-
-      function applyFilter() {
-        // Re-sort
-        const rev = annotSort === "date_desc";
-        const sorted = [...allDocs].sort((a, b) => {
-          const da = parseDate(a.date),
-            db = parseDate(b.date);
-          if (!da && !db) return 0;
-          if (!da) return 1;
-          if (!db) return -1;
-          return rev ? db - da : da - db;
-        });
-
-        // Filter
-        if (annotFilter === "unseen") {
-          filteredDocs = sorted.filter((d) =>
-            queries.every((q) => annotations[q.id]?.[d.id] === undefined),
-          );
-        } else {
-          filteredDocs = sorted;
-        }
-
-        const total = filteredDocs.length;
-        const from = (annotPage - 1) * ANNOT_PER + 1,
-          to = Math.min(annotPage * ANNOT_PER, total);
-        statusEl.innerHTML = `<span class="count">${total}</span> document${total > 1 ? "s" : ""} — affichage <span class="count">${from}–${to}</span>`;
-
-        renderAnnotTable();
-        renderPagination(
-          "annot-pagination",
-          annotPage,
-          Math.ceil(total / ANNOT_PER),
-          (p) => {
-            annotPage = p;
-            focusedRowIdx = 0;
-            applyFilter();
-            window.scrollTo({ top: 0, behavior: "smooth" });
-          },
-        );
-      }
-
-      function parseDate(s) {
-        if (!s) return null;
-        const p = s.split("/");
-        if (p.length !== 3) return null;
-        return new Date(parseInt(p[2]), parseInt(p[1]) - 1, parseInt(p[0]));
-      }
-
-      function renderQueryLegend() {
-        const total = allDocs.length;
-        $("query-legend").innerHTML = queries
-          .map((q) => {
-            const { rel, nrel, unseen } = queryStats(q.id, total);
-            const pct = (((rel + nrel) / total) * 100).toFixed(0);
-            return `<div class="query-card">
-      <div class="query-card-top"><span class="qnum">Q${q.id}</span><span class="qtext">${escHtml(q.query)}</span></div>
-      <div class="q-progress-row">
-        <div class="q-progress-bar"><div class="q-progress-fill" id="qpf-${q.id}" style="width:${pct}%"></div></div>
-        <span class="q-progress-text" id="qpt-${q.id}">${rel + nrel}/${total}</span>
-      </div>
-      <div class="q-counts">
-        <span class="q-rel" id="qrel-${q.id}">✓ ${rel}</span>
-        <span class="q-nrel" id="qnrel-${q.id}">✗ ${nrel}</span>
-        <span class="q-unseen" id="qunseen-${q.id}">? ${unseen}</span>
-      </div>
-    </div>`;
-          })
-          .join("");
-      }
-
-      function queryStats(qid, total) {
-        const qann = annotations[qid] || {};
-        let rel = 0,
-          nrel = 0;
-        Object.values(qann).forEach((v) => {
-          if (v === 1) rel++;
-          else nrel++;
-        });
-        return { rel, nrel, unseen: total - rel - nrel };
-      }
-
-      function updateQueryLegend() {
-        const total = allDocs.length;
-        queries.forEach((q) => {
-          const { rel, nrel, unseen } = queryStats(q.id, total);
-          const pct = (((rel + nrel) / total) * 100).toFixed(0);
-          const pf = $(`qpf-${q.id}`),
-            pt = $(`qpt-${q.id}`);
-          const rEl = $(`qrel-${q.id}`),
-            nrEl = $(`qnrel-${q.id}`),
-            uEl = $(`qunseen-${q.id}`);
-          if (pf) pf.style.width = pct + "%";
-          if (pt) pt.textContent = `${rel + nrel}/${total}`;
-          if (rEl) rEl.textContent = `✓ ${rel}`;
-          if (nrEl) nrEl.textContent = `✗ ${nrel}`;
-          if (uEl) uEl.textContent = `? ${unseen}`;
-        });
-      }
-
-      function renderAnnotTable() {
-        focusedRowIdx = Math.max(0, Math.min(focusedRowIdx, ANNOT_PER - 1));
-        const start = (annotPage - 1) * ANNOT_PER;
-        const page = filteredDocs.slice(start, start + ANNOT_PER);
-
-        if (!page.length) {
-          $("annot-list").innerHTML =
-            '<div class="state-msg"><div class="icon">✅</div><p>Tous les documents sont déjà annotés pour ce filtre.</p></div>';
-          return;
-        }
-
-        const qHeaders = queries
-          .map(
-            (q) =>
-              `<th class="th-q" title="Q${q.id}: ${q.query}">Q${q.id}</th>`,
-          )
-          .join("");
-
-        const rows = page
-          .map((doc, rowIdx) => {
-            const focused = rowIdx === focusedRowIdx ? "focused-row" : "";
-            const qBtns = queries
-              .map((q) => {
-                const state = annotations[q.id]?.[doc.id];
-                const s = state === 1 ? "1" : state === 0 ? "0" : "";
-                const sym = state === 1 ? "✓" : state === 0 ? "✗" : "?";
-                return `<td class="ann-q"><button class="ann-btn" data-state="${s}" data-qid="${q.id}" data-did="${doc.id}" title="Q${q.id}: ${escHtml(q.query)}">${sym}</button></td>`;
-              })
-              .join("");
-            return `<tr class="${focused}" data-row="${rowIdx}" data-did="${doc.id}">
-      <td class="ann-date">${escHtml(doc.date || "—")}</td>
-      <td class="ann-rub"><span class="rubrique-tag" style="font-size:.65rem">${escHtml(doc.rubrique || "—")}</span></td>
-      <td class="ann-titre"><a href="/document/${doc.id}" target="_blank">${escHtml(doc.titre || "Sans titre")}</a></td>
-      <td class="ann-img">${doc.has_image ? "🖼" : ""}</td>
-      ${qBtns}
-      <td class="ann-open"><a class="open-link" href="/document/${doc.id}" target="_blank">Ouvrir</a></td>
-    </tr>`;
-          })
-          .join("");
-
-        $("annot-list").innerHTML = `
-    <table class="annot-table"><thead><tr>
-      <th class="th-left">Date</th><th class="th-left">Rubrique</th>
-      <th class="th-left">Titre</th><th>🖼</th>
-      ${qHeaders}<th></th>
-    </tr></thead><tbody>${rows}</tbody></table>`;
-
-        // Click handlers on annotation buttons
-        $("annot-list")
-          .querySelectorAll(".ann-btn")
-          .forEach((btn) => {
-            btn.addEventListener("click", (e) => {
-              e.stopPropagation();
-              cycleAnnotation(btn);
+            // ═══════════════════════════════════════════════════════
+            //  Catalogue
+            // ═══════════════════════════════════════════════════════
+            document.querySelectorAll("[data-bsort]").forEach((b) => {
+              b.addEventListener("click", () => {
+                document
+                  .querySelectorAll("[data-bsort]")
+                  .forEach((x) => x.classList.remove("active"));
+                b.classList.add("active");
+                browseSort = b.dataset.bsort;
+                browsePage = 1;
+                doBrowse();
+              });
             });
-          });
 
-        // Row click → focus
-        $("annot-list")
-          .querySelectorAll("tbody tr")
-          .forEach((tr) => {
-            tr.addEventListener("click", () => {
-              focusedRowIdx = parseInt(tr.dataset.row);
-              highlightRow();
+            function doBrowse() {
+              $("browse-list").innerHTML = '<div class="spinner"></div>';
+              $("browse-pagination").innerHTML = "";
+              statusEl.innerHTML = "";
+              fetch(`/browse?sort=${browseSort}&page=${browsePage}`)
+                .then((r) => r.json())
+                .then(renderBrowse)
+                .catch(() => {
+                  $("browse-list").innerHTML =
+                    '<div class="state-msg"><div class="icon">⚠️</div><p>Erreur.</p></div>';
+                });
+            }
+
+            function renderBrowse({ docs, total, page, pages, per_page }) {
+              browsePage = page;
+              const from = (page - 1) * per_page + 1,
+                to = Math.min(page * per_page, total);
+              statusEl.innerHTML = `<span class="count">${total}</span> articles — affichage <span class="count">${from}–${to}</span>`;
+              $("browse-stats-content").innerHTML = `
+          <div class="stat-row"><span class="stat-label">Total</span><span class="stat-val">${total} articles</span></div>
+          <div class="stat-row"><span class="stat-label">Page</span><span class="stat-val">${page} / ${pages}</span></div>
+          <div class="stat-row"><span class="stat-label">Tri</span><span class="stat-val">${browseSort === "date_asc" ? "↑ Croissant" : "↓ Décroissant"}</span></div>`;
+              if (!docs.length) {
+                $("browse-list").innerHTML =
+                  '<div class="state-msg"><div class="icon">📭</div><p>Aucun article.</p></div>';
+                return;
+              }
+              $("browse-list").innerHTML = `
+          <table class="catalogue-table"><thead><tr>
+            <th>Date</th><th>Rubrique</th><th>Titre</th><th>🖼</th><th></th>
+          </tr></thead><tbody>
+          ${docs
+            .map(
+              (d) => `<tr>
+            <td class="cat-date">${escHtml(d.date || "—")}</td>
+            <td class="cat-rubrique"><span class="rubrique-tag">${escHtml(d.rubrique || "—")}</span></td>
+            <td class="cat-titre"><a href="/document/${d.id}" target="_blank">${escHtml(d.titre || "Sans titre")}</a></td>
+            <td class="cat-img">${d.has_image ? "🖼" : ""}</td>
+            <td class="cat-open"><a class="open-link" href="/document/${d.id}" target="_blank">Ouvrir</a></td>
+          </tr>`,
+            )
+            .join("")}
+          </tbody></table>`;
+              renderPagination("browse-pagination", page, pages, (p) => {
+                browsePage = p;
+                doBrowse();
+              });
+            }
+
+            function renderPagination(containerId, page, pages, goFn) {
+              const container = $(containerId);
+              if (pages <= 1) {
+                container.innerHTML = "";
+                return;
+              }
+              let html = `<button class="page-btn" data-page="${page - 1}" ${page > 1 ? "" : "disabled"}>‹ Préc.</button>`;
+              let last = 0;
+              pageWindow(page, pages).forEach((n) => {
+                if (n - last > 1) html += `<span class="page-ellipsis">…</span>`;
+                html += `<button class="page-btn ${n === page ? "active" : ""}" data-page="${n}">${n}</button>`;
+                last = n;
+              });
+              html += `<button class="page-btn" data-page="${page + 1}" ${page < pages ? "" : "disabled"}>Suiv. ›</button>`;
+              container.innerHTML = html;
+              container.querySelectorAll(".page-btn:not([disabled])").forEach((btn) => {
+                btn.addEventListener("click", () => goFn(parseInt(btn.dataset.page)));
+              });
+
+            }
+
+            // ═══════════════════════════════════════════════════════
+            //  Annotation
+            // ═══════════════════════════════════════════════════════
+            document.querySelectorAll("[data-asort]").forEach((b) => {
+              b.addEventListener("click", () => {
+                document
+                  .querySelectorAll("[data-asort]")
+                  .forEach((x) => x.classList.remove("active"));
+                b.classList.add("active");
+                annotSort = b.dataset.asort;
+                annotPage = 1;
+                applyFilter();
+              });
             });
-          });
-      }
+            $("af-all").addEventListener("click", () => {
+              annotFilter = "all";
+              updateFilterBtns();
+              annotPage = 1;
+              applyFilter();
+            });
+            $("af-unseen").addEventListener("click", () => {
+              annotFilter = "unseen";
+              updateFilterBtns();
+              annotPage = 1;
+              applyFilter();
+            });
+            function updateFilterBtns() {
+              $("af-all").classList.toggle("active", annotFilter === "all");
+              $("af-unseen").classList.toggle("active", annotFilter === "unseen");
+            }
 
-      function highlightRow() {
-        $("annot-list")
-          .querySelectorAll("tbody tr")
-          .forEach((tr, i) => {
-            tr.classList.toggle("focused-row", i === focusedRowIdx);
-          });
-      }
+            async function loadAnnotationData() {
+              $("annot-list").innerHTML = '<div class="spinner"></div>';
+              $("query-legend").innerHTML = "";
+              try {
+                [queries, allDocs, annotations] = await Promise.all([
+                  fetch("/api/queries").then((r) => r.json()),
+                  fetch(`/api/docs?sort=${annotSort}`).then((r) => r.json()),
+                  fetch("/api/annotations").then((r) => r.json()),
+                ]);
+                annotPage = 1;
+                applyFilter();
+                renderQueryLegend();
+              } catch (e) {
+                $("annot-list").innerHTML =
+                  '<div class="state-msg"><div class="icon">⚠️</div><p>Erreur de chargement.</p></div>';
+              }
+            }
 
-      function cycleAnnotation(btn) {
-        const qid = parseInt(btn.dataset.qid),
-          did = parseInt(btn.dataset.did);
-        const cur =
-          btn.dataset.state === "" ? null : parseInt(btn.dataset.state);
-        // Cycle: null → 1 (relevant) → 0 (not relevant) → null (clear)
-        let next;
-        if (cur === null) next = 1;
-        else if (cur === 1) next = 0;
-        else next = null;
+            function applyFilter() {
+              // Re-sort
+              const rev = annotSort === "date_desc";
+              const sorted = [...allDocs].sort((a, b) => {
+                const da = parseDate(a.date),
+                  db = parseDate(b.date);
+                if (!da && !db) return 0;
+                if (!da) return 1;
+                if (!db) return -1;
+                return rev ? db - da : da - db;
+              });
 
-        // Update local state
-        if (!annotations[qid]) annotations[qid] = {};
-        if (next === null) delete annotations[qid][did];
-        else annotations[qid][did] = next;
+              // Filter
+              if (annotFilter === "unseen") {
+                filteredDocs = sorted.filter((d) =>
+                  queries.every((q) => annotations[q.id]?.[d.id] === undefined),
+                );
+              } else {
+                filteredDocs = sorted;
+              }
 
-        // Update button
-        btn.dataset.state = next === null ? "" : String(next);
-        btn.textContent = next === 1 ? "✓" : next === 0 ? "✗" : "?";
+              const total = filteredDocs.length;
+              const from = (annotPage - 1) * ANNOT_PER + 1,
+                to = Math.min(annotPage * ANNOT_PER, total);
+              statusEl.innerHTML = `<span class="count">${total}</span> document${total > 1 ? "s" : ""} — affichage <span class="count">${from}–${to}</span>`;
 
-        // Persist
-        fetch("/api/annotations", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            query_id: qid,
-            doc_id: did,
-            is_relevant: next,
-          }),
-        });
+              renderAnnotTable();
+              renderPagination(
+                "annot-pagination",
+                annotPage,
+                Math.ceil(total / ANNOT_PER),
+                (p) => {
+                  annotPage = p;
+                  focusedRowIdx = 0;
+                  applyFilter();
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                },
+              );
+            }
 
-        updateQueryLegend();
+            function parseDate(s) {
+              if (!s) return null;
+              const p = s.split("/");
+              if (p.length !== 3) return null;
+              return new Date(parseInt(p[2]), parseInt(p[1]) - 1, parseInt(p[0]));
+            }
 
-        // If unseen filter active and doc is now fully annotated, it will disappear on next page refresh — just update legend
-      }
+            function renderQueryLegend() {
+              const total = allDocs.length;
+              $("query-legend").innerHTML = queries
+                .map((q) => {
+                  const { rel, nrel, unseen } = queryStats(q.id, total);
+                  const pct = (((rel + nrel) / total) * 100).toFixed(0);
+                  return `<div class="query-card">
+            <div class="query-card-top"><span class="qnum">Q${q.id}</span><span class="qtext">${escHtml(q.query)}</span></div>
+            <div class="q-progress-row">
+              <div class="q-progress-bar"><div class="q-progress-fill" id="qpf-${q.id}" style="width:${pct}%"></div></div>
+              <span class="q-progress-text" id="qpt-${q.id}">${rel + nrel}/${total}</span>
+            </div>
+            <div class="q-counts">
+              <span class="q-rel" id="qrel-${q.id}">✓ ${rel}</span>
+              <span class="q-nrel" id="qnrel-${q.id}">✗ ${nrel}</span>
+              <span class="q-unseen" id="qunseen-${q.id}">? ${unseen}</span>
+            </div>
+          </div>`;
+                })
+                .join("");
+            }
 
-      // ── Keyboard navigation ────────────────────────────────
-      document.addEventListener("keydown", (e) => {
-        if (mode !== "annotate") return;
-        const active = document.activeElement;
-        if (
-          active &&
-          (active.tagName === "INPUT" || active.tagName === "TEXTAREA")
-        )
-          return;
+            function queryStats(qid, total) {
+              const qann = annotations[qid] || {};
+              let rel = 0,
+                nrel = 0;
+              Object.values(qann).forEach((v) => {
+                if (v === 1) rel++;
+                else nrel++;
+              });
+              return { rel, nrel, unseen: total - rel - nrel };
+            }
 
-        const start = (annotPage - 1) * ANNOT_PER;
-        const page = filteredDocs.slice(start, start + ANNOT_PER);
-        if (!page.length) return;
+            function updateQueryLegend() {
+              const total = allDocs.length;
+              queries.forEach((q) => {
+                const { rel, nrel, unseen } = queryStats(q.id, total);
+                const pct = (((rel + nrel) / total) * 100).toFixed(0);
+                const pf = $(`qpf-${q.id}`),
+                  pt = $(`qpt-${q.id}`);
+                const rEl = $(`qrel-${q.id}`),
+                  nrEl = $(`qnrel-${q.id}`),
+                  uEl = $(`qunseen-${q.id}`);
+                if (pf) pf.style.width = pct + "%";
+                if (pt) pt.textContent = `${rel + nrel}/${total}`;
+                if (rEl) rEl.textContent = `✓ ${rel}`;
+                if (nrEl) nrEl.textContent = `✗ ${nrel}`;
+                if (uEl) uEl.textContent = `? ${unseen}`;
+              });
+            }
 
-        if (e.key === "ArrowDown") {
-          e.preventDefault();
-          focusedRowIdx = Math.min(focusedRowIdx + 1, page.length - 1);
-          highlightRow();
-        } else if (e.key === "ArrowUp") {
-          e.preventDefault();
-          focusedRowIdx = Math.max(focusedRowIdx - 1, 0);
-          highlightRow();
-        } else if (e.key === "Enter") {
-          if (focusedRowIdx >= 0 && focusedRowIdx < page.length) {
-            window.open(`/document/${page[focusedRowIdx].id}`, "_blank");
-          }
-        } else {
-          // 1–9, 0 → Q1–Q10
-          const digit = e.key === "0" ? 10 : parseInt(e.key);
-          if (
-            !isNaN(digit) &&
-            digit >= 1 &&
-            digit <= 10 &&
-            focusedRowIdx >= 0
-          ) {
-            const doc = page[focusedRowIdx];
-            const q = queries[digit - 1];
-            if (!q) return;
-            const btn = $("annot-list").querySelector(
-              `.ann-btn[data-qid="${q.id}"][data-did="${doc.id}"]`,
-            );
-            if (btn) cycleAnnotation(btn);
-          }
-        }
-      });
+            function renderAnnotTable() {
+              focusedRowIdx = Math.max(0, Math.min(focusedRowIdx, ANNOT_PER - 1));
+              const start = (annotPage - 1) * ANNOT_PER;
+              const page = filteredDocs.slice(start, start + ANNOT_PER);
 
-      // ═══════════════════════════════════════════════════════
-      //  Pré-filtrage automatique
-      // ═══════════════════════════════════════════════════════
-      $("prefill-btn").addEventListener("click", runPrefill);
+              if (!page.length) {
+                $("annot-list").innerHTML =
+                  '<div class="state-msg"><div class="icon">✅</div><p>Tous les documents sont déjà annotés pour ce filtre.</p></div>';
+                return;
+              }
 
-      async function runPrefill() {
-        const btn = $("prefill-btn");
-        btn.textContent = "⏳ Analyse…";
-        btn.disabled = true;
-        try {
-          const data = await fetch("/api/prefill", { method: "POST" }).then(
-            (r) => r.json(),
-          );
-          showPrefillResults(data);
-          loadAnnotationData();
-        } catch (e) {
-          alert("Erreur lors du pré-filtrage.");
-        } finally {
-          btn.textContent = "🔄 Pré-filtrer";
-          btn.disabled = false;
-        }
-      }
+              const qHeaders = queries
+                .map(
+                  (q) =>
+                    `<th class="th-q" title="Q${q.id}: ${q.query}">Q${q.id}</th>`,
+                )
+                .join("");
 
-      function showPrefillResults(data) {
-        const qMap = Object.fromEntries(queries.map((q) => [q.id, q]));
-        const totalNew = data.reduce((s, r) => s + r.new, 0);
+              const rows = page
+                .map((doc, rowIdx) => {
+                  const focused = rowIdx === focusedRowIdx ? "focused-row" : "";
+                  const qBtns = queries
+                    .map((q) => {
+                      const state = annotations[q.id]?.[doc.id];
+                      const s = state === 1 ? "1" : state === 0 ? "0" : "";
+                      const sym = state === 1 ? "✓" : state === 0 ? "✗" : "?";
+                      return `<td class="ann-q"><button class="ann-btn" data-state="${s}" data-qid="${q.id}" data-did="${doc.id}" title="Q${q.id}: ${escHtml(q.query)}">${sym}</button></td>`;
+                    })
+                    .join("");
+                  return `<tr class="${focused}" data-row="${rowIdx}" data-did="${doc.id}">
+            <td class="ann-date">${escHtml(doc.date || "—")}</td>
+            <td class="ann-rub"><span class="rubrique-tag" style="font-size:.65rem">${escHtml(doc.rubrique || "—")}</span></td>
+            <td class="ann-titre"><a href="/document/${doc.id}" target="_blank">${escHtml(doc.titre || "Sans titre")}</a></td>
+            <td class="ann-img">${doc.has_image ? "🖼" : ""}</td>
+            ${qBtns}
+            <td class="ann-open"><a class="open-link" href="/document/${doc.id}" target="_blank">Ouvrir</a></td>
+          </tr>`;
+                })
+                .join("");
 
-        $("prefill-results").innerHTML = `
-    <p style="font-size:.83rem;margin-bottom:.8rem;">
-      <strong style="color:var(--accent2)">${totalNew}</strong>
-      annotation${totalNew !== 1 ? "s" : ""} ajoutée${totalNew !== 1 ? "s" : ""} au total.
-    </p>
-    ${data
-      .map((r) => {
-        const q = qMap[r.query_id];
-        const label = q
-          ? escHtml(q.query.length > 65 ? q.query.slice(0, 65) + "…" : q.query)
-          : "?";
-        const hasC = r.constraints.length > 0;
-        const icon = !hasC ? "○" : r.new > 0 ? "✓" : "↺";
-        const color = !hasC
-          ? "var(--muted)"
-          : r.new > 0
-            ? "var(--green)"
-            : "var(--score-color)";
-        const detail = hasC
-          ? `<em>${r.constraints.map(escHtml).join(" · ")}</em>
-           → <strong>${r.total_excluded}</strong> docs exclus
-           <span style="color:var(--muted)">(${r.new} nouveau${r.new !== 1 ? "x" : ""})</span>`
-          : `<span style="color:var(--muted)">Aucune contrainte structurelle détectée</span>`;
-        return `<div style="padding:.5rem 0;border-bottom:1px solid var(--border);">
-        <div style="font-size:.82rem;font-weight:600;margin-bottom:.2rem;">
-          <span style="color:${color};margin-right:.35rem">${icon}</span>Q${r.query_id} — ${label}
-        </div>
-        <div style="font-size:.75rem;padding-left:1.3rem;">${detail}</div>
-      </div>`;
-      })
-      .join("")}`;
-        $("prefill-modal").style.display = "";
-      }
+              $("annot-list").innerHTML = `
+          <table class="annot-table"><thead><tr>
+            <th class="th-left">Date</th><th class="th-left">Rubrique</th>
+            <th class="th-left">Titre</th><th>🖼</th>
+            ${qHeaders}<th></th>
+          </tr></thead><tbody>${rows}</tbody></table>`;
 
-      function closePrefill(e) {
-        if (
-          !e ||
-          e.target === $("prefill-modal").querySelector(".modal-overlay")
-        )
-          $("prefill-modal").style.display = "none";
-      }
+              // Click handlers on annotation buttons
+              $("annot-list")
+                .querySelectorAll(".ann-btn")
+                .forEach((btn) => {
+                  btn.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    cycleAnnotation(btn);
+                  });
+                });
 
-      // ═══════════════════════════════════════════════════════
-      //  Configuration des requêtes
-      // ═══════════════════════════════════════════════════════
-      $("config-btn").addEventListener("click", openConfig);
-      $("config-add-btn").addEventListener("click", () => addConfigRow());
-      $("config-save-btn").addEventListener("click", saveConfig);
-      $("config-reset-btn").addEventListener("click", resetConfig);
+              // Row click → focus
+              $("annot-list")
+                .querySelectorAll("tbody tr")
+                .forEach((tr) => {
+                  tr.addEventListener("click", () => {
+                    focusedRowIdx = parseInt(tr.dataset.row);
+                    highlightRow();
+                  });
+                });
+            }
 
-      function openConfig() {
-        $("config-modal").style.display = "";
-        renderConfigRows(queries);
-      }
+            function highlightRow() {
+              $("annot-list")
+                .querySelectorAll("tbody tr")
+                .forEach((tr, i) => {
+                  tr.classList.toggle("focused-row", i === focusedRowIdx);
+                });
+            }
 
-      function closeConfig(e) {
-        if (
-          !e ||
-          e.target === $("config-modal").querySelector(".modal-overlay")
-        )
-          $("config-modal").style.display = "none";
-      }
+            function cycleAnnotation(btn) {
+              const qid = parseInt(btn.dataset.qid),
+                did = parseInt(btn.dataset.did);
+              const cur =
+                btn.dataset.state === "" ? null : parseInt(btn.dataset.state);
+              // Cycle: null → 1 (relevant) → 0 (not relevant) → null (clear)
+              let next;
+              if (cur === null) next = 1;
+              else if (cur === 1) next = 0;
+              else next = null;
 
-      function renderConfigRows(qs) {
-        const list = $("config-query-list");
-        list.innerHTML = "";
-        qs.forEach((q, i) => addConfigRow(q, i + 1));
-        updateConfigCount();
-      }
+              // Update local state
+              if (!annotations[qid]) annotations[qid] = {};
+              if (next === null) delete annotations[qid][did];
+              else annotations[qid][did] = next;
 
-      function addConfigRow(q = null) {
-        const list = $("config-query-list");
-        const idx = list.children.length + 1;
-        const id = q?.id ?? "";
-        const text = q?.query ?? "";
-        const row = document.createElement("div");
-        row.className = "cfg-row";
-        row.dataset.id = id;
-        row.innerHTML = `
-    <span class="cfg-num">Q${idx}</span>
-    <input class="cfg-input" type="text" value="${escHtml(text)}" placeholder="Entrez la requête…" />
-    <button class="cfg-del" title="Supprimer">🗑</button>`;
-        row.querySelector(".cfg-del").addEventListener("click", () => {
-          row.remove();
-          renumberRows();
-          updateConfigCount();
-        });
-        list.appendChild(row);
-        updateConfigCount();
-      }
+              // Update button
+              btn.dataset.state = next === null ? "" : String(next);
+              btn.textContent = next === 1 ? "✓" : next === 0 ? "✗" : "?";
 
-      function renumberRows() {
-        $("config-query-list")
-          .querySelectorAll(".cfg-num")
-          .forEach((el, i) => {
-            el.textContent = `Q${i + 1}`;
-          });
-      }
+              // Persist
+              fetch("/api/annotations", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  query_id: qid,
+                  doc_id: did,
+                  is_relevant: next,
+                }),
+              });
 
-      function updateConfigCount() {
-        const n = $("config-query-list").children.length;
-        $("config-count").textContent = `${n} requête${n > 1 ? "s" : ""}`;
-      }
+              updateQueryLegend();
 
-      async function saveConfig() {
-        const rows = [...$("config-query-list").children];
-        const data = rows
-          .map((row) => ({
-            id: row.dataset.id !== "" ? parseInt(row.dataset.id) : null,
-            query: row.querySelector(".cfg-input").value.trim(),
-          }))
-          .filter((q) => q.query);
+              // If unseen filter active and doc is now fully annotated, it will disappear on next page refresh — just update legend
+            }
 
-        if (!data.length) {
-          alert("Ajoutez au moins une requête.");
-          return;
-        }
+            // ── Keyboard navigation ────────────────────────────────
+            document.addEventListener("keydown", (e) => {
+              if (mode !== "annotate") return;
+              const active = document.activeElement;
+              if (
+                active &&
+                (active.tagName === "INPUT" || active.tagName === "TEXTAREA")
+              )
+                return;
 
-        const btn = $("config-save-btn");
-        btn.textContent = "Enregistrement…";
-        btn.disabled = true;
-        await fetch("/api/queries", {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data),
-        });
-        btn.textContent = "💾 Enregistrer";
-        btn.disabled = false;
-        $("config-modal").style.display = "none";
-        loadAnnotationData();
-      }
+              const start = (annotPage - 1) * ANNOT_PER;
+              const page = filteredDocs.slice(start, start + ANNOT_PER);
+              if (!page.length) return;
 
-      async function resetConfig() {
-        if (
-          !confirm(
-            "Restaurer les 10 requêtes par défaut et effacer toutes les annotations ?",
-          )
-        )
-          return;
-        await fetch("/api/queries/reset", { method: "POST" });
-        $("config-modal").style.display = "none";
-        loadAnnotationData();
-      }
+              if (e.key === "ArrowDown") {
+                e.preventDefault();
+                focusedRowIdx = Math.min(focusedRowIdx + 1, page.length - 1);
+                highlightRow();
+              } else if (e.key === "ArrowUp") {
+                e.preventDefault();
+                focusedRowIdx = Math.max(focusedRowIdx - 1, 0);
+                highlightRow();
+              } else if (e.key === "Enter") {
+                if (focusedRowIdx >= 0 && focusedRowIdx < page.length) {
+                  window.open(`/document/${page[focusedRowIdx].id}`, "_blank");
+                }
+              } else {
+                // 1–9, 0 → Q1–Q10
+                const digit = e.key === "0" ? 10 : parseInt(e.key);
+                if (
+                  !isNaN(digit) &&
+                  digit >= 1 &&
+                  digit <= 10 &&
+                  focusedRowIdx >= 0
+                ) {
+                  const doc = page[focusedRowIdx];
+                  const q = queries[digit - 1];
+                  if (!q) return;
+                  const btn = $("annot-list").querySelector(
+                    `.ann-btn[data-qid="${q.id}"][data-did="${doc.id}"]`,
+                  );
+                  if (btn) cycleAnnotation(btn);
+                }
+              }
+            });
 
-      // ═══════════════════════════════════════════════════════
-      //  Export
-      // ═══════════════════════════════════════════════════════
-      $("export-btn").addEventListener("click", openExport);
+            // ═══════════════════════════════════════════════════════
+            //  Pré-filtrage automatique
+            // ═══════════════════════════════════════════════════════
+            $("prefill-btn").addEventListener("click", runPrefill);
 
-      function openExport() {
-        $("export-modal").style.display = "";
-        $("export-code").textContent = "Chargement…";
-        fetch("/api/export")
-          .then((r) => r.text())
-          .then((txt) => {
-            $("export-code").textContent = txt;
-          });
-      }
+            async function runPrefill() {
+              const btn = $("prefill-btn");
+              btn.textContent = "⏳ Analyse…";
+              btn.disabled = true;
+              try {
+                const data = await fetch("/api/prefill", { method: "POST" }).then(
+                  (r) => r.json(),
+                );
+                showPrefillResults(data);
+                loadAnnotationData();
+              } catch (e) {
+                alert("Erreur lors du pré-filtrage.");
+              } finally {
+                btn.textContent = "🔄 Pré-filtrer";
+                btn.disabled = false;
+              }
+            }
 
-      function closeExport(e) {
-        if (
-          !e ||
-          e.target === $("export-modal").querySelector(".modal-overlay")
-        )
-          $("export-modal").style.display = "none";
-      }
+            function showPrefillResults(data) {
+              const qMap = Object.fromEntries(queries.map((q) => [q.id, q]));
+              const totalNew = data.reduce((s, r) => s + r.new, 0);
 
-      function copyExport() {
-        navigator.clipboard.writeText($("export-code").textContent).then(() => {
-          const btn = document.querySelector(".modal-box .btn-primary");
-          btn.textContent = "✓ Copié !";
-          setTimeout(() => {
-            btn.textContent = "📋 Copier";
-          }, 2000);
-        });
-      }
+              $("prefill-results").innerHTML = `
+          <p style="font-size:.83rem;margin-bottom:.8rem;">
+            <strong style="color:var(--accent2)">${totalNew}</strong>
+            annotation${totalNew !== 1 ? "s" : ""} ajoutée${totalNew !== 1 ? "s" : ""} au total.
+          </p>
+          ${data
+            .map((r) => {
+              const q = qMap[r.query_id];
+              const label = q
+                ? escHtml(q.query.length > 65 ? q.query.slice(0, 65) + "…" : q.query)
+                : "?";
+              const hasC = r.constraints.length > 0;
+              const icon = !hasC ? "○" : r.new > 0 ? "✓" : "↺";
+              const color = !hasC
+                ? "var(--muted)"
+                : r.new > 0
+                  ? "var(--green)"
+                  : "var(--score-color)";
+              const detail = hasC
+                ? `<em>${r.constraints.map(escHtml).join(" · ")}</em>
+                 → <strong>${r.total_excluded}</strong> docs exclus
+                 <span style="color:var(--muted)">(${r.new} nouveau${r.new !== 1 ? "x" : ""})</span>`
+                : `<span style="color:var(--muted)">Aucune contrainte structurelle détectée</span>`;
+              return `<div style="padding:.5rem 0;border-bottom:1px solid var(--border);">
+              <div style="font-size:.82rem;font-weight:600;margin-bottom:.2rem;">
+                <span style="color:${color};margin-right:.35rem">${icon}</span>Q${r.query_id} — ${label}
+              </div>
+              <div style="font-size:.75rem;padding-left:1.3rem;">${detail}</div>
+            </div>`;
+            })
+            .join("")}`;
+              $("prefill-modal").style.display = "";
+            }
+
+            function closePrefill(e) {
+              if (
+                !e ||
+                e.target === $("prefill-modal").querySelector(".modal-overlay")
+              )
+                $("prefill-modal").style.display = "none";
+            }
+
+            // ═══════════════════════════════════════════════════════
+            //  Configuration des requêtes
+            // ═══════════════════════════════════════════════════════
+            $("config-btn").addEventListener("click", openConfig);
+            $("config-add-btn").addEventListener("click", () => addConfigRow());
+            $("config-save-btn").addEventListener("click", saveConfig);
+            $("config-reset-btn").addEventListener("click", resetConfig);
+
+            function openConfig() {
+              $("config-modal").style.display = "";
+              renderConfigRows(queries);
+            }
+
+            function closeConfig(e) {
+              if (
+                !e ||
+                e.target === $("config-modal").querySelector(".modal-overlay")
+              )
+                $("config-modal").style.display = "none";
+            }
+
+            function renderConfigRows(qs) {
+              const list = $("config-query-list");
+              list.innerHTML = "";
+              qs.forEach((q, i) => addConfigRow(q, i + 1));
+              updateConfigCount();
+            }
+
+            function addConfigRow(q = null) {
+              const list = $("config-query-list");
+              const idx = list.children.length + 1;
+              const id = q?.id ?? "";
+              const text = q?.query ?? "";
+      <<<<<<< HEAD
+      =======
+
+      >>>>>>> 566540f (annot)
+              const row = document.createElement("div");
+              row.className = "cfg-row";
+              row.dataset.id = id;
+              row.innerHTML = `
+          <span class="cfg-num">Q${idx}</span>
+          <input class="cfg-input" type="text" value="${escHtml(text)}" placeholder="Entrez la requête…" />
+          <button class="cfg-del" title="Supprimer">🗑</button>`;
+              row.querySelector(".cfg-del").addEventListener("click", () => {
+                row.remove();
+                renumberRows();
+                updateConfigCount();
+              });
+              list.appendChild(row);
+              updateConfigCount();
+            }
+
+            function renumberRows() {
+              $("config-query-list")
+                .querySelectorAll(".cfg-num")
+                .forEach((el, i) => {
+                  el.textContent = `Q${i + 1}`;
+                });
+            }
+
+            function updateConfigCount() {
+              const n = $("config-query-list").children.length;
+              $("config-count").textContent = `${n} requête${n > 1 ? "s" : ""}`;
+            }
+
+            async function saveConfig() {
+              const rows = [...$("config-query-list").children];
+              const data = rows
+                .map((row) => ({
+                  id: row.dataset.id !== "" ? parseInt(row.dataset.id) : null,
+                  query: row.querySelector(".cfg-input").value.trim(),
+                }))
+                .filter((q) => q.query);
+
+              if (!data.length) {
+                alert("Ajoutez au moins une requête.");
+                return;
+              }
+
+              const btn = $("config-save-btn");
+              btn.textContent = "Enregistrement…";
+              btn.disabled = true;
+              await fetch("/api/queries", {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data),
+              });
+              btn.textContent = "💾 Enregistrer";
+              btn.disabled = false;
+              $("config-modal").style.display = "none";
+              loadAnnotationData();
+            }
+
+            async function resetConfig() {
+              if (
+                !confirm(
+                  "Restaurer les 10 requêtes par défaut et effacer toutes les annotations ?",
+                )
+              )
+                return;
+              await fetch("/api/queries/reset", { method: "POST" });
+              $("config-modal").style.display = "none";
+              loadAnnotationData();
+            }
+
+            // ═══════════════════════════════════════════════════════
+            //  Export
+            // ═══════════════════════════════════════════════════════
+            $("export-btn").addEventListener("click", openExport);
+
+            function openExport() {
+              $("export-modal").style.display = "";
+              $("export-code").textContent = "Chargement…";
+              fetch("/api/export")
+                .then((r) => r.text())
+                .then((txt) => {
+                  $("export-code").textContent = txt;
+                });
+            }
+
+            function closeExport(e) {
+              if (
+                !e ||
+                e.target === $("export-modal").querySelector(".modal-overlay")
+              )
+                $("export-modal").style.display = "none";
+            }
+
+            function copyExport() {
+              navigator.clipboard.writeText($("export-code").textContent).then(() => {
+                const btn = document.querySelector(".modal-box .btn-primary");
+                btn.textContent = "✓ Copié !";
+                setTimeout(() => {
+                  btn.textContent = "📋 Copier";
+                }, 2000);
+              });
+            }
     </script>
   </body>
 </html>
