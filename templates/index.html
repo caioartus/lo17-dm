@@ -1373,8 +1373,18 @@
         type_doc,
       }) {
         type_doc = type_doc || "articles";
-        const labelSing = type_doc === "bulletins" ? "bulletin" : type_doc === "rubrique" ? "rubrique" : "document";
-        const labelPlur = type_doc === "bulletins" ? "bulletins" : type_doc === "rubrique" ? "rubriques" : "documents";
+        const labelSing =
+          type_doc === "bulletins"
+            ? "bulletin"
+            : type_doc === "rubrique"
+              ? "rubrique"
+              : "document";
+        const labelPlur =
+          type_doc === "bulletins"
+            ? "bulletins"
+            : type_doc === "rubrique"
+              ? "rubriques"
+              : "documents";
         statusEl.innerHTML =
           count > 0
             ? `<span class="count">${count}</span> ${count > 1 ? labelPlur : labelSing} trouvé${count > 1 ? "s" : ""} <span class="timing">${elapsed_ms} ms</span>`
@@ -1394,36 +1404,41 @@
             const card = document.createElement("div");
             card.className = "group-card";
             card.style.animationDelay = `${Math.min(i * 30, 200)}ms`;
-            const groupLabel = type_doc === "bulletins"
-              ? `Bulletin ${escHtml(group[field] || "—")}`
-              : escHtml(group[field] || "—");
-            const articlesHtml = articles.map((doc) => {
-              const rubTag = type_doc === "bulletins"
-                ? `<span class="rubrique-tag">${escHtml(doc.rubrique || "—")}</span>`
-                : "";
-              const bulletinMeta = type_doc === "rubrique"
-                ? `<span>Bulletin&nbsp;${escHtml(doc.bulletin || "—")}</span>`
-                : "";
-              return `<div class="group-article-item">
-                <div class="card-top">
-                  ${rubTag}
-                  <a class="card-title" href="/document/${doc.id}" target="_blank">${escHtml(doc.titre || "Sans titre")}</a>
-                </div>
-                <div class="card-meta">
-                  <span>${escHtml(doc.date || "—")}</span>
-                  ${bulletinMeta}
-                  ${doc.auteur ? `<span>${escHtml(doc.auteur)}</span>` : ""}
-                  ${doc.has_image ? '<span class="badge-image">🖼 Image</span>' : ""}
-                </div>
-                ${doc.snippet ? `<div class="card-snippet">${highlight(doc.snippet, keywords)}</div>` : ""}
-              </div>`;
-            }).join("");
+            const groupLabel =
+              type_doc === "bulletins"
+                ? `Bulletin ${escHtml(group[field] || "—")}`
+                : escHtml(group[field] || "—");
+            const articlesHtml = articles
+              .map((doc) => {
+                const rubTag =
+                  type_doc === "bulletins"
+                    ? `<span class="rubrique-tag">${escHtml(doc.rubrique || "—")}</span>`
+                    : "";
+                const bulletinMeta =
+                  type_doc === "rubrique"
+                    ? `<span>Bulletin&nbsp;${escHtml(doc.bulletin || "—")}</span>`
+                    : "";
+                return `<div class="group-article-item">
+                      <div class="card-top">
+                        ${rubTag}
+                        <a class="card-title" href="/document/${doc.id}" target="_blank">${escHtml(doc.titre || "Sans titre")}</a>
+                      </div>
+                      <div class="card-meta">
+                        <span>${escHtml(doc.date || "—")}</span>
+                        ${bulletinMeta}
+                        ${doc.auteur ? `<span>${escHtml(doc.auteur)}</span>` : ""}
+                        ${doc.has_image ? '<span class="badge-image">🖼 Image</span>' : ""}
+                      </div>
+                      ${doc.snippet ? `<div class="card-snippet">${highlight(doc.snippet, keywords)}</div>` : ""}
+                    </div>`;
+              })
+              .join("");
             card.innerHTML = `
-              <div class="group-header">
-                <span class="group-header-title">${groupLabel}</span>
-                <span class="group-header-count">${articles.length} article${articles.length > 1 ? "s" : ""}</span>
-              </div>
-              <div class="group-articles">${articlesHtml}</div>`;
+                    <div class="group-header">
+                      <span class="group-header-title">${groupLabel}</span>
+                      <span class="group-header-count">${articles.length} article${articles.length > 1 ? "s" : ""}</span>
+                    </div>
+                    <div class="group-articles">${articlesHtml}</div>`;
             $("results").appendChild(card);
           });
         } else {
@@ -1434,19 +1449,19 @@
             card.style.animationDelay = `${Math.min(i * 30, 200)}ms`;
             const pct = ((doc.score / maxScore) * 100).toFixed(0);
             card.innerHTML = `
-        <div class="card-top"><span class="rubrique-tag">${escHtml(doc.rubrique || "—")}</span>
-          <a class="card-title" href="/document/${doc.id}" target="_blank">${escHtml(doc.titre || "Sans titre")}</a></div>
-        <div class="card-meta">
-          <span>${escHtml(doc.date || "—")}</span>
-          <span>Bulletin&nbsp;${escHtml(doc.bulletin || "—")}</span>
-          ${doc.auteur ? `<span>${escHtml(doc.auteur)}</span>` : ""}
-          ${doc.has_image ? '<span class="badge-image">🖼 Image</span>' : ""}
-        </div>
-        ${doc.snippet ? `<div class="card-snippet">${highlight(doc.snippet, keywords)}</div>` : ""}
-        <div class="card-footer">
-          <div class="score-bar-wrap"><span>Score</span><div class="score-bar"><div class="score-bar-fill" style="width:${pct}%"></div></div><span class="score-val">${doc.score}</span></div>
-          <a class="open-link" href="/document/${doc.id}" target="_blank">Ouvrir →</a>
-        </div>`;
+              <div class="card-top"><span class="rubrique-tag">${escHtml(doc.rubrique || "—")}</span>
+                <a class="card-title" href="/document/${doc.id}" target="_blank">${escHtml(doc.titre || "Sans titre")}</a></div>
+              <div class="card-meta">
+                <span>${escHtml(doc.date || "—")}</span>
+                <span>Bulletin&nbsp;${escHtml(doc.bulletin || "—")}</span>
+                ${doc.auteur ? `<span>${escHtml(doc.auteur)}</span>` : ""}
+                ${doc.has_image ? '<span class="badge-image">🖼 Image</span>' : ""}
+              </div>
+              ${doc.snippet ? `<div class="card-snippet">${highlight(doc.snippet, keywords)}</div>` : ""}
+              <div class="card-footer">
+                <div class="score-bar-wrap"><span>Score</span><div class="score-bar"><div class="score-bar-fill" style="width:${pct}%"></div></div><span class="score-val">${doc.score}</span></div>
+                <a class="open-link" href="/document/${doc.id}" target="_blank">Ouvrir →</a>
+              </div>`;
             $("results").appendChild(card);
           });
         }
@@ -1524,30 +1539,30 @@
           to = Math.min(page * per_page, total);
         statusEl.innerHTML = `<span class="count">${total}</span> articles — affichage <span class="count">${from}–${to}</span>`;
         $("browse-stats-content").innerHTML = `
-    <div class="stat-row"><span class="stat-label">Total</span><span class="stat-val">${total} articles</span></div>
-    <div class="stat-row"><span class="stat-label">Page</span><span class="stat-val">${page} / ${pages}</span></div>
-    <div class="stat-row"><span class="stat-label">Tri</span><span class="stat-val">${browseSort === "date_asc" ? "↑ Croissant" : "↓ Décroissant"}</span></div>`;
+          <div class="stat-row"><span class="stat-label">Total</span><span class="stat-val">${total} articles</span></div>
+          <div class="stat-row"><span class="stat-label">Page</span><span class="stat-val">${page} / ${pages}</span></div>
+          <div class="stat-row"><span class="stat-label">Tri</span><span class="stat-val">${browseSort === "date_asc" ? "↑ Croissant" : "↓ Décroissant"}</span></div>`;
         if (!docs.length) {
           $("browse-list").innerHTML =
             '<div class="state-msg"><div class="icon">📭</div><p>Aucun article.</p></div>';
           return;
         }
         $("browse-list").innerHTML = `
-    <table class="catalogue-table"><thead><tr>
-      <th>Date</th><th>Rubrique</th><th>Titre</th><th>🖼</th><th></th>
-    </tr></thead><tbody>
-    ${docs
-      .map(
-        (d) => `<tr>
-      <td class="cat-date">${escHtml(d.date || "—")}</td>
-      <td class="cat-rubrique"><span class="rubrique-tag">${escHtml(d.rubrique || "—")}</span></td>
-      <td class="cat-titre"><a href="/document/${d.id}" target="_blank">${escHtml(d.titre || "Sans titre")}</a></td>
-      <td class="cat-img">${d.has_image ? "🖼" : ""}</td>
-      <td class="cat-open"><a class="open-link" href="/document/${d.id}" target="_blank">Ouvrir</a></td>
-    </tr>`,
-      )
-      .join("")}
-    </tbody></table>`;
+          <table class="catalogue-table"><thead><tr>
+            <th>Date</th><th>Rubrique</th><th>Titre</th><th>🖼</th><th></th>
+          </tr></thead><tbody>
+          ${docs
+            .map(
+              (d) => `<tr>
+            <td class="cat-date">${escHtml(d.date || "—")}</td>
+            <td class="cat-rubrique"><span class="rubrique-tag">${escHtml(d.rubrique || "—")}</span></td>
+            <td class="cat-titre"><a href="/document/${d.id}" target="_blank">${escHtml(d.titre || "Sans titre")}</a></td>
+            <td class="cat-img">${d.has_image ? "🖼" : ""}</td>
+            <td class="cat-open"><a class="open-link" href="/document/${d.id}" target="_blank">Ouvrir</a></td>
+          </tr>`,
+            )
+            .join("")}
+          </tbody></table>`;
         renderPagination("browse-pagination", page, pages, (p) => {
           browsePage = p;
           doBrowse();
@@ -1569,9 +1584,13 @@
         });
         html += `<button class="page-btn" data-page="${page + 1}" ${page < pages ? "" : "disabled"}>Suiv. ›</button>`;
         container.innerHTML = html;
-        container.querySelectorAll(".page-btn:not([disabled])").forEach((btn) => {
-          btn.addEventListener("click", () => goFn(parseInt(btn.dataset.page)));
-        });
+        container
+          .querySelectorAll(".page-btn:not([disabled])")
+          .forEach((btn) => {
+            btn.addEventListener("click", () =>
+              goFn(parseInt(btn.dataset.page)),
+            );
+          });
       }
 
       // ═══════════════════════════════════════════════════════
@@ -1677,17 +1696,17 @@
             const { rel, nrel, unseen } = queryStats(q.id, total);
             const pct = (((rel + nrel) / total) * 100).toFixed(0);
             return `<div class="query-card">
-      <div class="query-card-top"><span class="qnum">Q${q.id}</span><span class="qtext">${escHtml(q.query)}</span></div>
-      <div class="q-progress-row">
-        <div class="q-progress-bar"><div class="q-progress-fill" id="qpf-${q.id}" style="width:${pct}%"></div></div>
-        <span class="q-progress-text" id="qpt-${q.id}">${rel + nrel}/${total}</span>
-      </div>
-      <div class="q-counts">
-        <span class="q-rel" id="qrel-${q.id}">✓ ${rel}</span>
-        <span class="q-nrel" id="qnrel-${q.id}">✗ ${nrel}</span>
-        <span class="q-unseen" id="qunseen-${q.id}">? ${unseen}</span>
-      </div>
-    </div>`;
+            <div class="query-card-top"><span class="qnum">Q${q.id}</span><span class="qtext">${escHtml(q.query)}</span></div>
+            <div class="q-progress-row">
+              <div class="q-progress-bar"><div class="q-progress-fill" id="qpf-${q.id}" style="width:${pct}%"></div></div>
+              <span class="q-progress-text" id="qpt-${q.id}">${rel + nrel}/${total}</span>
+            </div>
+            <div class="q-counts">
+              <span class="q-rel" id="qrel-${q.id}">✓ ${rel}</span>
+              <span class="q-nrel" id="qnrel-${q.id}">✗ ${nrel}</span>
+              <span class="q-unseen" id="qunseen-${q.id}">? ${unseen}</span>
+            </div>
+          </div>`;
           })
           .join("");
       }
@@ -1751,22 +1770,22 @@
               })
               .join("");
             return `<tr class="${focused}" data-row="${rowIdx}" data-did="${doc.id}">
-      <td class="ann-date">${escHtml(doc.date || "—")}</td>
-      <td class="ann-rub"><span class="rubrique-tag" style="font-size:.65rem">${escHtml(doc.rubrique || "—")}</span></td>
-      <td class="ann-titre"><a href="/document/${doc.id}" target="_blank">${escHtml(doc.titre || "Sans titre")}</a></td>
-      <td class="ann-img">${doc.has_image ? "🖼" : ""}</td>
-      ${qBtns}
-      <td class="ann-open"><a class="open-link" href="/document/${doc.id}" target="_blank">Ouvrir</a></td>
-    </tr>`;
+            <td class="ann-date">${escHtml(doc.date || "—")}</td>
+            <td class="ann-rub"><span class="rubrique-tag" style="font-size:.65rem">${escHtml(doc.rubrique || "—")}</span></td>
+            <td class="ann-titre"><a href="/document/${doc.id}" target="_blank">${escHtml(doc.titre || "Sans titre")}</a></td>
+            <td class="ann-img">${doc.has_image ? "🖼" : ""}</td>
+            ${qBtns}
+            <td class="ann-open"><a class="open-link" href="/document/${doc.id}" target="_blank">Ouvrir</a></td>
+          </tr>`;
           })
           .join("");
 
         $("annot-list").innerHTML = `
-    <table class="annot-table"><thead><tr>
-      <th class="th-left">Date</th><th class="th-left">Rubrique</th>
-      <th class="th-left">Titre</th><th>🖼</th>
-      ${qHeaders}<th></th>
-    </tr></thead><tbody>${rows}</tbody></table>`;
+          <table class="annot-table"><thead><tr>
+            <th class="th-left">Date</th><th class="th-left">Rubrique</th>
+            <th class="th-left">Titre</th><th>🖼</th>
+            ${qHeaders}<th></th>
+          </tr></thead><tbody>${rows}</tbody></table>`;
 
         // Click handlers on annotation buttons
         $("annot-list")
@@ -1907,36 +1926,38 @@
         const totalNew = data.reduce((s, r) => s + r.new, 0);
 
         $("prefill-results").innerHTML = `
-    <p style="font-size:.83rem;margin-bottom:.8rem;">
-      <strong style="color:var(--accent2)">${totalNew}</strong>
-      annotation${totalNew !== 1 ? "s" : ""} ajoutée${totalNew !== 1 ? "s" : ""} au total.
-    </p>
-    ${data
-      .map((r) => {
-        const q = qMap[r.query_id];
-        const label = q
-          ? escHtml(q.query.length > 65 ? q.query.slice(0, 65) + "…" : q.query)
-          : "?";
-        const hasC = r.constraints.length > 0;
-        const icon = !hasC ? "○" : r.new > 0 ? "✓" : "↺";
-        const color = !hasC
-          ? "var(--muted)"
-          : r.new > 0
-            ? "var(--green)"
-            : "var(--score-color)";
-        const detail = hasC
-          ? `<em>${r.constraints.map(escHtml).join(" · ")}</em>
-           → <strong>${r.total_excluded}</strong> docs exclus
-           <span style="color:var(--muted)">(${r.new} nouveau${r.new !== 1 ? "x" : ""})</span>`
-          : `<span style="color:var(--muted)">Aucune contrainte structurelle détectée</span>`;
-        return `<div style="padding:.5rem 0;border-bottom:1px solid var(--border);">
-        <div style="font-size:.82rem;font-weight:600;margin-bottom:.2rem;">
-          <span style="color:${color};margin-right:.35rem">${icon}</span>Q${r.query_id} — ${label}
-        </div>
-        <div style="font-size:.75rem;padding-left:1.3rem;">${detail}</div>
-      </div>`;
-      })
-      .join("")}`;
+          <p style="font-size:.83rem;margin-bottom:.8rem;">
+            <strong style="color:var(--accent2)">${totalNew}</strong>
+            annotation${totalNew !== 1 ? "s" : ""} ajoutée${totalNew !== 1 ? "s" : ""} au total.
+          </p>
+          ${data
+            .map((r) => {
+              const q = qMap[r.query_id];
+              const label = q
+                ? escHtml(
+                    q.query.length > 65 ? q.query.slice(0, 65) + "…" : q.query,
+                  )
+                : "?";
+              const hasC = r.constraints.length > 0;
+              const icon = !hasC ? "○" : r.new > 0 ? "✓" : "↺";
+              const color = !hasC
+                ? "var(--muted)"
+                : r.new > 0
+                  ? "var(--green)"
+                  : "var(--score-color)";
+              const detail = hasC
+                ? `<em>${r.constraints.map(escHtml).join(" · ")}</em>
+                 → <strong>${r.total_excluded}</strong> docs exclus
+                 <span style="color:var(--muted)">(${r.new} nouveau${r.new !== 1 ? "x" : ""})</span>`
+                : `<span style="color:var(--muted)">Aucune contrainte structurelle détectée</span>`;
+              return `<div style="padding:.5rem 0;border-bottom:1px solid var(--border);">
+              <div style="font-size:.82rem;font-weight:600;margin-bottom:.2rem;">
+                <span style="color:${color};margin-right:.35rem">${icon}</span>Q${r.query_id} — ${label}
+              </div>
+              <div style="font-size:.75rem;padding-left:1.3rem;">${detail}</div>
+            </div>`;
+            })
+            .join("")}`;
         $("prefill-modal").style.display = "";
       }
 
@@ -1985,9 +2006,9 @@
         row.className = "cfg-row";
         row.dataset.id = id;
         row.innerHTML = `
-    <span class="cfg-num">Q${idx}</span>
-    <input class="cfg-input" type="text" value="${escHtml(text)}" placeholder="Entrez la requête…" />
-    <button class="cfg-del" title="Supprimer">🗑</button>`;
+          <span class="cfg-num">Q${idx}</span>
+          <input class="cfg-input" type="text" value="${escHtml(text)}" placeholder="Entrez la requête…" />
+          <button class="cfg-del" title="Supprimer">🗑</button>`;
         row.querySelector(".cfg-del").addEventListener("click", () => {
           row.remove();
           renumberRows();
