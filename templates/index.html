@@ -1492,9 +1492,17 @@
           if (Array.isArray(val) && val.length === 0) return;
           let display = Array.isArray(val)
             ? val
-                .flat()
-                .map((v) => `<span class="qa-tag">${escHtml(String(v))}</span>`)
-                .join("")
+                .map(
+                  (etgroup) =>
+                    "<span>ET(" +
+                    etgroup.map(
+                      (v) =>
+                        `<span class="qa-tag">${escHtml(String(v))}</span>`,
+                    ) +
+                    ")</span>",
+                )
+
+                .join("<span> OR</span><br>")
             : typeof val === "boolean"
               ? `<span class="qa-tag">${val ? "oui" : "non"}</span>`
               : `<span class="qa-tag">${escHtml(String(val))}</span>`;

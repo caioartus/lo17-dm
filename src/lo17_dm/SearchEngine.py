@@ -22,7 +22,16 @@ class SearchEngine:
     # ------------------------------------------------------------------ #
 
     def _load_indexes(self) -> None:
-        for name in ("titre", "texte", "rubrique", "bulletin", "date", "auteur", "contact", "image"):
+        for name in (
+            "titre",
+            "texte",
+            "rubrique",
+            "bulletin",
+            "date",
+            "auteur",
+            "contact",
+            "image",
+        ):
             path = self.output_dir / "index" / f"index_{name}.tsv"
             if not path.exists():
                 continue
@@ -87,7 +96,7 @@ class SearchEngine:
     @staticmethod
     def _union(a: set[int] | None, b: set[int]) -> set[int]:
         return b if a is None else a | b
-    
+
     def _group_by(self, results: list[dict], field: str) -> list[dict]:
         """Regroupe les articles par valeur de `field` (par article, par rubrique, par bulletin)"""
         groups: dict[str, list[dict]] = {}
@@ -98,15 +107,16 @@ class SearchEngine:
         grouped = []
         for key, articles in groups.items():
             articles.sort(key=lambda d: d["score"], reverse=True)
-            grouped.append({
-                field: key,
-                "articles": articles,
-                "score": max(a["score"] for a in articles),
-            })
+            grouped.append(
+                {
+                    field: key,
+                    "articles": articles,
+                    "score": max(a["score"] for a in articles),
+                }
+            )
 
         grouped.sort(key=lambda g: g["score"], reverse=True)
         return grouped
-
 
     # ------------------------------------------------------------------ #
     # Recherche dans les index                                              #
@@ -130,13 +140,13 @@ class SearchEngine:
             return False
         return True
 
-
-
     def _lookup_image(self, has_image: bool) -> set[int]:
         docs_with_image = self.indexes.get("image", {}).get("image", set())
         return docs_with_image if has_image else self._all_doc_ids() - docs_with_image
 
-    def _get_okay_dates(self, start: datetime | None, end: datetime | None, anti: str | None) -> set[int]:
+    def _get_okay_dates(
+        self, start: datetime | None, end: datetime | None, anti: str | None
+    ) -> set[int]:
         good_docs = set()
         """Finds documents with acceptable dates among those available in the index"""
         date_idx = self.indexes.get("date", {})
@@ -145,20 +155,28 @@ class SearchEngine:
             if date is None:
                 continue
             # si dans les bornes (ou borne pas defini) et si pas antidate
-            if (start is None or date >= start) and (end is None or date <= end) and (anti is None or not self._matches_anti_date(date, anti)):
+            if (
+                (start is None or date >= start)
+                and (end is None or date <= end)
+                and (anti is None or not self._matches_anti_date(date, anti))
+            ):
                 good_docs.update(docs)
         return good_docs
-        
-    # TO DO : Complètement con -> à retirer
+
     def _score(self, doc_id: int, keywords: list[str]) -> float:
         """Score booléen classé : +3 par mot-clé dans le titre, +1 dans le texte."""
         score = 0.0
-        for kw in keywords:
-            kw_lower = kw.lower()
-            if doc_id in self.indexes.get("titre", {}).get(kw_lower, set()):
-                score += 3.0
-            if doc_id in self.indexes.get("texte", {}).get(kw_lower, set()):
-                score += 1.0
+        poids = {"titre": 0.7, "texte": 0.3}
+        assert sum(poids.values()) == 1, "La somme des poids doit être égale à 1"
+
+        if len(keywords) == 0:  # pas de mots cles, tout les doc sont pertinents
+            return 1
+
+        for champ in poids.keys():
+            for kw in keywords:
+                if doc_id in self.indexes[champ].get(kw, {}):
+                    score += poids[champ]
+        score = score / len(keywords)
         return score
 
     def search(self, requete_dict: dict) -> list[dict]:
@@ -181,13 +199,17 @@ class SearchEngine:
 
         # Filtre image
         image_val = requete_dict.get("image")
-        has_image_docs = self._lookup_image(image_val) if image_val is not None else set()
+        has_image_docs = (
+            self._lookup_image(image_val) if image_val is not None else set()
+        )
 
         # Mots-clés titre (DNF : (a ET b) OU (c ET d))
         titre_docs = set()
         titre_groups = requete_dict.get("titre", [])
         for and_group in titre_groups:
-            and_docs_list = [self.indexes.get("titre", {}).get(word, set()) for word in and_group]
+            and_docs_list = [
+                self.indexes.get("titre", {}).get(word, set()) for word in and_group
+            ]
             if and_docs_list:
                 titre_docs |= set.intersection(*and_docs_list)
 
@@ -195,7 +217,9 @@ class SearchEngine:
         keywords_docs = set()
         contenu_groups = requete_dict.get("contenu", [])
         for and_group in contenu_groups:
-            and_docs_list = [self.indexes.get("texte", {}).get(word, set()) for word in and_group]
+            and_docs_list = [
+                self.indexes.get("texte", {}).get(word, set()) for word in and_group
+            ]
             if and_docs_list:
                 keywords_docs |= set.intersection(*and_docs_list)
 
@@ -207,11 +231,16 @@ class SearchEngine:
 
         # --- INTERSECTION FINALE ---
         active_filters = []
-        if rubriques: active_filters.append(has_rubrique)
-        if has_date_filter: active_filters.append(date_ok)
-        if image_val is not None: active_filters.append(has_image_docs)
-        if titre_groups: active_filters.append(titre_docs)
-        if contenu_groups: active_filters.append(keywords_docs)
+        if rubriques:
+            active_filters.append(has_rubrique)
+        if has_date_filter:
+            active_filters.append(date_ok)
+        if image_val is not None:
+            active_filters.append(has_image_docs)
+        if titre_groups:
+            active_filters.append(titre_docs)
+        if contenu_groups:
+            active_filters.append(keywords_docs)
 
         if active_filters:
             active_filters.sort(key=len)
@@ -244,7 +273,9 @@ class SearchEngine:
             return self._group_by(results, "rubrique")
         return results
 
-    def get_snippet(self, doc_id: int, keywords: list[str], context_len: int = 200) -> str:
+    def get_snippet(
+        self, doc_id: int, keywords: list[str], context_len: int = 200
+    ) -> str:
         """Extrait un extrait contextuel autour du premier mot-clé trouvé dans le texte."""
         doc = self.documents.get(doc_id)
         if not doc:
