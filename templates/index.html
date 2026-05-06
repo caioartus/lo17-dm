@@ -1455,19 +1455,23 @@
       }
 
       function renderPagination(containerId, page, pages, goFn) {
+        const container = $(containerId);
         if (pages <= 1) {
-          $(containerId).innerHTML = "";
+          container.innerHTML = "";
           return;
         }
-        let html = `<button class="page-btn" onclick="(${goFn.toString()})(${page - 1})" ${page > 1 ? "" : "disabled"}>‹ Préc.</button>`;
+        let html = `<button class="page-btn" data-page="${page - 1}" ${page > 1 ? "" : "disabled"}>‹ Préc.</button>`;
         let last = 0;
         pageWindow(page, pages).forEach((n) => {
           if (n - last > 1) html += `<span class="page-ellipsis">…</span>`;
-          html += `<button class="page-btn ${n === page ? "active" : ""}" onclick="(${goFn.toString()})(${n})">${n}</button>`;
+          html += `<button class="page-btn ${n === page ? "active" : ""}" data-page="${n}">${n}</button>`;
           last = n;
         });
-        html += `<button class="page-btn" onclick="(${goFn.toString()})(${page + 1})" ${page < pages ? "" : "disabled"}>Suiv. ›</button>`;
-        $(containerId).innerHTML = html;
+        html += `<button class="page-btn" data-page="${page + 1}" ${page < pages ? "" : "disabled"}>Suiv. ›</button>`;
+        container.innerHTML = html;
+        container.querySelectorAll(".page-btn:not([disabled])").forEach((btn) => {
+          btn.addEventListener("click", () => goFn(parseInt(btn.dataset.page)));
+        });
       }
 
       // ═══════════════════════════════════════════════════════
