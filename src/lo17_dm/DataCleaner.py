@@ -4,14 +4,14 @@ import pandas as pd
 from lxml import etree
 
 from lo17_dm.AntiDict import AntiDict
-from lo17_dm.Stemmer import SpacyStemmer, Stemmer
+from lo17_dm.Stemmer import SnowStemmer, Stemmer
 from lo17_dm.Tokenizer import CorpusTokenizer
 
 
 class DataCleaner:
     """Class for cleaning and processing XML data with anti-dictionary substitution and lemmatisation."""
 
-    def __init__(self, stemmer: Stemmer = SpacyStemmer(), manual_stopwords: set[str] = []):
+    def __init__(self, stemmer: Stemmer = SnowStemmer(), manual_stopwords: set[str] = []):
         self._stemmer: Stemmer = stemmer
         self.stopwords: set[str] = manual_stopwords
         self._sub_table: pd.DataFrame | None = None
@@ -29,9 +29,8 @@ class DataCleaner:
         print(f"Stopwords exportés dans {output_path}")    
 
     def get_all_lemmas(self) -> set[str] | None:
-        assert self._sub_table is not None, (
-            "La table de substitution est vide, appeler build_sub_table()"
-        )
+        assert self._sub_table is not None, "La table de substitution est vide, appeler build_sub_table()"
+        
         # les lemmes sont tous les sub qui ne sont pas des stopwords (ie. != "")
         return set(self._sub_table["sub"].dropna().loc[lambda s: s != ""]) 
     
@@ -40,19 +39,19 @@ class DataCleaner:
             return ""
         return self._stemmer.transform(text)
     
-    def _substitue(self, text: str) -> str:
+    def _build_sub_dict(self) -> dict:
+        assert self._sub_table is not None, "La table de substitution est vide, appeler build_sub_table()"
+        return {
+            row["token"]: ("" if pd.isna(row["sub"]) else str(row["sub"]))
+            for _, row in self._sub_table.iterrows()
+        }
+
+    def _substitue(self, text: str, sub_dict: dict) -> str:
         """Élimine ou remplace les tokens d'un texte selon un fichier de substitution.
-        
+
         Le fichier de substitution est un TSV à deux colonnes : token et sub.
         Si sub est vide (NaN ou ""), le token est supprimé. Sinon il est remplacé par sub.
         """
-        assert self._sub_table is not None, "La table de substitution est vide, appeler build_sub_table()"
-        
-        sub_dict = {}
-        for _, row in self._sub_table.iterrows():
-            sub = row["sub"]
-            sub_dict[row["token"]] = "" if pd.isna(sub) else str(sub)
-
         tokens = CorpusTokenizer.tokenize(text)
         result = []
         for tok in tokens:
@@ -80,21 +79,23 @@ class DataCleaner:
         self._sub_table = sub_table
     
     def apply_substitue_to_xml(self, input_path: str | Path, output_path: str | Path) -> None:
-        """Applique substitue sur les champs titre et texte de chaque document du corpus XML."""
+        """Applique substitue sur les champs titre et texte de chaque document du corpus XML.
+        Le corpus XML se trouve dans input_path, et le corpus corrigé dans output_path"""
         input_path = Path(input_path)
         output_path = Path(output_path)
 
         tree = etree.parse(str(input_path))
         root = tree.getroot()
+        sub_dict = self._build_sub_dict()
 
         for document in root.iter("document"):
             titre_elem = document.find("titre")
             texte_elem = document.find("texte")
 
             if titre_elem is not None and titre_elem.text:
-                titre_elem.text = self._substitue(titre_elem.text)
+                titre_elem.text = self._substitue(titre_elem.text, sub_dict)
             if texte_elem is not None and texte_elem.text:
-                texte_elem.text = self._substitue(texte_elem.text)
+                texte_elem.text = self._substitue(texte_elem.text, sub_dict)
 
         with open(output_path, "w", encoding="utf-8") as f:
             f.write(etree.tostring(root, pretty_print=True, encoding="unicode"))

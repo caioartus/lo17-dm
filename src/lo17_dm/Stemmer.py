@@ -59,9 +59,7 @@ class SpacyStemmer(Stemmer):
 
         return [token.lemma_ for token in doc]
 
-    def _lemmatize_with_dep(
-        self, tokens: list[str], add_dep: bool = False
-    ) -> list[str]:
+    def _lemmatize_with_dep(self, tokens: list[str], add_dep: bool = False) -> list[str]:
         """Prend des tokens en entree et les transforme, retourne une list de dictionnaires avec lemmes et dep"""
         if not tokens:
             return []

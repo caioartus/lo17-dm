@@ -31,7 +31,7 @@ class Pretraiteur:
         if not stop_words_path.exists():
             raise FileNotFoundError("Stop Words file not found.")
 
-        self.lemmas = pd.read_csv(lemma_table_path, sep="\t")["token"].to_list()
+        self.lemmas = pd.read_csv(lemma_table_path, sep="\t")["token"].dropna().tolist()
         self.correcteur = Correcteur(self.lemmas)
 
         self.rubriques = pd.read_csv(rubriques_index_path, sep="\t")["token"].to_list()
