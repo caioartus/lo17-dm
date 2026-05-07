@@ -167,7 +167,6 @@ class KeyWordExtractor:
 
     def extract(self, text: str) -> dict:
         text = text.lower()
-        # print("text in extractor : ", text)
         results = {"titre": [], "contenu": [], "exclude": []}
 
         # -----------------------------
@@ -178,7 +177,6 @@ class KeyWordExtractor:
             clean = self.normalize_terms(block)
             if clean:
                 results["exclude"].extend(clean)
-                print("exclude : ", clean)
             return " " * len(m.group(0))
 
         text = re.sub(
@@ -194,7 +192,6 @@ class KeyWordExtractor:
         def handle_titre(m):
             block = m.group(1).strip()
             results["titre"].extend(self._parse_logic_block(block))
-            # print("titre : ", block)
             return " " * len(m.group(0))
 
         text = re.sub(
@@ -220,7 +217,6 @@ class KeyWordExtractor:
         def handle_contenu(m):
             block = m.group(1).strip()
             results["contenu"].extend(self._parse_logic_block(block))
-            # print("contenu : ", block)
             return " " * len(m.group(0))
 
         text = re.sub(
@@ -236,7 +232,6 @@ class KeyWordExtractor:
         def handle_contenu_post(m):
             block = m.group(0).strip()
             results["contenu"].extend(self._parse_logic_block(block))
-            # print("contenu : ", block)
             return " " * len(m.group(0))
 
         text = re.sub(
@@ -277,7 +272,6 @@ class KeyWordExtractor:
         """
 
         tokens = self.stemmer.transform_tolist(text)
-        # print("tokens : ", tokens)
         cleaned = []
 
         for token in tokens:

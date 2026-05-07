@@ -1,5 +1,6 @@
 import json
 import sqlite3
+import statistics as _statistics
 import sys
 import time
 from datetime import datetime
@@ -355,6 +356,85 @@ def api_export():
         ]
     lines.append("]")
     return "\n".join(lines), 200, {"Content-Type": "text/plain; charset=utf-8"}
+
+
+# ── Évaluation ────────────────────────────────────────────────────────────
+
+def _flatten_search_ids(results) -> set:
+    ids = set()
+    for item in results:
+        if "articles" in item:
+            for doc in item["articles"]:
+                ids.add(doc["id"])
+        elif "id" in item:
+            ids.add(item["id"])
+    return ids
+
+
+@app.route("/api/evaluate")
+def api_evaluate():
+    n_runs = max(1, min(100, int(request.args.get("runs", 10))))
+
+    with _db() as conn:
+        query_rows = conn.execute("SELECT id, query FROM queries ORDER BY id").fetchall()
+        ann_map: dict[int, set[int]] = {}
+        for row in conn.execute(
+            "SELECT query_id, doc_id FROM annotations WHERE is_relevant=1"
+        ).fetchall():
+            ann_map.setdefault(row["query_id"], set()).add(row["doc_id"])
+
+    rows = []
+    for qrow in query_rows:
+        qid = qrow["id"]
+        query_text = qrow["query"].strip()
+        relevant_ids = ann_map.get(qid, set())
+
+        requete_dict = pretraiteur.treat_request(query_text)
+        search_results = engine.search(requete_dict)
+        retrieved_ids = _flatten_search_ids(search_results)
+
+        inter = len(retrieved_ids & relevant_ids)
+        p = inter / len(retrieved_ids) if retrieved_ids else 0.0
+        r = inter / len(relevant_ids) if relevant_ids else 0.0
+        f = 2 * p * r / (p + r) if (p + r) > 0 else 0.0
+
+        times: list[float] = []
+        for _ in range(n_runs):
+            t0 = time.perf_counter()
+            rd = pretraiteur.treat_request(query_text)
+            engine.search(rd)
+            times.append((time.perf_counter() - t0) * 1000)
+
+        rows.append({
+            "id": qid,
+            "query": query_text,
+            "precision": round(p, 4),
+            "recall": round(r, 4),
+            "f1": round(f, 4),
+            "retrieved": len(retrieved_ids),
+            "relevant": len(relevant_ids),
+            "avg_ms": round(_statistics.mean(times), 2),
+            "min_ms": round(min(times), 2),
+            "max_ms": round(max(times), 2),
+            "std_ms": round(_statistics.stdev(times) if len(times) > 1 else 0.0, 2),
+        })
+
+    filled = [row for row in rows if row["relevant"] > 0]
+    averages = None
+    if filled:
+        averages = {
+            "precision": round(sum(r["precision"] for r in filled) / len(filled), 4),
+            "recall": round(sum(r["recall"] for r in filled) / len(filled), 4),
+            "f1": round(sum(r["f1"] for r in filled) / len(filled), 4),
+        }
+
+    all_avgs = [row["avg_ms"] for row in rows]
+    return jsonify({
+        "results": rows,
+        "averages": averages,
+        "n_runs": n_runs,
+        "global_avg_ms": round(_statistics.mean(all_avgs), 2) if all_avgs else 0,
+    })
 
 
 # ── Documents bruts ────────────────────────────────────────────────────────

@@ -950,6 +950,92 @@
         background: var(--border);
         border-radius: 3px;
       }
+
+      /* ── Évaluation ── */
+      #eval-col {
+        display: none;
+        grid-column: 1/-1;
+      }
+      .eval-section {
+        background: var(--surface);
+        border: 1.5px solid var(--border);
+        border-radius: 14px;
+        padding: 1.2rem 1.4rem;
+        margin-bottom: 1.2rem;
+      }
+      .eval-section h2 {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        margin-bottom: 0.9rem;
+      }
+      .eval-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.83rem;
+      }
+      .eval-table thead th {
+        background: var(--surface2);
+        color: var(--muted);
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        padding: 0.55rem 0.8rem;
+        text-align: right;
+        border-bottom: 1px solid var(--border);
+      }
+      .eval-table thead th:first-child,
+      .eval-table thead th:nth-child(2) { text-align: left; }
+      .eval-table tbody tr {
+        border-bottom: 1px solid var(--border);
+        transition: background 0.1s;
+      }
+      .eval-table tbody tr:hover { background: var(--surface2); }
+      .eval-table tbody tr.avg-row {
+        background: var(--surface2);
+        font-weight: 700;
+      }
+      .eval-table tbody td {
+        padding: 0.5rem 0.8rem;
+        text-align: right;
+        vertical-align: middle;
+      }
+      .eval-table tbody td:first-child,
+      .eval-table tbody td:nth-child(2) { text-align: left; }
+      .no-gt { color: var(--muted); font-style: italic; }
+      .metric-p { color: #6c63ff; font-weight: 600; }
+      .metric-r { color: #22d3ee; font-weight: 600; }
+      .metric-f { color: #4ade80; font-weight: 600; }
+      .eval-charts {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.2rem;
+        margin-bottom: 1.2rem;
+      }
+      @media (max-width: 768px) { .eval-charts { grid-template-columns: 1fr; } }
+      .eval-chart-card {
+        background: var(--surface);
+        border: 1.5px solid var(--border);
+        border-radius: 14px;
+        padding: 1.2rem 1.4rem;
+      }
+      .eval-chart-card h2 {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        margin-bottom: 0.9rem;
+      }
+      .eval-welcome {
+        text-align: center;
+        padding: 5rem 2rem;
+        color: var(--muted);
+      }
+      .eval-welcome .icon { font-size: 3rem; margin-bottom: 1rem; }
+      .eval-welcome p { font-size: 0.9rem; }
     </style>
   </head>
   <body>
@@ -962,6 +1048,7 @@
         <button class="mode-tab active" id="tab-search">🔍 Recherche</button>
         <button class="mode-tab" id="tab-browse">📚 Catalogue</button>
         <button class="mode-tab" id="tab-annotate">📋 Annotation</button>
+        <button class="mode-tab" id="tab-eval">📊 Évaluation</button>
       </div>
 
       <div id="search-controls">
@@ -994,6 +1081,18 @@
           </button>
           <button class="sort-btn" data-bsort="date_desc">
             ↓ Date décroissante
+          </button>
+        </div>
+      </div>
+
+      <div id="eval-controls-header" style="display: none">
+        <div class="sort-row" style="justify-content: center; margin-top: 1rem; align-items: center">
+          <span style="font-size: 0.8rem; color: var(--muted)">Runs de timing :</span>
+          <input id="eval-runs-input" type="number" value="10" min="1" max="100"
+            style="width:58px;background:var(--surface);border:1.5px solid var(--border);border-radius:8px;padding:0.35rem 0.5rem;color:var(--text);font-size:0.82rem;text-align:center;outline:none;" />
+          <button class="sort-btn" id="run-eval-btn"
+            style="background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700;">
+            ▶ Lancer l'évaluation
           </button>
         </div>
       </div>
@@ -1070,6 +1169,15 @@
           >
           annoter requête Q1–Q10 &nbsp;|&nbsp; <kbd>Entrée</kbd> ouvrir doc
         </p>
+      </div>
+
+      <!-- Évaluation -->
+      <div id="eval-col">
+        <div class="eval-welcome" id="eval-welcome">
+          <div class="icon">📊</div>
+          <p>Lancez l'évaluation pour calculer les métriques de qualité et de performance.</p>
+        </div>
+        <div id="eval-content" style="display:none;"></div>
       </div>
 
       <!-- Sidebar -->
@@ -1206,6 +1314,7 @@
       </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
     <script>
       // ═══════════════════════════════════════════════════════
       //  Utilitaires
@@ -1259,13 +1368,16 @@
       const $ = (id) => document.getElementById(id);
       const tabSearch = $("tab-search"),
         tabBrowse = $("tab-browse"),
-        tabAnnotate = $("tab-annotate");
+        tabAnnotate = $("tab-annotate"),
+        tabEval = $("tab-eval");
       const searchCtrl = $("search-controls"),
         browseCtrl = $("browse-controls"),
-        annotCtrl = $("annotate-controls-header");
+        annotCtrl = $("annotate-controls-header"),
+        evalCtrl = $("eval-controls-header");
       const searchCol = $("search-col"),
         browseCol = $("browse-col"),
-        annotCol = $("annotate-col");
+        annotCol = $("annotate-col"),
+        evalCol = $("eval-col");
       const sidebar = $("sidebar");
       const browseStat = $("browse-stats"),
         tipsCard = $("tips-card"),
@@ -1279,15 +1391,16 @@
       // ═══════════════════════════════════════════════════════
       function setMode(m) {
         mode = m;
-        [tabSearch, tabBrowse, tabAnnotate].forEach((t) =>
+        [tabSearch, tabBrowse, tabAnnotate, tabEval].forEach((t) =>
           t.classList.remove("active"),
         );
-        [searchCtrl, browseCtrl, annotCtrl].forEach(
+        [searchCtrl, browseCtrl, annotCtrl, evalCtrl].forEach(
           (c) => (c.style.display = "none"),
         );
         searchCol.style.display = "none";
         browseCol.style.display = "none";
         annotCol.style.display = "none";
+        evalCol.style.display = "none";
         browseStat.style.display = "none";
         tipsCard.style.display = "none";
         sidebar.style.display = "";
@@ -1305,12 +1418,17 @@
           browseStat.style.display = "block";
           browsePage = 1;
           doBrowse();
-        } else {
+        } else if (m === "annotate") {
           tabAnnotate.classList.add("active");
           annotCtrl.style.display = "";
           annotCol.style.display = "block";
           sidebar.style.display = "none";
           loadAnnotationData();
+        } else {
+          tabEval.classList.add("active");
+          evalCtrl.style.display = "";
+          evalCol.style.display = "block";
+          sidebar.style.display = "none";
         }
         statusEl.innerHTML = "";
       }
@@ -1318,6 +1436,7 @@
       tabSearch.addEventListener("click", () => setMode("search"));
       tabBrowse.addEventListener("click", () => setMode("browse"));
       tabAnnotate.addEventListener("click", () => setMode("annotate"));
+      tabEval.addEventListener("click", () => setMode("eval"));
 
       // ═══════════════════════════════════════════════════════
       //  Recherche
@@ -2109,6 +2228,180 @@
           setTimeout(() => {
             btn.textContent = "📋 Copier";
           }, 2000);
+        });
+      }
+
+      // ═══════════════════════════════════════════════════════
+      //  Évaluation
+      // ═══════════════════════════════════════════════════════
+      let evalChart1 = null, evalChart2 = null;
+
+      $("run-eval-btn").addEventListener("click", runEvaluation);
+
+      async function runEvaluation() {
+        const n = Math.max(1, parseInt($("eval-runs-input").value) || 10);
+        const btn = $("run-eval-btn");
+        btn.textContent = "⏳ Évaluation…";
+        btn.disabled = true;
+        $("eval-welcome").style.display = "none";
+        $("eval-content").style.display = "none";
+        const spinner = document.createElement("div");
+        spinner.className = "spinner";
+        spinner.id = "eval-spinner";
+        spinner.style.margin = "5rem auto";
+        $("eval-col").insertBefore(spinner, $("eval-content"));
+        try {
+          const data = await fetch(`/api/evaluate?runs=${n}`).then((r) => r.json());
+          renderEvaluation(data);
+          $("eval-content").style.display = "";
+        } catch (e) {
+          $("eval-content").innerHTML =
+            '<div class="state-msg"><div class="icon">⚠️</div><p>Erreur lors de l\'évaluation.</p></div>';
+          $("eval-content").style.display = "";
+        } finally {
+          const sp = $("eval-spinner");
+          if (sp) sp.remove();
+          btn.textContent = "▶ Lancer l'évaluation";
+          btn.disabled = false;
+        }
+      }
+
+      function renderEvaluation({ results, averages, n_runs, global_avg_ms }) {
+        const qualRows = results
+          .map((r) => {
+            const noGt = r.relevant === 0;
+            const label =
+              r.query.length > 58 ? r.query.slice(0, 58) + "…" : r.query;
+            return `<tr>
+              <td>${r.id}</td>
+              <td title="${escHtml(r.query)}">${escHtml(label)}</td>
+              <td class="${noGt ? "no-gt" : "metric-p"}">${noGt ? "—" : (r.precision * 100).toFixed(1) + "%"}</td>
+              <td class="${noGt ? "no-gt" : "metric-r"}">${noGt ? "—" : (r.recall * 100).toFixed(1) + "%"}</td>
+              <td class="${noGt ? "no-gt" : "metric-f"}">${noGt ? "—" : (r.f1 * 100).toFixed(1) + "%"}</td>
+              <td>${r.retrieved}</td>
+              <td>${noGt ? '<span class="no-gt">—</span>' : r.relevant}</td>
+            </tr>`;
+          })
+          .join("");
+        const avgRow = averages
+          ? `<tr class="avg-row">
+              <td colspan="2">Moyenne (GT renseignées)</td>
+              <td class="metric-p">${(averages.precision * 100).toFixed(1)}%</td>
+              <td class="metric-r">${(averages.recall * 100).toFixed(1)}%</td>
+              <td class="metric-f">${(averages.f1 * 100).toFixed(1)}%</td>
+              <td colspan="2">—</td>
+            </tr>`
+          : "";
+
+        const perfRows = results
+          .map((r) => {
+            const label =
+              r.query.length > 52 ? r.query.slice(0, 52) + "…" : r.query;
+            return `<tr>
+              <td>${r.id}</td>
+              <td title="${escHtml(r.query)}">${escHtml(label)}</td>
+              <td>${r.avg_ms.toFixed(1)}</td>
+              <td>${r.min_ms.toFixed(1)}</td>
+              <td>${r.max_ms.toFixed(1)}</td>
+              <td>${r.std_ms.toFixed(1)}</td>
+            </tr>`;
+          })
+          .join("");
+        const globalRow = `<tr class="avg-row">
+          <td colspan="2">Moyenne globale</td>
+          <td>${global_avg_ms.toFixed(1)}</td>
+          <td colspan="3">—</td>
+        </tr>`;
+
+        const nFilled = results.filter((r) => r.relevant > 0).length;
+        $("eval-content").innerHTML = `
+          <div class="eval-section">
+            <h2>Qualité — Précision / Rappel / F1
+              <span style="font-weight:400;text-transform:none;font-size:0.75rem">&nbsp;(${nFilled} requête${nFilled > 1 ? "s" : ""} avec GT)</span>
+            </h2>
+            <div style="overflow-x:auto">
+              <table class="eval-table">
+                <thead><tr>
+                  <th style="width:32px">N°</th><th>Requête</th>
+                  <th>Précision</th><th>Rappel</th><th>F1</th>
+                  <th>Ret.</th><th>Rel.</th>
+                </tr></thead>
+                <tbody>${qualRows}${avgRow}</tbody>
+              </table>
+            </div>
+          </div>
+          <div class="eval-section">
+            <h2>Performance
+              <span style="font-weight:400;text-transform:none;font-size:0.75rem">&nbsp;(${n_runs} run${n_runs > 1 ? "s" : ""} par requête)</span>
+            </h2>
+            <div style="overflow-x:auto">
+              <table class="eval-table">
+                <thead><tr>
+                  <th style="width:32px">N°</th><th>Requête</th>
+                  <th>Moy. (ms)</th><th>Min (ms)</th><th>Max (ms)</th><th>Éc.-T.</th>
+                </tr></thead>
+                <tbody>${perfRows}${globalRow}</tbody>
+              </table>
+            </div>
+          </div>
+          <div class="eval-charts">
+            <div class="eval-chart-card">
+              <h2>Précision · Rappel · F1 par requête</h2>
+              <canvas id="chart-quality"></canvas>
+            </div>
+            <div class="eval-chart-card">
+              <h2>Temps de réponse moyen (ms)</h2>
+              <canvas id="chart-timing"></canvas>
+            </div>
+          </div>`;
+
+        if (evalChart1) evalChart1.destroy();
+        if (evalChart2) evalChart2.destroy();
+
+        const labels = results.map((r) => `Q${r.id}`);
+        const chartDefaults = {
+          responsive: true,
+          plugins: { legend: { labels: { color: "#e2e8f0", font: { size: 11 } } } },
+          scales: {
+            x: { ticks: { color: "#7c88a0" }, grid: { color: "#2e3247" } },
+            y: { ticks: { color: "#7c88a0" }, grid: { color: "#2e3247" } },
+          },
+        };
+
+        evalChart1 = new Chart($("chart-quality"), {
+          type: "bar",
+          data: {
+            labels,
+            datasets: [
+              { label: "Précision", data: results.map((r) => r.relevant > 0 ? +(r.precision * 100).toFixed(1) : null), backgroundColor: "rgba(108,99,255,0.75)", borderColor: "#6c63ff", borderWidth: 1 },
+              { label: "Rappel",    data: results.map((r) => r.relevant > 0 ? +(r.recall    * 100).toFixed(1) : null), backgroundColor: "rgba(34,211,238,0.75)", borderColor: "#22d3ee", borderWidth: 1 },
+              { label: "F1",        data: results.map((r) => r.relevant > 0 ? +(r.f1        * 100).toFixed(1) : null), backgroundColor: "rgba(74,222,128,0.75)", borderColor: "#4ade80", borderWidth: 1 },
+            ],
+          },
+          options: {
+            ...chartDefaults,
+            scales: {
+              ...chartDefaults.scales,
+              y: { ...chartDefaults.scales.y, min: 0, max: 100, ticks: { color: "#7c88a0", callback: (v) => v + "%" } },
+            },
+          },
+        });
+
+        evalChart2 = new Chart($("chart-timing"), {
+          type: "bar",
+          data: {
+            labels,
+            datasets: [
+              { label: "Moy. (ms)", data: results.map((r) => +r.avg_ms.toFixed(1)), backgroundColor: "rgba(167,139,250,0.75)", borderColor: "#a78bfa", borderWidth: 1 },
+            ],
+          },
+          options: {
+            ...chartDefaults,
+            scales: {
+              ...chartDefaults.scales,
+              y: { ...chartDefaults.scales.y, ticks: { color: "#7c88a0", callback: (v) => v + " ms" } },
+            },
+          },
         });
       }
     </script>
