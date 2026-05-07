@@ -1,5 +1,8 @@
 #/notebooks/*
 /data/*/*
+
+# compiled latex files
+/Rappport/build/*
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]

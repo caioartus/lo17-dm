@@ -21,3 +21,4 @@ La méthode \texttt{generate\_candidates} réduit l'espace de recherche avant d'
 La recherche par préfixe compare les caractères position par position depuis le début du mot. Si la faute porte sur le \textbf{début du mot}, le score de proximité sera nul et le bon candidat sera écarté avant même que Levenshtein ne soit appelé. Par exemple, \textit{erecehrche} n'aura aucun caractère commun en position avec \textit{recherche}.
 
 Une alternative robuste consiste à utiliser des \textbf{n-grammes de caractères} : on représente chaque mot par ses bigrammes ou trigrammes, puis on calcule une similarité de Jaccard entre les ensembles. Cette méthode est insensible à la position de l'erreur et tolère des transpositions ou insertions en n'importe quel endroit du mot.
+
