@@ -65,7 +65,6 @@ class SearchEngine:
                 "has_image": has_image,
             }
 
-
     @staticmethod
     def _parse_date(date_str: str) -> datetime | None:
         """Parse une date au format j/mm/aaaa ou jj/mm/aaaa."""

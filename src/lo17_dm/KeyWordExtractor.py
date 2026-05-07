@@ -191,6 +191,7 @@ class KeyWordExtractor:
         # -----------------------------
         def handle_titre(m):
             block = m.group(1).strip()
+            print("in handle titre : ", block)
             results["titre"].extend(self._parse_logic_block(block))
             return " " * len(m.group(0))
 
@@ -273,6 +274,7 @@ class KeyWordExtractor:
 
         tokens = self.stemmer.transform_tolist(text)
         cleaned = []
+        print("Normalising terms : ", tokens)
 
         for token in tokens:
             if token in self.antidict.stopwords:
@@ -281,5 +283,5 @@ class KeyWordExtractor:
             candidate = self.correcteur.corrige(token)
             if candidate:
                 cleaned.append(candidate)
-
+        print("Normalised : ", cleaned)
         return cleaned
