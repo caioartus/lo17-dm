@@ -15,12 +15,19 @@ LEMMA_NAME = "lemmes_corpus"
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--outdir", default=OUTPUTS,
-                        help="Directory containing index and corpus files")
-    parser.add_argument("--corpus", default=CORPUS_NAME,
-                        help="Name of the corpus XML file (without extension)")
-    parser.add_argument("--lemma", default=LEMMA_NAME,
-                        help="Name of the lemma TSV file (without extension)")
+    parser.add_argument(
+        "--outdir", default=OUTPUTS, help="Directory containing index and corpus files"
+    )
+    parser.add_argument(
+        "--corpus",
+        default=CORPUS_NAME,
+        help="Name of the corpus XML file (without extension)",
+    )
+    parser.add_argument(
+        "--lemma",
+        default=LEMMA_NAME,
+        help="Name of the lemma TSV file (without extension)",
+    )
     args = parser.parse_args()
 
     outdir = Path(args.outdir)
@@ -61,7 +68,7 @@ def main() -> None:
         display_results(
             results, keywords, engine, sort_by, requete_dict.get("type_doc", "articles")
         )
-        
+
         display_tps_rep(elapsed_ms)
 
 
