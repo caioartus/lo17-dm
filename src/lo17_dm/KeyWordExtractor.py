@@ -20,9 +20,8 @@ REQUETE_STOPWORDS = [
     # verbes de demande très fréquents
     "veux",
     "veut",
-    "voulons",
-    "voudrais",
-    "voudrions",
+    "vouloir",
+    "souhaiter",
     "souhaite",
     "souhaites",
     "souhaitons",
@@ -98,6 +97,8 @@ REQUETE_STOPWORDS = [
     "pas",
     "non",
     "sans",
+    # cas particuliers
+    "listez-moi",
     # garder vide si stemming bizarre
     "",
 ]
@@ -112,7 +113,7 @@ RE_TITRE = (
     r"titre\s+poss[èe]de\s+le\s+mot)"
 )
 
-RE_TITRE_POST = r"dans\s+le\s+titre"
+RE_TITRE_POST = r"(?:dans\s+le\s+titre)"
 
 RE_CONTENU = (
     r"(?:parlent|"
@@ -125,6 +126,8 @@ RE_CONTENU = (
     r"mentionnant|"
     r"citant|"
     r"contenant|"
+    r"contenir|"
+    r"qui\s+contiennent"
     r"mentionnent|"
     r"impliquant|"
     r"impliquent|"
@@ -168,6 +171,8 @@ class KeyWordExtractor:
     def extract(self, text: str) -> dict:
         text = text.lower()
         results = {"titre": [], "contenu": [], "exclude": []}
+        print("EXTRACTING KEY WORDS : ")
+        print("original text = ", text)
 
         # -----------------------------
         # EXCLUSIONS (on traite ca d'abord comme ça pas de confusion avec titre/contenu)
@@ -186,12 +191,14 @@ class KeyWordExtractor:
             flags=re.IGNORECASE,
         )
 
+        print("after exclude : ", text)
+
         # -----------------------------
         # TITRE : plusieurs occurrences possibles
         # -----------------------------
         def handle_titre(m):
             block = m.group(1).strip()
-            print("in handle titre : ", block)
+            # print("in handle titre : ", block)
             results["titre"].extend(self._parse_logic_block(block))
             return " " * len(m.group(0))
 
@@ -202,15 +209,18 @@ class KeyWordExtractor:
             flags=re.IGNORECASE,
         )
 
+        print("after titre : ", text)
+
         # -----------------------------
         # TITRE POST : "contenant ... dans le titre"
         # -----------------------------
         text = re.sub(
-            rf"(?:contenant|contient)\s+(.+?)\s+{RE_TITRE_POST}",
+            rf"(?:contenant|contient|avec|ayant)\s+(.+?)\s+(?={RE_TITRE_POST})",
             handle_titre,
             text,
             flags=re.IGNORECASE,
         )
+        print("after titre post : ", text)
 
         # -----------------------------
         # CONTENU : plusieurs occurrences possibles
@@ -226,6 +236,7 @@ class KeyWordExtractor:
             text,
             flags=re.IGNORECASE,
         )
+        print("after contenu : ", text)
 
         # ------------
         # CONTENU POST : "ou ... est cité."
@@ -241,6 +252,24 @@ class KeyWordExtractor:
             text,
             flags=re.IGNORECASE,
         )
+        print("after contenu post : ", text)
+
+        # ------------
+        # SI JUSTE "mot1 et mot2 ou mot3..."
+        # ------------
+        def handle_rest(m):
+            block = m.group(0).strip()
+            results["contenu"].extend(self._parse_logic_block(block))
+            return " " * len(m.group(0))
+
+        text = re.sub(
+            r"(.*)",
+            handle_rest,
+            text,
+            flags=re.IGNORECASE,
+        )
+
+        print("after handle rest : ", text)
         return results
 
     # =========================================================
@@ -258,6 +287,9 @@ class KeyWordExtractor:
             for term in re.split(RE_AND, or_part):
                 term = re.sub(RE_PREFIX_CLEAN, "", term.strip())
 
+                if term in self.antidict.stopwords:
+                    continue
+
                 clean = self.normalize_terms(term)
                 if clean:
                     and_group.extend(clean)
@@ -274,7 +306,6 @@ class KeyWordExtractor:
 
         tokens = self.stemmer.transform_tolist(text)
         cleaned = []
-        print("Normalising terms : ", tokens)
 
         for token in tokens:
             if token in self.antidict.stopwords:
@@ -283,5 +314,4 @@ class KeyWordExtractor:
             candidate = self.correcteur.corrige(token)
             if candidate:
                 cleaned.append(candidate)
-        print("Normalised : ", cleaned)
         return cleaned

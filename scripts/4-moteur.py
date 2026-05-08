@@ -16,14 +16,22 @@ SORT_LABELS = {
     "3": "date_desc",
 }
 
+
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--outdir", default=OUTPUTS,
-                        help="Directory containing index and corpus files")
-    parser.add_argument("--corpus", default=CORPUS_NAME,
-                        help="Name of the corpus XML file (without extension)")
-    parser.add_argument("--lemma", default=LEMMA_NAME,
-                        help="Name of the lemma TSV file (without extension)")
+    parser.add_argument(
+        "--outdir", default=OUTPUTS, help="Directory containing index and corpus files"
+    )
+    parser.add_argument(
+        "--corpus",
+        default=CORPUS_NAME,
+        help="Name of the corpus XML file (without extension)",
+    )
+    parser.add_argument(
+        "--lemma",
+        default=LEMMA_NAME,
+        help="Name of the lemma TSV file (without extension)",
+    )
     args = parser.parse_args()
 
     outdir = Path(args.outdir)
@@ -47,7 +55,9 @@ def main() -> None:
     print("  Tapez 'quitter' pour quitter.\n")
 
     while True:
-        print("  Tri : [1] Pertinence (défaut)  [2] Date croissante  [3] Date décroissante")
+        print(
+            "  Tri : [1] Pertinence (défaut)  [2] Date croissante  [3] Date décroissante"
+        )
         try:
             query = input("  Requête : ").strip()
         except (EOFError, KeyboardInterrupt):
@@ -76,7 +86,10 @@ def main() -> None:
 
         print(f"\n  Analyse : {requete_dict}")
 
-        display_results(results, keywords, engine, sort_by, requete_dict.get("type_doc", "articles"))
+        display_results(
+            results, keywords, engine, sort_by, requete_dict.get("type_doc", "articles")
+        )
+        print(f"\n Fin Analyse : {requete_dict}")
         print(f"  Temps de réponse : {elapsed_ms:.1f} ms\n")
 
 
