@@ -72,9 +72,9 @@ class SpacyStemmer(Stemmer):
 
     def transform_tolist(self, text: str) -> list[str]:
         """Renvoi la liste des tokens lemmatisees a partir d'un text en entree"""
-        #print([tok for tok in CorpusTokenizer.tokenize(text) if tok])
+        # print([tok for tok in CorpusTokenizer.tokenize(text) if tok])
         tokens = [tok for tok in CorpusTokenizer.tokenize(text) if tok]
-        
+
         return self._lemmatize_tokens(tokens)
 
     def save_table(self, outdir: str):
@@ -89,20 +89,21 @@ class SnowStemmer(Stemmer):
         self.model = SnowballStemmer("french")
 
     def transform(self, text: str) -> str:
-        doc = CorpusTokenizer.tokenize(text)
-        stemmed = []
-        for word in doc:
-            stemmed.append(self.model.stem(word))
-        self.stemed_tokens = stemmed
-        return " ".join(self.stemed_tokens)
+        return " ".join(self.transform_tolist(text))
+
+    def transform_tolist(self, text: str) -> list[str]:
+        tokens = [tok for tok in CorpusTokenizer.tokenize(text) if tok]
+        return [self.model.stem(tok) for tok in tokens]
 
     def make_table(self, text: str):
         table: dict[str, list[str]] = {"token": [], "lemma": []}
-        doc = CorpusTokenizer.tokenize(text)
-        for word in doc:
+        tokens = [tok for tok in CorpusTokenizer.tokenize(text) if tok]
+        for word in tokens:
             table["token"].append(word)
             table["lemma"].append(self.model.stem(word))
 
         self.lemma_table = pd.DataFrame(table)
-
         return self.lemma_table
+
+    def save_table(self, outdir: str):
+        self.lemma_table.to_csv(os.path.join(outdir, "snow_table.tsv"), sep="\t")
