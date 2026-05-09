@@ -24,11 +24,13 @@ La différence qualitative est plus décisive : Snowball réduit \textit{optimis
 
 La lemmatisation regroupe plusieurs formes fléchies sous un même lemme, augmentant mécaniquement la fréquence de certains termes jusque-là sous le seuil. Par exemple, \textit{permettre} avait un TF-IDF moyen de 0.92 avant lemmatisation ; après, l'absorption de \textit{permet}, \textit{permettent}, \textit{permis} et \textit{permettait} fait chuter cette moyenne à 0.42. De même, \textit{son} absorbe \textit{sa}, \textit{leur} et \textit{leurs}. En maintenant le même seuil $\text{tfidf} \leq 0.7$, on élimine ces nouveaux termes sans ajuster les hyperparamètres. Le corpus doublement filtré est produit par \texttt{2-clean\_data.py}.
 
-\section{Construction des fichiers inverses}
+\section{Construction des fichiers inverses}\label{section:fichierinv}
 
 La classe \texttt{Index} est appliquée au corpus doublement filtré et lemmatisé. On obtient un fichier TSV par champ indexé : \texttt{index\_titre.tsv}, \texttt{index\_texte.tsv}, \texttt{index\_rubrique.tsv}, \texttt{index\_date.tsv}, \texttt{index\_auteur.tsv}, \texttt{index\_contact.tsv} et \texttt{index\_image.tsv}, chacun contenant le lemme, sa fréquence totale et la liste des identifiants d'articles associés.
 
-La structure retenue est un dictionnaire Python offrant des recherches en $O(1)$, tout à fait adapté à la taille du corpus. Pour de plus grands corpus, des alternatives comme les \textbf{tables de hachage}, les \textbf{arbres binaires de recherche} ($O(\log n)$ garanti) ou les \textbf{B-Trees} (standard pour l'indexation sur disque) seraient envisageables.
+Les index sont donc conservés sur le disque sous forme de fichiers TSV, puis convertis en dictionnaires Python lors de leur utilisation. Les avantages de cette approche sont qu'elle permet de visualiser facilement les index inversés et, après le chargement en mémoire RAM, la recherche s'effectue en $O(1)$, car le dictionnaire Python implémente une \textbf{table de hachage} (\textit{hash map}). 
+
+Cependant, cette méthode suppose de pouvoir charger l'ensemble du dictionnaire en mémoire vive. Dans notre cas, le corpus est petit, donc cela ne pose pas de problème. En revanche, avec un corpus plus volumineux, ou susceptible de croître fortement, il devient plus pertinent d'utiliser des \textbf{B-trees}, qui constituent le standard pour l'indexation sur disque. Ils permettent de minimiser les accès au disque dur tout en évitant de surcharger la mémoire RAM.
 
 \section{La classe DataCleaner}
 

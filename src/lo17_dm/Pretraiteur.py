@@ -46,13 +46,9 @@ class Pretraiteur:
         self.requete_dict = {}
         self.extract_type_doc(text)
         treated = self.extract_dates(text)
-        print("dates : ", treated)
         treated = self.extract_image(treated)
-        print("image : ", treated)
         treated = self.extract_rubriques(treated)
-        print("rubriques : ", treated)
         treated = self.extract_key_words(treated)
-        print("kw : ", treated)
         return self.requete_dict
 
     def extract_type_doc(self, text: str) -> None:

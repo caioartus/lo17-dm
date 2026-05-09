@@ -1,10 +1,51 @@
 \chapter{Moteur de recherche}
 
-Une fois que nous avons des fichiers d'index inversées, et une pipline qui permet de transformer des requêtes naturelles en requêtes booléennes, 
-il suffit de contruire le moteur de recherche qui trouve les documents pertinents a partir de la requête. Cette partie est prise en charge par la classe \texttt{SearchEngine} qui coordonne toute les étapes.
+Une fois que nous avons des fichiers d'index inversées, et une pipeline qui permet de transformer des requêtes naturelles en requêtes booléennes, 
+il suffit de construire le moteur de recherche qui trouve les documents pertinents a partir de la requête. Cette partie est prise en charge par la classe \texttt{SearchEngine} qui coordonne toutes les étapes.
 
 \section{Chargement de l'index}
 
-La classe \texttt{SearchEngine} doit charger tout l'index en mémoire à son initialisation afin de pouvoir l'utiliser. Nous avons choisi de ranger les index comme un dictionnaire de \texttt{set} Python avec comme clé le token et comme valeur l'ensemble des ids des document contenant ce token.
-Cela permet d'abord de rapidement accéder au tokens d'intéret.
+Comme spécifié en partie \ref{section:fichierinv} de ce rapport, nous avons choisi de sauvegarder les index inversées sous format TSV pour être convertis en dictionnaire Python lors du chargement en RAM. Le chargement est fait par \texttt{SearchEngine} lors de son initialisation. La structure résultante est une dictionnaire qui associent les token à des \texttt{set} Python contenant les ids des documents associés. La structure \texttt{set} de Python implémente les opérations de union et intersection dont nous avons besoin, mais nous devons les complétés dans les méthodes \texttt{\_union} et \texttt{\_intersect} simplement pour prendre en compte des cas limites. 
 
+
+\section{Recherche}
+
+La méthode \texttt{search(requete\_dict)} de \texttt{SearchEngine} permet d'effectuer la recherche. En utilisant les opérations de union et intersection nous pouvons aisément obtenir la liste des documents qui intégrent toutes les contraintes. Pour gérer les DNF dans les champs contenu et titre de la requête, nous utilisons l'algorithme \ref{algo:dnf} ci-dessous.
+\\[1em]
+
+\begin{algorithm}[H]\label{algo:dnf}
+\caption{Recherche des documents à partir d'une requête en DNF}
+
+$docs\_result \leftarrow \emptyset$
+
+$dnf\_groups \leftarrow$ liste des groupes OU de la requête DNF\;
+
+\For{chaque $and\_group \in dnf\_groups$}{
+
+    $docs\_group \leftarrow$ ensembles des documents associés à chaque mot de $and\_group$\;
+
+    \If{$docs\_group \neq \emptyset$}{
+        $docs\_and \leftarrow \bigcap docs\_group$\;
+
+        $docs\_result \leftarrow docs\_result \cup docs\_and$\;
+
+    }
+}
+
+Retourner $docs\_result$\;
+
+\end{algorithm}
+
+
+\section{Classement des résultats}
+
+Notre recherche est booléenne, donc les documents correspondent ou non : il ne s'agit pas d'une recherche vectorielle. Cependant, nous pouvons quand même classer les résultats en nous basant sur différents poids selon les champs. Par exemple, même si deux documents contiennent le terme recherché, celui qui l'a à la fois dans son titre et dans son contenu doit passer avant celui qui ne l'a que dans son contenu.
+
+Ainsi, nous avons modifié la formule du cours pour définir un score en fonction de la présence des termes dans les champs, afin de pouvoir prendre en compte plusieurs mots clés.
+Nous considérons dans cette partie que les mots clés de la requête sont les mots clés du titre et du contenu (on les concatène).
+
+\[
+    \text{score\_doc} = \frac{1}{n_{mc}}\sum_{i = 0}^{l} p_i \sum_{j = 0}^{n_{mc}} \text{presence}(i, j)
+\]
+
+Où $n_{mc}$ est le nombre de mots clés dans la requête, $l$ est le nombre de champs (titre, contenu), $p_i$ est le poids du $i$-ème champ, et $\text{presence}(i, j) = 1$ si le $j$-ème mot clé est présent dans le $i$-ème document.
