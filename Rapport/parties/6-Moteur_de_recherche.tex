@@ -1,4 +1,4 @@
-\chapter{Moteur de recherche}
+\chapter{Moteur de recherche et évaluation}
 
 Une fois que nous avons des fichiers d'index inversées, et une pipeline qui permet de transformer des requêtes naturelles en requêtes booléennes, 
 il suffit de construire le moteur de recherche qui trouve les documents pertinents a partir de la requête. Cette partie est prise en charge par la classe \texttt{SearchEngine} qui coordonne toutes les étapes.
@@ -39,7 +39,7 @@ Retourner $docs\_result$\;
 
 \section{Classement des résultats}
 
-Notre recherche est booléenne, donc les documents correspondent ou non : il ne s'agit pas d'une recherche vectorielle. Cependant, nous pouvons quand même classer les résultats en nous basant sur différents poids selon les champs. Par exemple, même si deux documents contiennent le terme recherché, celui qui l'a à la fois dans son titre et dans son contenu doit passer avant celui qui ne l'a que dans son contenu.
+Notre recherche est booléenne, donc les documents correspondent ou non: il ne s'agit pas d'une recherche vectorielle. Cependant, nous pouvons quand même classer les résultats en nous basant sur différents poids selon les champs. Par exemple, même si deux documents contiennent le terme recherché, celui qui l'a à la fois dans son titre et dans son contenu doit passer avant celui qui ne l'a que dans son contenu.
 
 Ainsi, nous avons modifié la formule du cours pour définir un score en fonction de la présence des termes dans les champs, afin de pouvoir prendre en compte plusieurs mots clés.
 Nous considérons dans cette partie que les mots clés de la requête sont les mots clés du titre et du contenu (on les concatène).
@@ -49,3 +49,17 @@ Nous considérons dans cette partie que les mots clés de la requête sont les m
 \]
 
 Où $n_{mc}$ est le nombre de mots clés dans la requête, $l$ est le nombre de champs (titre, contenu), $p_i$ est le poids du $i$-ème champ, et $\text{presence}(i, j) = 1$ si le $j$-ème mot clé est présent dans le $i$-ème document.
+
+\section{Evalutation du moteur du recherche}
+
+Afin de connaître les performances de notre moteur de recherche nous pouvons l'évaluer avec des métriques de précision et de rappel. 
+
+\begin{align*}
+    \text{Précision} &= \frac{TP}{TP + FP} \\[1em]
+    \text{Rappel} &= \frac{TP}{TP + FN}
+\end{align*}
+
+Où, $TP$ est le nombre les documents pertinents retournées, $FP$ le nombre de documents non pertinent retournés, et $FN$ le nombre de docoments pertinents non retournés.
+
+Pour calculer, 
+

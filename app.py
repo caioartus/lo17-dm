@@ -19,7 +19,7 @@ CORPUS = OUTPUTS / "corpus.xml"
 QUERIES_PATH = Path(__file__).parent / "test_data" / "eval_requetes.txt"
 LEMMA_TABLE = OUTPUTS / "lemmes_corpus.tsv"
 RUBRIQUE_INDEX = OUTPUTS / "index" / "index_rubrique.tsv"
-STOPWORD_PATH = OUTPUTS / "stop_words.tsv"
+STOPWORD_PATH = OUTPUTS / "stop_words.txt"
 DATA_DIR = Path(__file__).parent / "data" / "BULLETINS"
 DB_PATH = OUTPUTS / "annotations.db"
 
@@ -28,9 +28,9 @@ sys.path.insert(0, str(Path(__file__).parent / "src"))
 # load evaluation queries from file
 QUERIES = []
 id = 0
-with open(QUERIES_PATH) as f :  
-    for line in f : 
-        QUERIES.append({"id" : id, "query" : line})
+with open(QUERIES_PATH) as f:
+    for line in f:
+        QUERIES.append({"id": id, "query": line})
         id += 1
 
 print("Chargement du moteur de recherche…")
@@ -75,6 +75,7 @@ _DATE_KEY = lambda d: engine._parse_date(d["date"]) or datetime.min  # noqa: E73
 
 # ── Pages ──────────────────────────────────────────────────────────────────
 
+
 @app.route("/")
 def index():
     return render_template("index.html", doc_count=len(engine.documents))
@@ -82,13 +83,23 @@ def index():
 
 # ── Recherche ──────────────────────────────────────────────────────────────
 
+
 @app.route("/search")
 def search():
     query = request.args.get("q", "").strip()
     sort_by = request.args.get("sort", "relevance")
 
     if not query:
-        return jsonify({"results": [], "query_dict": {}, "elapsed_ms": 0, "count": 0, "keywords": [], "type_doc": "articles"})
+        return jsonify(
+            {
+                "results": [],
+                "query_dict": {},
+                "elapsed_ms": 0,
+                "count": 0,
+                "keywords": [],
+                "type_doc": "articles",
+            }
+        )
 
     t0 = time.perf_counter()
     requete_dict = pretraiteur.treat_request(query)
@@ -101,13 +112,20 @@ def search():
     if type_doc in ("bulletins", "rubrique"):
         field = "bulletin" if type_doc == "bulletins" else "rubrique"
         if sort_by == "date_asc":
-            results = sorted(results, key=lambda g: min(
-                (_DATE_KEY(a) for a in g["articles"]), default=datetime.min
-            ))
+            results = sorted(
+                results,
+                key=lambda g: min(
+                    (_DATE_KEY(a) for a in g["articles"]), default=datetime.min
+                ),
+            )
         elif sort_by == "date_desc":
-            results = sorted(results, key=lambda g: max(
-                (_DATE_KEY(a) for a in g["articles"]), default=datetime.min
-            ), reverse=True)
+            results = sorted(
+                results,
+                key=lambda g: max(
+                    (_DATE_KEY(a) for a in g["articles"]), default=datetime.min
+                ),
+                reverse=True,
+            )
 
         output = []
         for group in results:
@@ -125,7 +143,9 @@ def search():
                 }
                 for doc in group["articles"]
             ]
-            output.append({field: group[field], "articles": articles_out, "score": group["score"]})
+            output.append(
+                {field: group[field], "articles": articles_out, "score": group["score"]}
+            )
     else:
         if sort_by == "date_asc":
             results = sorted(results, key=_DATE_KEY)
@@ -147,17 +167,20 @@ def search():
             for doc in results
         ]
 
-    return jsonify({
-        "results": output,
-        "query_dict": requete_dict,
-        "elapsed_ms": round(elapsed_ms, 1),
-        "count": len(output),
-        "keywords": keywords,
-        "type_doc": type_doc,
-    })
+    return jsonify(
+        {
+            "results": output,
+            "query_dict": requete_dict,
+            "elapsed_ms": round(elapsed_ms, 1),
+            "count": len(output),
+            "keywords": keywords,
+            "type_doc": type_doc,
+        }
+    )
 
 
 # ── Catalogue (paginé) ─────────────────────────────────────────────────────
+
 
 @app.route("/browse")
 def browse():
@@ -165,20 +188,37 @@ def browse():
     page = max(1, int(request.args.get("page", 1)))
     per_page = 30
 
-    docs = sorted(engine.documents.values(), key=_DATE_KEY, reverse=(sort_by == "date_desc"))
+    docs = sorted(
+        engine.documents.values(), key=_DATE_KEY, reverse=(sort_by == "date_desc")
+    )
     total = len(docs)
     start = (page - 1) * per_page
-    output = [{
-        "id": d["id"], "titre": d["titre"], "rubrique": d["rubrique"],
-        "date": d["date"], "bulletin": d["bulletin"], "auteur": d["auteur"],
-        "has_image": d.get("has_image", False),
-    } for d in docs[start:start + per_page]]
+    output = [
+        {
+            "id": d["id"],
+            "titre": d["titre"],
+            "rubrique": d["rubrique"],
+            "date": d["date"],
+            "bulletin": d["bulletin"],
+            "auteur": d["auteur"],
+            "has_image": d.get("has_image", False),
+        }
+        for d in docs[start : start + per_page]
+    ]
 
-    return jsonify({"docs": output, "total": total, "page": page,
-                    "pages": (total + per_page - 1) // per_page, "per_page": per_page})
+    return jsonify(
+        {
+            "docs": output,
+            "total": total,
+            "page": page,
+            "pages": (total + per_page - 1) // per_page,
+            "per_page": per_page,
+        }
+    )
 
 
 # ── Annotation — données ───────────────────────────────────────────────────
+
 
 @app.route("/api/queries")
 def api_queries():
@@ -235,14 +275,17 @@ def _structural_excluded(requete_dict: dict) -> tuple[set[int], list[str]]:
         labels.append("rubrique=" + ", ".join(rubriques))
 
     from_dt = engine._parse_date(requete_dict.get("from_date"))
-    to_dt   = engine._parse_date(requete_dict.get("to_date"))
-    anti    = requete_dict.get("anti_date")
+    to_dt = engine._parse_date(requete_dict.get("to_date"))
+    anti = requete_dict.get("anti_date")
     if from_dt or to_dt or anti:
         sets.append(engine._get_okay_dates(from_dt, to_dt, anti))
         parts = []
-        if from_dt: parts.append(f"depuis {requete_dict['from_date']}")
-        if to_dt:   parts.append(f"jusqu'au {requete_dict['to_date']}")
-        if anti:    parts.append(f"anti-date {anti}")
+        if from_dt:
+            parts.append(f"depuis {requete_dict['from_date']}")
+        if to_dt:
+            parts.append(f"jusqu'au {requete_dict['to_date']}")
+        if anti:
+            parts.append(f"anti-date {anti}")
         labels.append("date: " + ", ".join(parts))
 
     image_val = requete_dict.get("image")
@@ -263,7 +306,9 @@ def _structural_excluded(requete_dict: dict) -> tuple[set[int], list[str]]:
 @app.route("/api/prefill", methods=["POST"])
 def api_prefill():
     with _db() as conn:
-        query_rows = conn.execute("SELECT id, query FROM queries ORDER BY id").fetchall()
+        query_rows = conn.execute(
+            "SELECT id, query FROM queries ORDER BY id"
+        ).fetchall()
 
     summary = []
     with _db() as conn:
@@ -273,26 +318,41 @@ def api_prefill():
             excluded, labels = _structural_excluded(requete_dict)
 
             if not excluded:
-                summary.append({"query_id": qid, "new": 0, "total_excluded": 0, "constraints": labels})
+                summary.append(
+                    {
+                        "query_id": qid,
+                        "new": 0,
+                        "total_excluded": 0,
+                        "constraints": labels,
+                    }
+                )
                 continue
 
             already = {
                 r[0]: r[1]
                 for r in conn.execute(
-                    "SELECT doc_id, is_relevant FROM annotations WHERE query_id=?", (qid,)
+                    "SELECT doc_id, is_relevant FROM annotations WHERE query_id=?",
+                    (qid,),
                 ).fetchall()
             }
             new_count = 0
             for doc_id in excluded:
-                if already.get(doc_id) != 1:      # ne jamais écraser "pertinent"
-                    if already.get(doc_id) is None: # n'insérer que si non annoté
+                if already.get(doc_id) != 1:  # ne jamais écraser "pertinent"
+                    if already.get(doc_id) is None:  # n'insérer que si non annoté
                         conn.execute(
                             "INSERT INTO annotations (query_id, doc_id, is_relevant) VALUES (?,?,?)",
                             (qid, doc_id, 0),
                         )
                         new_count += 1
 
-            summary.append({"query_id": qid, "new": new_count, "total_excluded": len(excluded), "constraints": labels})
+            summary.append(
+                {
+                    "query_id": qid,
+                    "new": new_count,
+                    "total_excluded": len(excluded),
+                    "constraints": labels,
+                }
+            )
 
     return jsonify(summary)
 
@@ -300,20 +360,34 @@ def api_prefill():
 @app.route("/api/docs")
 def api_docs():
     sort_by = request.args.get("sort", "date_asc")
-    docs = sorted(engine.documents.values(), key=_DATE_KEY, reverse=(sort_by == "date_desc"))
-    return jsonify([{
-        "id": d["id"], "titre": d["titre"], "rubrique": d["rubrique"],
-        "date": d["date"], "has_image": d.get("has_image", False),
-    } for d in docs])
+    docs = sorted(
+        engine.documents.values(), key=_DATE_KEY, reverse=(sort_by == "date_desc")
+    )
+    return jsonify(
+        [
+            {
+                "id": d["id"],
+                "titre": d["titre"],
+                "rubrique": d["rubrique"],
+                "date": d["date"],
+                "has_image": d.get("has_image", False),
+            }
+            for d in docs
+        ]
+    )
 
 
 @app.route("/api/annotations", methods=["GET"])
 def api_get_annotations():
     with _db() as conn:
-        rows = conn.execute("SELECT query_id, doc_id, is_relevant FROM annotations").fetchall()
+        rows = conn.execute(
+            "SELECT query_id, doc_id, is_relevant FROM annotations"
+        ).fetchall()
     result: dict[str, dict[str, int]] = {}
     for row in rows:
-        result.setdefault(str(row["query_id"]), {})[str(row["doc_id"])] = row["is_relevant"]
+        result.setdefault(str(row["query_id"]), {})[str(row["doc_id"])] = row[
+            "is_relevant"
+        ]
     return jsonify(result)
 
 
@@ -323,7 +397,9 @@ def api_save_annotation():
     qid, did, rel = int(data["query_id"]), int(data["doc_id"]), data["is_relevant"]
     with _db() as conn:
         if rel is None:
-            conn.execute("DELETE FROM annotations WHERE query_id=? AND doc_id=?", (qid, did))
+            conn.execute(
+                "DELETE FROM annotations WHERE query_id=? AND doc_id=?", (qid, did)
+            )
         else:
             conn.execute(
                 "INSERT OR REPLACE INTO annotations (query_id, doc_id, is_relevant) VALUES (?,?,?)",
@@ -335,7 +411,9 @@ def api_save_annotation():
 @app.route("/api/export")
 def api_export():
     with _db() as conn:
-        query_rows = conn.execute("SELECT id, query FROM queries ORDER BY id").fetchall()
+        query_rows = conn.execute(
+            "SELECT id, query FROM queries ORDER BY id"
+        ).fetchall()
         ann_rows = conn.execute(
             "SELECT query_id, doc_id FROM annotations WHERE is_relevant=1 ORDER BY query_id, doc_id"
         ).fetchall()
@@ -360,6 +438,7 @@ def api_export():
 
 # ── Évaluation ────────────────────────────────────────────────────────────
 
+
 def _flatten_search_ids(results) -> set:
     ids = set()
     for item in results:
@@ -376,7 +455,9 @@ def api_evaluate():
     n_runs = max(1, min(100, int(request.args.get("runs", 10))))
 
     with _db() as conn:
-        query_rows = conn.execute("SELECT id, query FROM queries ORDER BY id").fetchall()
+        query_rows = conn.execute(
+            "SELECT id, query FROM queries ORDER BY id"
+        ).fetchall()
         ann_map: dict[int, set[int]] = {}
         for row in conn.execute(
             "SELECT query_id, doc_id FROM annotations WHERE is_relevant=1"
@@ -405,19 +486,21 @@ def api_evaluate():
             engine.search(rd)
             times.append((time.perf_counter() - t0) * 1000)
 
-        rows.append({
-            "id": qid,
-            "query": query_text,
-            "precision": round(p, 4),
-            "recall": round(r, 4),
-            "f1": round(f, 4),
-            "retrieved": len(retrieved_ids),
-            "relevant": len(relevant_ids),
-            "avg_ms": round(_statistics.mean(times), 2),
-            "min_ms": round(min(times), 2),
-            "max_ms": round(max(times), 2),
-            "std_ms": round(_statistics.stdev(times) if len(times) > 1 else 0.0, 2),
-        })
+        rows.append(
+            {
+                "id": qid,
+                "query": query_text,
+                "precision": round(p, 4),
+                "recall": round(r, 4),
+                "f1": round(f, 4),
+                "retrieved": len(retrieved_ids),
+                "relevant": len(relevant_ids),
+                "avg_ms": round(_statistics.mean(times), 2),
+                "min_ms": round(min(times), 2),
+                "max_ms": round(max(times), 2),
+                "std_ms": round(_statistics.stdev(times) if len(times) > 1 else 0.0, 2),
+            }
+        )
 
     filled = [row for row in rows if row["relevant"] > 0]
     averages = None
@@ -429,15 +512,18 @@ def api_evaluate():
         }
 
     all_avgs = [row["avg_ms"] for row in rows]
-    return jsonify({
-        "results": rows,
-        "averages": averages,
-        "n_runs": n_runs,
-        "global_avg_ms": round(_statistics.mean(all_avgs), 2) if all_avgs else 0,
-    })
+    return jsonify(
+        {
+            "results": rows,
+            "averages": averages,
+            "n_runs": n_runs,
+            "global_avg_ms": round(_statistics.mean(all_avgs), 2) if all_avgs else 0,
+        }
+    )
 
 
 # ── Documents bruts ────────────────────────────────────────────────────────
+
 
 @app.route("/document/<int:doc_id>")
 def document(doc_id):

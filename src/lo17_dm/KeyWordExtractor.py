@@ -24,6 +24,7 @@ REQUETE_STOPWORDS = {
     "souhaites",
     "souhaitons",
     "cherche",
+    "chercher",
     "cherchez",
     "recherche",
     "rechercher",
@@ -42,6 +43,8 @@ REQUETE_STOPWORDS = {
     # mots de structure de requête
     "articles",
     "article",
+    "bulletins",
+    "bulletin",
     "liste",
     "tous",
     "tout",
@@ -96,7 +99,7 @@ REQUETE_STOPWORDS = {
     "pas",
     "non",
     "sans",
-    # cas particuliers
+    "ne",  # cas particuliers
     "listez-moi",
     # garder vide si stemming bizarre
     "",
@@ -132,7 +135,9 @@ RE_CONTENU = (
     r"impliquent|"
     r"concernent|"
     r"[ée]voquent|"
-    r"possédant)"
+    r"possédant|"
+    r"dans\s+le\s+domaine(?:\s+de)?"
+    r")"
 )
 RE_CONTENU_POST = r"(?:est-il\s+cité|être\s+cité)"
 
@@ -167,7 +172,7 @@ class KeyWordExtractor:
 
         self.stemmer = stemmer
 
-    def extract(self, text: str) -> dict:
+    def extract(self, text: str) -> tuple[dict, str]:
         text = text.lower()
         results: dict[str, list[str]] = {"titre": [], "contenu": [], "exclude": []}
         # print("EXTRACTING KEY WORDS : ")
@@ -254,20 +259,20 @@ class KeyWordExtractor:
         )
         # print("after contenu post : ", text)
 
-        # ------------
-        # SI JUSTE "mot1 et mot2 ou mot3..."
-        # ------------
-        def handle_rest(m):
-            block = m.group(0).strip()
-            results["contenu"].extend(self._parse_logic_block(block))
-            return " " * len(m.group(0))
+        # # ------------
+        # # SI JUSTE "mot1 et mot2 ou mot3..."
+        # # ------------
+        # def handle_rest(m):
+        #     block = m.group(0).strip()
+        #     results["contenu"].extend(self._parse_logic_block(block))
+        #     return " " * len(m.group(0))
 
-        text = re.sub(
-            r"(.*)",
-            handle_rest,
-            text,
-            flags=re.IGNORECASE,
-        )
+        # text = re.sub(
+        #     r"(.*)",
+        #     handle_rest,
+        #     text,
+        #     flags=re.IGNORECASE,
+        # )
 
         # print("after handle rest : ", text)
         return results, text

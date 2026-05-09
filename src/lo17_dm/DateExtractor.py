@@ -37,57 +37,60 @@ _DATE_STOP_WORDS = (
 )
 _SEP = rf"(?=[.?,;]|\b(?:{_DATE_STOP_WORDS})\b|$)"
 
+# les mots avant la date qui il y a des fois
+_RE_PREWORD = r"(?:publi(?:é|e)s?|parus?|datés?|datées?)"
+
 # "entre le <date> et le <date>"
 RE_RANGE = re.compile(
-    rf"\b(?:publi(?:é|e)s?|parus?)?\s*entre\s+(?:le\s+)?(?P<start>[^.?,;]+?)\s+et\s+(?:le\s+)?(?P<end>[^.?,;]+?){_SEP}",
+    rf"\b{_RE_PREWORD}?\s*entre\s+(?:le\s+)?(?P<start>[^.?,;]+?)\s+et\s+(?:le\s+)?(?P<end>[^.?,;]+?){_SEP}",
     re.IGNORECASE,
 )
 
 # "de <date> à <date>"
 RE_RANGE_DE_A = re.compile(
-    rf"\b(?:publi(?:é|e)s?|parus?)?\s*de\s+(?P<start>[^.?,;]+?)\s+[aà]\s+(?P<end>[^.?,;]+?){_SEP}",
+    rf"\b(?:{_RE_PREWORD}\s*)?\s*de\s+(?P<start>[^.?,;]+?)\s+[aà]\s+(?P<end>[^.?,;]+?){_SEP}",
     re.IGNORECASE,
 )
 
 # "à partir de / après / publié(s) après <date>"
 RE_FROM = re.compile(
-    rf"\b(?:à\s+partir\s+de|à\s+partir\s+du|à\s+partir|après|publiés?\s+après)\s+(?:le\s+)?(?P<date>[^.?,;]+?){_SEP}",
+    rf"\b(?:{_RE_PREWORD}\s*)?(?:à\s+partir\s+de|à\s+partir\s+du|à\s+partir|après|publiés?\s+après)\s+(?:le\s+)?(?P<date>[^.?,;]+?){_SEP}",
     re.IGNORECASE,
 )
 
 # "avant / jusqu'au / jusqu'à <date>"
 RE_TO = re.compile(
-    rf"\b(?:avant(?:\s+le)?|jusqu'\s*(?:au|à)(?:\s+le)?)\s+(?P<date>[^.?,;]+?){_SEP}",
+    rf"\b(?:{_RE_PREWORD}\s*)?(?:avant(?:\s+le)?|jusqu'\s*(?:au|à)(?:\s+le)?)\s+(?P<date>[^.?,;]+?){_SEP}",
     re.IGNORECASE,
 )
 
 # Date numérique : "12/03/2024" ou "12-03-2024"
 RE_DATE_NUMERIC = re.compile(
-    r"\b(?:le\s+|du\s+|de\s+|en\s+)?(?P<day>\d{1,2})[/\- ](?P<month>\d{1,2})[/\- ](?P<year>\d{4})\b",
+    rf"\b(?:{_RE_PREWORD}\s*)?(?:le\s+|du\s+|de\s+|en\s+)?(?P<day>\d{{1, 2}})[/\- ](?P<month>\d{{1, 2}})[/\- ](?P<year>\d{{4}})\b",
     re.IGNORECASE,
 )
 
 # Date littérale : "12 mars 2024"
 RE_DATE_LITERAL = re.compile(
-    rf"\b(?:le\s+|du\s+|de\s+|en\s+)?(?P<day>\d{{1,2}})\s+(?P<month>{_MONTHS})\s+(?P<year>\d{{4}})\b",
+    rf"\b(?:{_RE_PREWORD}\s*)?(?:le\s+|du\s+|de\s+|en\s+)?(?P<day>\d{{1,2}})\s+(?P<month>{_MONTHS})\s+(?P<year>\d{{4}})\b",
     re.IGNORECASE,
 )
 
 # Mois + année : "mars 2024", "en mars 2024", "au mois de mars 2024"
 RE_MONTH_YEAR = re.compile(
-    rf"\b(?:en\s+|au\s+mois\s+de\s+|mois\s+de\s+|du\s+|de\s+)?(?P<month>{_MONTHS})\s+(?P<year>20\d{{2}})\b",
+    rf"\b(?:{_RE_PREWORD}\s*)?(?:en\s+|au\s+mois\s+de\s+|mois\s+de\s+|du\s+|de\s+)?(?P<month>{_MONTHS})\s+(?P<year>20\d{{2}})\b",
     re.IGNORECASE,
 )
 
 # Année seule : "2024", "en 2024", "de l'année 2024"
 RE_YEAR = re.compile(
-    r"\b(?:en\s+|de\s+l'année\s+|de\s+)?(?P<year>20\d{2})\b",
+    rf"\b(?:{_RE_PREWORD}\s*)?(?:en\s+|de\s+l'année\s+|de\s+|année\s+)?(?P<year>20\d{{2}})\b",
     re.IGNORECASE,
 )
 
 # Mois seul sans année : "juin", "au mois de juin"
 RE_MONTH_ONLY = re.compile(
-    rf"\b(?:au\s+mois\s+de\s+|mois\s+de\s+|en\s+)?(?P<month>{_MONTHS})\b",
+    rf"\b(?:{_RE_PREWORD}\s*)?(?:au\s+mois\s+de\s+|mois\s+de\s+|en\s+)?(?P<month>{_MONTHS})\b",
     re.IGNORECASE,
 )
 
