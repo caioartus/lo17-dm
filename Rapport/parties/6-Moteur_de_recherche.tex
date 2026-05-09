@@ -1,0 +1,10 @@
+\chapter{Moteur de recherche}
+
+Une fois que nous avons des fichiers d'index inversées, et une pipline qui permet de transformer des requêtes naturelles en requêtes booléennes, 
+il suffit de contruire le moteur de recherche qui trouve les documents pertinents a partir de la requête. Cette partie est prise en charge par la classe \texttt{SearchEngine} qui coordonne toute les étapes.
+
+\section{Chargement de l'index}
+
+La classe \texttt{SearchEngine} doit charger tout l'index en mémoire à son initialisation afin de pouvoir l'utiliser. Nous avons choisi de ranger les index comme un dictionnaire de \texttt{set} Python avec comme clé le token et comme valeur l'ensemble des ids des document contenant ce token.
+Cela permet d'abord de rapidement accéder au tokens d'intéret.
+

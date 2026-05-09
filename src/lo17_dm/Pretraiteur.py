@@ -8,7 +8,6 @@ from lo17_dm.DateExtractor import DateExtractor
 from lo17_dm.KeyWordExtractor import KeyWordExtractor
 
 
-
 class Pretraiteur:
     def __init__(
         self,
@@ -17,8 +16,7 @@ class Pretraiteur:
         stop_words_path: str | Path,
         stemmer: Stemmer = SpacyStemmer(),
         date_extractor: DateExtractor = DateExtractor(),
-        keyword_extractor: KeyWordExtractor
-        | None = None, 
+        keyword_extractor: KeyWordExtractor | None = None,
     ):
         lemma_table_path = Path(lemma_table_path)
         rubriques_index_path = Path(rubriques_index_path)
@@ -43,15 +41,19 @@ class Pretraiteur:
 
         self.requete_dict: dict = {}
 
-    def treat_request(self, text: str) -> dict :
+    def treat_request(self, text: str) -> dict:
         """Effectue le traitement complet de la requete, renvoi le dictionnaire de la requete"""
         self.requete_dict = {}
         self.extract_type_doc(text)
         treated = self.extract_dates(text)
+        print("dates : ", treated)
         treated = self.extract_image(treated)
+        print("image : ", treated)
         treated = self.extract_rubriques(treated)
+        print("rubriques : ", treated)
         treated = self.extract_key_words(treated)
-        return treated
+        print("kw : ", treated)
+        return self.requete_dict
 
     def extract_type_doc(self, text: str) -> None:
         """Détermine le type de documents à retourner selon le premier mot-clé de type trouvé."""
@@ -145,8 +147,8 @@ class Pretraiteur:
 
     def extract_key_words(self, text: str):
         """Delegates keyword extraction to KeyWordExtractor and stores results."""
-        results = self.keyword_extractor.extract(text)
+        results, treated = self.keyword_extractor.extract(text)
         self.requete_dict["titre"] = results["titre"]
         self.requete_dict["contenu"] = results["contenu"]
         self.requete_dict["exclude"] = results["exclude"]
-        return self.requete_dict
+        return treated

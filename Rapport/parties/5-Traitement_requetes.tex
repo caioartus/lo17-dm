@@ -36,3 +36,16 @@ Une des plus grandes difficultés a été l'extraction des mots clés, car il y 
 
 Pour extraire les mots clé, il faut d'abord extraire les parties de la requête les contenant. \texttt{RE\_TITRE} et \texttt{RE\_CONTENU} permettent de distinguer les mots clés du titre et du contenu, il y a aussi d'autres regex pour des cas particuliers.
 Une fois ces bouts de texte extraits, ils sont traités par la méthode \texttt{\_parse\_logic\_block()} qui construit le DNF pour les mots clés. Elle détecte les opérateurs de conjonction via des regex et sépare le texte logiquement. Si le mot n'est pas un stop word ni du corpus ni des requêtes, alors il est lemmatisé et corrigé par \texttt{normalize\_terms()}.
+
+
+\section{Classe Pretraiteur}
+
+La classe \texttt{Pretraiteur} encapsule tout le pipeline pour passer d'une requête brute à une requête formatée. Elle utilise les classes \texttt{DateExtractor} et \texttt{KeyWordExtractor} pour extraire les dates et les mots clés. Pour les traitements plus simples (bulletin, image ou non, etc.), la logique est directement mise dans des méthodes de \texttt{Pretraiteur}. 
+C'est la méthode \texttt{treat\_request()} qui effectue la totalité du pipeline. Chaque traitement retire la partie traitée, ce qui permet d'éviter les conflits. La figure \ref{fig:pretraiteur} décrit les étapes du pipeline de formatage.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.5\textwidth]{assets/pretraiteur.drawio.png}
+    \caption{Pipeline de traitement des requêtes (Pretraiteur)}
+    \label{fig:pretraiteur}
+\end{figure}

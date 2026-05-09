@@ -270,7 +270,7 @@ class KeyWordExtractor:
         )
 
         # print("after handle rest : ", text)
-        return results
+        return results, text
 
     # =========================================================
     # LOGIC PARSING

@@ -16,7 +16,7 @@ On définit une classe abstraite \texttt{Stemmer} exposant une interface commune
 
 \subsection{Analyse comparative et choix}
 
-Le script \texttt{exercices-td/td3-make\_stemmer\_tabs.py} applique les deux stemmers sur \texttt{nostopwords\_corpus.xml} et sauvegarde les tableaux \texttt{token}/\texttt{lemma} pour analyse avec le notebook \texttt{analyse\_stem.ipynb}. Sur notre corpus de \textbf{14 344 tokens uniques}, SpaCy produit \textbf{11 285 lemmes uniques} et Snowball \textbf{9 046 racines uniques}. La courbe de Pareto confirme que les deux approches suivent un profil similaire, avec environ 20\% des lemmes couvrant 80\% du corpus, Snowball ayant toutefois une distribution plus extrême. Ce qui est logique car il réduit plus agressivement le vocabulaire.
+Le script \texttt{exercices-td/td3-make\_stemmer\_tabs.py} applique les deux stemmers sur \texttt{nostopwords\_corpus.xml} et sauvegarde les tableaux \texttt{token}/\texttt{lemma} pour analyse avec le notebook \texttt{analyse\_stem.ipynb}. Sur notre corpus de \textbf{14 344 tokens uniques}, SpaCy produit \textbf{11 285 lemmes uniques} et Snowball \textbf{9 046 racines uniques}. La courbe de Pareto confirme que les deux approches suivent un profil similaire, avec environ 20\% des lemmes couvrant 80\% du corpus, Snowball ayant toutefois une distribution plus extrême. Ce qui est logique, car il réduit plus agressivement le vocabulaire.
 
 La différence qualitative est plus décisive : Snowball réduit \textit{optimisation} et \textit{optimiste} à la même racine \texttt{optim}, causant des collisions sémantiques problématiques pour un moteur de recherche. \textbf{On retient SpaCy} : on perd en rappel (l'utilisateur doit être plus précis), mais on gagne en précision en évitant ces confusions.
 
@@ -32,7 +32,10 @@ La structure retenue est un dictionnaire Python offrant des recherches en $O(1)$
 
 \section{La classe DataCleaner}
 
-L'ensemble de la pipeline de nettoyage du corpus (anti-dictionnaire et lemmatization) est réalisée par la classe \texttt{DataCleaner}. Cette classe se sert de la classe \texttt{AntiDict} pour determiner les stop words et d'un \texttt{Stemmer} (\texttt{SpacyStemmer} par default), pour lemmatiser le text dans le texte et le titre (les autres champs sont laissés tel quel). \texttt{DataCleaner} génère un tableau de substitution avec des pairs \texttt{token}/\texttt{lemma} mais ou \texttt{lemma} peut être vide si c'est un stop word.
+L'ensemble du pipeline de nettoyage du corpus (anti-dictionnaire et lemmatisation) est réalisé par la classe \texttt{DataCleaner}. Cette classe se sert de la classe \texttt{AntiDict} pour déterminer les stop words et d'un \texttt{Stemmer} (\texttt{SpacyStemmer} par défaut), pour lemmatiser le texte dans le texte et le titre (les autres champs sont laissés tels quels). \texttt{DataCleaner} génère un tableau de substitution avec des paires \texttt{token}/\texttt{lemma}, mais où \texttt{lemma} peut être vide si c'est un stop word.
+
+Pour exporter la liste définitive des stop words choisis pour le corpus (automatiques + manuelles), la méthode \texttt{export\_stop\_words()} sauvegarde les stop words dans un fichier texte contenant simplement les stop words. 
+
 \begin{figure}[h]
     \centering
     \hspace*{-0.12\textwidth}

@@ -4,14 +4,21 @@ from lo17_dm.Correcteur import Correcteur
 from lo17_dm.Stemmer import SpacyStemmer
 from lo17_dm.KeyWordExtractor import KeyWordExtractor
 
+
 def main():
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("--lemmes", default="./outputs/lemmes_corpus.tsv",
-                        help="Path to the TSV lemma table")
+    parser.add_argument(
+        "--lemmes",
+        default="./outputs/lemmes_corpus.tsv",
+        help="Path to the TSV lemma table",
+    )
 
-    parser.add_argument("--stopwords", default="./outputs/stop_words.tsv",
-                        help="Path to the TSV stop words")
+    parser.add_argument(
+        "--stopwords",
+        default="./outputs/stop_words.txt",
+        help="Path to the TSV stop words",
+    )
 
     args = parser.parse_args()
 
@@ -24,7 +31,7 @@ def main():
 
     correcteur = Correcteur(lemmas)
     stemmer = SpacyStemmer()
-    
+
     # On utilise KeyWordExtractor pour avoir le même pipeline que dans le projet
     extractor = KeyWordExtractor(args.stopwords, correcteur, stemmer)
 
