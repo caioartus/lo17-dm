@@ -1,6 +1,6 @@
 \chapter{Anti-dictionnaire}
 
-L'objectif de ce TD est de construire un anti-dictionnaire — une liste de mots non porteurs de sens à exclure du corpus avant indexation — en s'appuyant sur le coefficient TF-IDF pour les identifier automatiquement.
+L'objectif de cette phase est de construire un anti-dictionnaire (une liste de mots non porteurs de sens à exclure du corpus avant indexation), en s'appuyant sur le coefficient TF-IDF pour les identifier automatiquement.
 
 \section{Choix de l'unité documentaire}
 
@@ -14,14 +14,18 @@ Le calcul est réalisé par la classe \texttt{TFIDFProcessor}. Le TF est la fré
     \text{idf}_t = \log_{10}\!\left(\frac{N}{\text{df}_t}\right)
 \]
 
-Avant de calculer $\text{df}_t$, on déduplique les couples \texttt{(document\_id, token)} pour qu'un token apparaissant plusieurs fois dans un même document ne soit compté qu'une seule fois. On n'applique pas de lissage : un token présent dans tous les documents obtient un IDF de $\log_{10}(1) = 0$, ce qui annule directement son TF-IDF. Le TF-IDF final est le produit $\text{tf}_{t,d} \times \text{idf}_t$. Les trois matrices sont sauvegardées séparément en TSV.
-
+Avant de calculer $\text{df}_t$, on déduplique les couples \texttt{(document\_id, token)} pour qu'un token apparaissant plusieurs fois dans un même document ne soit compté qu'une seule fois. On n'applique pas de lissage : un token présent dans tous les documents obtient un IDF de $\log_{10}(1) = 0$, ce qui annule directement son TF-IDF. Le TF-IDF final est le produit $\text{tf}_{t,d} \times \text{idf}_t$. Les tableaux contenant ces trois métriques pour chaque document du corpus sont sauvegardés dans des fichiers TSV séparés.
 \section{Détermination de l'anti-dictionnaire}
 
-La classe \texttt{AntiDict} identifie les stopwords en calculant le TF-IDF \textbf{moyen} de chaque token sur l'ensemble des documents où il apparaît. On retient la moyenne plutôt que la médiane ou le maximum : elle capture les tokens systématiquement peu discriminants tout en restant insensible aux pics isolés. Tout token dont la moyenne est inférieure ou égale au seuil empirique \texttt{thresh = 0.7} est ajouté à l'anti-dictionnaire, stocké dans un \texttt{set} Python pour des recherches en $O(1)$.
+La classe \texttt{AntiDict} identifie les stopwords en calculant le TF-IDF \textbf{moyen} de chaque token sur l'ensemble des documents où il apparaît. On retient la moyenne plutôt que la médiane ou le maximum : elle reflète le niveau global de discrimination des tokens et permet de prendre en compte les faiblesses récurrentes, contrairement au maximum qui dépend d’un seul pic, et à la médiane qui peut masquer certaines variations. 
 
-L'anti-dictionnaire est encodé sous forme d'une table de substitution à deux colonnes (\texttt{token}, \texttt{sub}), où une chaîne vide \texttt{""} indique la suppression. Ce format correspond directement à celui attendu par \texttt{substitue}. La méthode \texttt{build\_from\_file()} permet également de charger un anti-dictionnaire manuel, utile pour affiner la liste au-delà de ce que le seuillage automatique peut détecter.
+Le seuil de $\text{tf-idf} \le 0.7$ à été retenue pour discriminer les stop-words des mots a garder. Cette valeur à été trouvée à partir de données, en les analysant avec le notebook \texttt{antidictionnaire.ipynb}.
+ 
+Tout token dont la moyenne est inférieure ou égale au seuil est ajouté à l'anti-dictionnaire, stocké dans un \texttt{set} Python pour des recherches en $O(1)$ lors de l'execution.
 
-\section{Génération du corpus filtré}
+La méthode \texttt{build\_sub\_table()} de \texttt{AntiDict} permet de l'avoir sous forme d'une table de substitution à deux colonnes (\texttt{token}, \texttt{sub}), où une chaîne vide \texttt{""} indique la suppression. Cette méthode est utile pour la classe \texttt{DataCleaner} qui se base sur ce format. Dans le 
 
-La table de substitution est appliquée au corpus XML via \texttt{substitue}, qui parcourt le texte token par token et supprime les stopwords. Le résultat est un fichier XML filtré qui servira de base à la lemmatisation du TD suivant.
+\section{Génération du corpus sans stop word}
+
+Le corpus sans stop word est déterminé avec le script \texttt{exercices-td/td2-determination\_antidict.py}, en particulier par la fonction \texttt{substitue()} qui applique la table de substitution de l'anti-dictionnaire au corpus. Ce script réponds à l'énoncé du TD, et permet d'avoir le fichier \texttt{corpus\_filtre.xml} nescessaire pour les prochains TD. Cependant, il n'est pas utilisé dans le programme finale, la logique ayant ensuite été déplacée dans la classe \texttt{DataCleaner} qui effectue toute la pipeline de nettoyage de données sans fichiers intermédiaires.  
+

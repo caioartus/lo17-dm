@@ -1,12 +1,10 @@
-from lo17_dm.AntiDict import AntiDict
 from lo17_dm.Stemmer import Stemmer, SpacyStemmer
 from lo17_dm.Correcteur import Correcteur
 from pathlib import Path
-import pandas as pd
 import re
 
 
-REQUETE_STOPWORDS = [
+REQUETE_STOPWORDS = {
     # pronoms / sujets inutiles
     "je",
     "j",
@@ -40,6 +38,7 @@ REQUETE_STOPWORDS = [
     "retourner",
     "retournez",
     "obtenir",
+    "avoir",
     # mots de structure de requête
     "articles",
     "article",
@@ -101,7 +100,7 @@ REQUETE_STOPWORDS = [
     "listez-moi",
     # garder vide si stemming bizarre
     "",
-]
+}
 
 # =========================================================
 # REGEX PATTERNS
@@ -160,19 +159,19 @@ class KeyWordExtractor:
     ):
         self.stopwords_file = Path(stopwords_file)
         self.correcteur = correcteur
-        self.antidict = AntiDict()
 
         with open(self.stopwords_file, "r", encoding="utf-8") as f:
             corpus_stopwords = set(f.read().splitlines())
-        self.antidict.add_manual_stopwords(corpus_stopwords | set(REQUETE_STOPWORDS))
+
+        self.stopwords = corpus_stopwords | REQUETE_STOPWORDS
 
         self.stemmer = stemmer
 
     def extract(self, text: str) -> dict:
         text = text.lower()
-        results = {"titre": [], "contenu": [], "exclude": []}
-        print("EXTRACTING KEY WORDS : ")
-        print("original text = ", text)
+        results: dict[str, list[str]] = {"titre": [], "contenu": [], "exclude": []}
+        # print("EXTRACTING KEY WORDS : ")
+        # print("original text = ", text)
 
         # -----------------------------
         # EXCLUSIONS (on traite ca d'abord comme ça pas de confusion avec titre/contenu)
@@ -191,7 +190,7 @@ class KeyWordExtractor:
             flags=re.IGNORECASE,
         )
 
-        print("after exclude : ", text)
+        # print("after exclude : ", text)
 
         # -----------------------------
         # TITRE : plusieurs occurrences possibles
@@ -209,7 +208,7 @@ class KeyWordExtractor:
             flags=re.IGNORECASE,
         )
 
-        print("after titre : ", text)
+        # print("after titre : ", text)
 
         # -----------------------------
         # TITRE POST : "contenant ... dans le titre"
@@ -220,7 +219,7 @@ class KeyWordExtractor:
             text,
             flags=re.IGNORECASE,
         )
-        print("after titre post : ", text)
+        # print("after titre post : ", text)
 
         # -----------------------------
         # CONTENU : plusieurs occurrences possibles
@@ -236,23 +235,24 @@ class KeyWordExtractor:
             text,
             flags=re.IGNORECASE,
         )
-        print("after contenu : ", text)
+        # print("after contenu : ", text)
 
         # ------------
         # CONTENU POST : "ou ... est cité."
         # ------------
         def handle_contenu_post(m):
-            block = m.group(0).strip()
+            block = m.group(1).strip()
+            print("in handle contenu post : ", block)
             results["contenu"].extend(self._parse_logic_block(block))
             return " " * len(m.group(0))
 
         text = re.sub(
-            rf"(.+?)(?={RE_CONTENU_POST})",
+            rf"(.+?)(?:{RE_CONTENU_POST})",
             handle_contenu_post,
             text,
             flags=re.IGNORECASE,
         )
-        print("after contenu post : ", text)
+        # print("after contenu post : ", text)
 
         # ------------
         # SI JUSTE "mot1 et mot2 ou mot3..."
@@ -269,7 +269,7 @@ class KeyWordExtractor:
             flags=re.IGNORECASE,
         )
 
-        print("after handle rest : ", text)
+        # print("after handle rest : ", text)
         return results
 
     # =========================================================
@@ -285,9 +285,9 @@ class KeyWordExtractor:
 
             # split sur ET
             for term in re.split(RE_AND, or_part):
-                term = re.sub(RE_PREFIX_CLEAN, "", term.strip())
+                # term = re.sub(RE_PREFIX_CLEAN, "", term.strip())
 
-                if term in self.antidict.stopwords:
+                if term in self.stopwords:
                     continue
 
                 clean = self.normalize_terms(term)
@@ -308,7 +308,7 @@ class KeyWordExtractor:
         cleaned = []
 
         for token in tokens:
-            if token in self.antidict.stopwords:
+            if token in self.stopwords:
                 continue
 
             candidate = self.correcteur.corrige(token)

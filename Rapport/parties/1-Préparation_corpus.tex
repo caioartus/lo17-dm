@@ -10,7 +10,7 @@ L'archive est constituée de bulletins électroniques publiés entre 2011 et 201
 
 \subsection{Architecture du parseur}
 
-On structure le parseur autour de deux classes aux responsabilités distinctes. \texttt{BulletinParser} prend en charge un unique fichier HTML : il l'ouvre, en extrait tous les champs, et produit le fragment XML correspondant. \texttt{CorpusParser} orchestre l'ensemble : il itère sur tous les fichiers du répertoire, instancie un \texttt{BulletinParser} par fichier, puis assemble les fragments pour produire le fichier \texttt{clean\_corpus.xml} final.
+On structure le parseur autour de deux classes aux responsabilités distinctes. \texttt{BulletinParser} prend en charge un unique fichier HTML : il l'ouvre, en extrait tous les champs, et produit le fragment XML correspondant. \texttt{CorpusParser} orchestre l'ensemble : il itère sur tous les fichiers du répertoire, instancie un \texttt{BulletinParser} par fichier, puis assemble les fragments pour produire le fichier \texttt{corpus.xml}.
 
 \subsection{Double parsing du HTML}
 

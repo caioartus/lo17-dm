@@ -11,22 +11,35 @@ OUTPUTS = Path(__file__).parent.parent / "outputs"
 INNAME = "corpus"
 OUTNAME = "clean_corpus"
 
+
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--indir", default=OUTPUTS,
-                        help="Directory where the input XML file is located")
-    
-    parser.add_argument("--inname", default=INNAME,
-                        help="Name of the XML file to clean (without extension)")
-    
-    parser.add_argument("--outdir", default=OUTPUTS,
-                        help="Directory where the cleaned XML file will be saved")
-    
-    parser.add_argument("--outname", default=OUTNAME,
-                        help="Name of the cleaned XML file (without extension)")
+    parser.add_argument(
+        "--indir", default=OUTPUTS, help="Directory where the input XML file is located"
+    )
+
+    parser.add_argument(
+        "--inname",
+        default=INNAME,
+        help="Name of the XML file to clean (without extension)",
+    )
+
+    parser.add_argument(
+        "--outdir",
+        default=OUTPUTS,
+        help="Directory where the cleaned XML file will be saved",
+    )
+
+    parser.add_argument(
+        "--outname",
+        default=OUTNAME,
+        help="Name of the cleaned XML file (without extension)",
+    )
 
     args = parser.parse_args()
-    assert "." not in args.inname or "." not in args.outname, "Il faut préciser uniquement le nom du fichier (sans .xml)"
+    assert "." not in args.inname or "." not in args.outname, (
+        "Il faut préciser uniquement le nom du fichier (sans .xml)"
+    )
 
     indir = Path(args.indir)
     indir.mkdir(parents=True, exist_ok=True)
@@ -35,12 +48,12 @@ def main():
 
     input_xml = indir / f"{args.inname}.xml"
     output_xml = outdir / f"{args.outname}.xml"
-    
+
     tokenizer = CorpusTokenizer()
     tokenizer.load_xml(input_xml)
     tokenizer.tokenize_corpus()
     token_df = tokenizer.get_table()
-    
+
     processor = TFIDFProcessor(token_df)
     processor.compute_tf()
     processor.compute_idf()
@@ -48,7 +61,7 @@ def main():
 
     cleaner = DataCleaner(manual_stopwords=MANUAL_STOPWORDS)
     cleaner.build_sub_table(df_tf_idf)
-    cleaner.export_stop_words(OUTPUTS /"stop_words.tsv")
+    cleaner.export_stop_words(OUTPUTS / "stop_words.tsv")
     cleaner.apply_substitue_to_xml(input_xml, output_xml)
 
     print(f"Cleaned XML saved to {output_xml}")

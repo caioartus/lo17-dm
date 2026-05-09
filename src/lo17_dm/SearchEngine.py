@@ -114,7 +114,6 @@ class SearchEngine:
     # Recherche dans les index                                              #
     # ------------------------------------------------------------------ #
 
-    # TO DO : Pourquoi pas _matches_date aussi ?
     def _matches_anti_date(self, doc_date: datetime, anti_date: str) -> bool:
         """Vérifie si doc_date correspond au motif anti_date (ex: '*/06/*' pour juin)."""
         parts = anti_date.split("/")

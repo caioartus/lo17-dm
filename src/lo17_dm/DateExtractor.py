@@ -240,8 +240,8 @@ class DateExtractor:
         puis supprime la correspondance du texte."""
         m = pattern.search(text)
         if m:
-            if handler(m) : 
-                #print(m.group(0))
+            if handler(m):
+                # print(m.group(0))
                 text = pattern.sub("", text, count=1)
         return text
 
@@ -251,6 +251,9 @@ class DateExtractor:
         self.from_date = self.to_date = self.anti_date = None
 
         def handle_range(m):
+            # print("HANDLE RANGE : ", m)
+            # print(m.group("start"))
+            # print(m.group("end"))
             start = self._parse_fragment(m.group("start"))
             end = self._parse_fragment(m.group("end"))
             if start and end:
