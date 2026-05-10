@@ -114,7 +114,6 @@ class SearchEngine:
 
     # -------------------------- Recherche dans les index --------------------------
 
-    # TO DO : Pourquoi pas _matches_date aussi ?
     def _matches_anti_date(self, doc_date: datetime, anti_date: str) -> bool:
         """Vérifie si doc_date correspond au motif anti_date (ex: '*/06/*' pour juin)."""
         parts = anti_date.split("/")
@@ -158,8 +157,13 @@ class SearchEngine:
     def _score(self, doc_id: int, keywords: list[str]) -> float:
         """Score booléen classé : +3 par mot-clé dans le titre, +1 dans le texte."""
         score = 0.0
+<<<<<<< HEAD
         if sum(self.poids_score.values()) != 1 :
             raise ValueError("La somme des poids doit être égale à 1")
+=======
+        poids = {"titre": 0.6, "texte": 0.4}
+        assert sum(poids.values()) == 1, "La somme des poids doit être égale à 1"
+>>>>>>> rapport
 
         if len(keywords) == 0:  # pas de mots cles, tout les doc sont pertinents
             return 1

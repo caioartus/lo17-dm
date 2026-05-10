@@ -7,7 +7,7 @@ SCRIPT_DIR = Path(__file__).parent
 
 LEMMA_TABLE_PATH = SCRIPT_DIR / "../outputs/lemmes_corpus.tsv"
 RUBRIQUES_INDEX_PATH = SCRIPT_DIR / "../outputs/index/index_rubrique.tsv"
-STOP_WORDS_PATH = SCRIPT_DIR / "../outputs/stop_words.tsv"
+STOP_WORDS_PATH = SCRIPT_DIR / "../outputs/stop_words.txt"
 
 
 def main() -> None:

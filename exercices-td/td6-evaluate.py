@@ -14,11 +14,12 @@ OUTPUTS_INDEX = OUTPUTS / "index"
 CORPUS = OUTPUTS / "clean_corpus.xml"
 LEMMA_TABLE = OUTPUTS / "lemmes_corpus.tsv"
 RUBRIQUE_INDEX = OUTPUTS_INDEX / "index_rubrique.tsv"
-STOP_WORDS = OUTPUTS / "stop_words.tsv"
+STOP_WORDS = OUTPUTS / "stop_words.txt"
 SUB_TABLE = OUTPUTS / "sub_table.tsv"
 ANNOTATIONS_DB = OUTPUTS / "annotations.db"
 
 N_TIMING_RUNS = 100
+
 
 def load_manually_annotated() -> list[dict]:
     with sqlite3.connect(ANNOTATIONS_DB) as conn:
@@ -32,7 +33,9 @@ def load_manually_annotated() -> list[dict]:
                 (qid,),
             )
             relevant_ids = {row[0] for row in cur.fetchall()}
-            manually_annotated.append({"id": qid, "query": query.strip(), "relevant_ids": relevant_ids})
+            manually_annotated.append(
+                {"id": qid, "query": query.strip(), "relevant_ids": relevant_ids}
+            )
     return manually_annotated
 
 
@@ -65,14 +68,16 @@ def run_evaluation() -> None:
     pretraiteur = Pretraiteur(
         lemma_table_path=LEMMA_TABLE,
         rubriques_index_path=RUBRIQUE_INDEX,
-        stop_words_path=STOP_WORDS
+        stop_words_path=STOP_WORDS,
     )
     engine = SearchEngine(output_dir=OUTPUTS, corpus_path=CORPUS)
     print(f"  {len(engine.documents)} documents chargés.\n")
 
     print(f"  Mesure de qualité (précision, rappel et f1-score)")
     print("-" * 90)
-    print(f"{'N°':<4} {'Requête':<52} {'P':>6} {'R':>6} {'F1':>6} {'Ret':>5} {'Rel':>5}")
+    print(
+        f"{'N°':<4} {'Requête':<52} {'P':>6} {'R':>6} {'F1':>6} {'Ret':>5} {'Rel':>5}"
+    )
     print("-" * 90)
 
     quality_rows: list[dict] = []
@@ -118,10 +123,11 @@ def run_evaluation() -> None:
     print("-" * 90)
     print()
 
-
     print(f"  Mesure de performance ({N_TIMING_RUNS} exécutions par requête)")
     print("-" * 90)
-    print(f"{'N°':<4} {'Requête':<46} {'Moy(ms)':>8} {'Min(ms)':>8} {'Max(ms)':>8} {'Éc-T':>6}")
+    print(
+        f"{'N°':<4} {'Requête':<46} {'Moy(ms)':>8} {'Min(ms)':>8} {'Max(ms)':>8} {'Éc-T':>6}"
+    )
     print("-" * 90)
 
     all_times: list[float] = []
@@ -131,7 +137,7 @@ def run_evaluation() -> None:
         for _ in range(N_TIMING_RUNS):
             t0 = time.perf_counter()
             rd = pretraiteur.treat_request(test["query"])
-            #rd = pretraiteur.treat_request(test["query"], SUB_TABLE)
+            # rd = pretraiteur.treat_request(test["query"], SUB_TABLE)
             engine.search(rd)
             times.append((time.perf_counter() - t0) * 1000)
 
@@ -141,7 +147,9 @@ def run_evaluation() -> None:
         mx = max(times)
         std = statistics.stdev(times)
         label = test["query"][:44] + ("…" if len(test["query"]) > 44 else "")
-        print(f"{test['id']:<4} {label:<46} {avg:>8.1f} {mn:>8.1f} {mx:>8.1f} {std:>6.1f}")
+        print(
+            f"{test['id']:<4} {label:<46} {avg:>8.1f} {mn:>8.1f} {mx:>8.1f} {std:>6.1f}"
+        )
 
     print("-" * 90)
     print(
