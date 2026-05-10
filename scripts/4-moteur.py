@@ -12,14 +12,6 @@ OUTPUTS = Path(__file__).parent.parent / "outputs"
 CORPUS_NAME = "corpus"
 LEMMA_NAME = "lemmes_corpus"
 
-<<<<<<< Updated upstream
-SORT_LABELS = {
-    "1": "relevance",
-    "2": "date_asc",
-    "3": "date_desc",
-}
-=======
->>>>>>> Stashed changes
 
 def main() -> None:
     parser = argparse.ArgumentParser()
