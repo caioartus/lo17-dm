@@ -249,6 +249,21 @@
         margin-top: 2px;
         border: 1px solid #334155;
       }
+      .ann-btn {
+        background: none;
+        border: 1px solid var(--border);
+        padding: 0.25rem 0.5rem;
+        margin-left: 0.3rem;
+        border-radius: 3px;
+        cursor: pointer;
+        font-size: 0.75rem;
+        transition: all 0.2s;
+        color: var(--text);
+      }
+      .ann-btn:hover {
+        background: var(--rubrique-bg);
+        border-color: var(--accent);
+      }
       .card-title {
         font-size: 1rem;
         font-weight: 700;
@@ -987,12 +1002,16 @@
         border-bottom: 1px solid var(--border);
       }
       .eval-table thead th:first-child,
-      .eval-table thead th:nth-child(2) { text-align: left; }
+      .eval-table thead th:nth-child(2) {
+        text-align: left;
+      }
       .eval-table tbody tr {
         border-bottom: 1px solid var(--border);
         transition: background 0.1s;
       }
-      .eval-table tbody tr:hover { background: var(--surface2); }
+      .eval-table tbody tr:hover {
+        background: var(--surface2);
+      }
       .eval-table tbody tr.avg-row {
         background: var(--surface2);
         font-weight: 700;
@@ -1003,18 +1022,36 @@
         vertical-align: middle;
       }
       .eval-table tbody td:first-child,
-      .eval-table tbody td:nth-child(2) { text-align: left; }
-      .no-gt { color: var(--muted); font-style: italic; }
-      .metric-p { color: #6c63ff; font-weight: 600; }
-      .metric-r { color: #22d3ee; font-weight: 600; }
-      .metric-f { color: #4ade80; font-weight: 600; }
+      .eval-table tbody td:nth-child(2) {
+        text-align: left;
+      }
+      .no-gt {
+        color: var(--muted);
+        font-style: italic;
+      }
+      .metric-p {
+        color: #6c63ff;
+        font-weight: 600;
+      }
+      .metric-r {
+        color: #22d3ee;
+        font-weight: 600;
+      }
+      .metric-f {
+        color: #4ade80;
+        font-weight: 600;
+      }
       .eval-charts {
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 1.2rem;
         margin-bottom: 1.2rem;
       }
-      @media (max-width: 768px) { .eval-charts { grid-template-columns: 1fr; } }
+      @media (max-width: 768px) {
+        .eval-charts {
+          grid-template-columns: 1fr;
+        }
+      }
       .eval-chart-card {
         background: var(--surface);
         border: 1.5px solid var(--border);
@@ -1034,8 +1071,13 @@
         padding: 5rem 2rem;
         color: var(--muted);
       }
-      .eval-welcome .icon { font-size: 3rem; margin-bottom: 1rem; }
-      .eval-welcome p { font-size: 0.9rem; }
+      .eval-welcome .icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+      }
+      .eval-welcome p {
+        font-size: 0.9rem;
+      }
     </style>
   </head>
   <body>
@@ -1086,12 +1128,41 @@
       </div>
 
       <div id="eval-controls-header" style="display: none">
-        <div class="sort-row" style="justify-content: center; margin-top: 1rem; align-items: center">
-          <span style="font-size: 0.8rem; color: var(--muted)">Runs de timing :</span>
-          <input id="eval-runs-input" type="number" value="10" min="1" max="100"
-            style="width:58px;background:var(--surface);border:1.5px solid var(--border);border-radius:8px;padding:0.35rem 0.5rem;color:var(--text);font-size:0.82rem;text-align:center;outline:none;" />
-          <button class="sort-btn" id="run-eval-btn"
-            style="background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700;">
+        <div
+          class="sort-row"
+          style="justify-content: center; margin-top: 1rem; align-items: center"
+        >
+          <span style="font-size: 0.8rem; color: var(--muted)"
+            >Runs de timing :</span
+          >
+          <input
+            id="eval-runs-input"
+            type="number"
+            value="10"
+            min="1"
+            max="100"
+            style="
+              width: 58px;
+              background: var(--surface);
+              border: 1.5px solid var(--border);
+              border-radius: 8px;
+              padding: 0.35rem 0.5rem;
+              color: var(--text);
+              font-size: 0.82rem;
+              text-align: center;
+              outline: none;
+            "
+          />
+          <button
+            class="sort-btn"
+            id="run-eval-btn"
+            style="
+              background: var(--accent);
+              border-color: var(--accent);
+              color: #fff;
+              font-weight: 700;
+            "
+          >
             ▶ Lancer l'évaluation
           </button>
         </div>
@@ -1175,9 +1246,12 @@
       <div id="eval-col">
         <div class="eval-welcome" id="eval-welcome">
           <div class="icon">📊</div>
-          <p>Lancez l'évaluation pour calculer les métriques de qualité et de performance.</p>
+          <p>
+            Lancez l'évaluation pour calculer les métriques de qualité et de
+            performance.
+          </p>
         </div>
-        <div id="eval-content" style="display:none;"></div>
+        <div id="eval-content" style="display: none"></div>
       </div>
 
       <!-- Sidebar -->
@@ -1477,10 +1551,35 @@
         fetch(`/search?q=${encodeURIComponent(q)}&sort=${searchSort}`)
           .then((r) => r.json())
           .then(renderResults)
-          .catch(() => {
+          .catch((err) => {
             $("results").innerHTML =
-              '<div class="state-msg"><div class="icon">⚠️</div><p>Erreur.</p></div>';
+              `<div class="state-msg"><div class="icon">⚠️</div><p>Erreur : ${err}</p></div>`;
           });
+      }
+
+      let currentMatchingQuery = null;
+
+      async function markAnnotation(doc_id, is_relevant) {
+        if (currentMatchingQuery === null) {
+          alert("No matching query to annotate");
+          return;
+        }
+        try {
+          const res = await fetch("/api/annotations", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              query_id: currentMatchingQuery,
+              doc_id: doc_id,
+              is_relevant: is_relevant,
+            }),
+          });
+          if (!res.ok) throw new Error("Failed to save");
+          // Re-render to show updated annotation
+          if (currentQuery) doSearch(currentQuery);
+        } catch (err) {
+          alert("Error saving annotation: " + err.message);
+        }
       }
 
       function renderResults({
@@ -1490,7 +1589,9 @@
         count,
         keywords,
         type_doc,
+        matching_query,
       }) {
+        currentMatchingQuery = matching_query;
         type_doc = type_doc || "articles";
         const labelSing =
           type_doc === "bulletins"
@@ -1537,10 +1638,22 @@
                   type_doc === "rubrique"
                     ? `<span>Bulletin&nbsp;${escHtml(doc.bulletin || "—")}</span>`
                     : "";
+                const annStatus = doc.annotation
+                  ? doc.annotation === 1
+                    ? "✓"
+                    : "✗"
+                  : "";
+                const annButtons =
+                  matching_query !== null
+                    ? `<button class="ann-btn" onclick="markAnnotation(${doc.id}, 1)" title="Mark relevant">✓</button>
+                       <button class="ann-btn" onclick="markAnnotation(${doc.id}, 0)" title="Mark not relevant">✗</button>`
+                    : "";
                 return `<div class="group-article-item">
                       <div class="card-top">
                         ${rubTag}
                         <a class="card-title" href="/document/${doc.id}" target="_blank">${escHtml(doc.titre || "Sans titre")}</a>
+                        ${annStatus ? `<span style="color:${doc.annotation === 1 ? "green" : "red"};margin-left:0.5rem">${annStatus}</span>` : ""}
+                        ${annButtons}
                       </div>
                       <div class="card-meta">
                         <span>${escHtml(doc.date || "—")}</span>
@@ -1563,13 +1676,29 @@
         } else {
           const maxScore = Math.max(...results.map((r) => r.score), 1);
           results.forEach((doc, i) => {
+            console.log(doc);
             const card = document.createElement("div");
             card.className = "result-card";
             card.style.animationDelay = `${Math.min(i * 30, 200)}ms`;
             const pct = ((doc.score / maxScore) * 100).toFixed(0);
+            const annStatus =
+              doc.annotation != undefined
+                ? doc.annotation === 1
+                  ? "✓"
+                  : "✗"
+                : "";
+            const annColor = doc.annotation === 1 ? "green" : "red";
+            const annButtons =
+              matching_query !== null
+                ? `<button class="ann-btn" onclick="markAnnotation(${doc.id}, 1)" title="Mark relevant">✓</button>
+                   <button class="ann-btn" onclick="markAnnotation(${doc.id}, 0)" title="Mark not relevant">✗</button>`
+                : "";
             card.innerHTML = `
               <div class="card-top"><span class="rubrique-tag">${escHtml(doc.rubrique || "—")}</span>
-                <a class="card-title" href="/document/${doc.id}" target="_blank">${escHtml(doc.titre || "Sans titre")}</a></div>
+                <a class="card-title" href="/document/${doc.id}" target="_blank">${escHtml(doc.titre || "Sans titre")}</a>
+                ${annStatus ? `<span style="color:${annColor};margin-left:0.5rem">${annStatus}</span>` : ""}
+                ${annButtons}
+              </div>
               <div class="card-meta">
                 <span>${escHtml(doc.date || "—")}</span>
                 <span>Bulletin&nbsp;${escHtml(doc.bulletin || "—")}</span>
@@ -1609,22 +1738,33 @@
           const val = qd[key];
           if (val === undefined || val === null) return;
           if (Array.isArray(val) && val.length === 0) return;
-          let display = Array.isArray(val)
-            ? val
+          let display;
+          if (Array.isArray(val)) {
+            if (key === "titre" || key === "contenu") {
+              display = val
                 .map(
                   (etgroup) =>
                     "<span>ET(" +
-                    etgroup.map(
-                      (v) =>
-                        `<span class="qa-tag">${escHtml(String(v))}</span>`,
-                    ) +
+                    etgroup
+                      .map(
+                        (v) =>
+                          `<span class="qa-tag">${escHtml(String(v))}</span>`,
+                      )
+                      .join(" ") +
                     ")</span>",
                 )
-
-                .join("<span> OR</span><br>")
-            : typeof val === "boolean"
-              ? `<span class="qa-tag">${val ? "oui" : "non"}</span>`
-              : `<span class="qa-tag">${escHtml(String(val))}</span>`;
+                .join("<span> OR</span><br>");
+            } else {
+              display = val
+                .flat()
+                .map((v) => `<span class="qa-tag">${escHtml(String(v))}</span>`)
+                .join(" ");
+            }
+          } else if (typeof val === "boolean") {
+            display = `<span class="qa-tag">${val ? "oui" : "non"}</span>`;
+          } else {
+            display = `<span class="qa-tag">${escHtml(String(val))}</span>`;
+          }
           html += `<div class="qa-item"><span class="qa-label">${label}</span><span class="qa-value">${display}</span></div>`;
         });
         $("qa-content").innerHTML =
@@ -2234,7 +2374,8 @@
       // ═══════════════════════════════════════════════════════
       //  Évaluation
       // ═══════════════════════════════════════════════════════
-      let evalChart1 = null, evalChart2 = null;
+      let evalChart1 = null,
+        evalChart2 = null;
 
       $("run-eval-btn").addEventListener("click", runEvaluation);
 
@@ -2251,7 +2392,9 @@
         spinner.style.margin = "5rem auto";
         $("eval-col").insertBefore(spinner, $("eval-content"));
         try {
-          const data = await fetch(`/api/evaluate?runs=${n}`).then((r) => r.json());
+          const data = await fetch(`/api/evaluate?runs=${n}`).then((r) =>
+            r.json(),
+          );
           renderEvaluation(data);
           $("eval-content").style.display = "";
         } catch (e) {
@@ -2361,7 +2504,9 @@
         const labels = results.map((r) => `Q${r.id}`);
         const chartDefaults = {
           responsive: true,
-          plugins: { legend: { labels: { color: "#e2e8f0", font: { size: 11 } } } },
+          plugins: {
+            legend: { labels: { color: "#e2e8f0", font: { size: 11 } } },
+          },
           scales: {
             x: { ticks: { color: "#7c88a0" }, grid: { color: "#2e3247" } },
             y: { ticks: { color: "#7c88a0" }, grid: { color: "#2e3247" } },
@@ -2373,16 +2518,45 @@
           data: {
             labels,
             datasets: [
-              { label: "Précision", data: results.map((r) => r.relevant > 0 ? +(r.precision * 100).toFixed(1) : null), backgroundColor: "rgba(108,99,255,0.75)", borderColor: "#6c63ff", borderWidth: 1 },
-              { label: "Rappel",    data: results.map((r) => r.relevant > 0 ? +(r.recall    * 100).toFixed(1) : null), backgroundColor: "rgba(34,211,238,0.75)", borderColor: "#22d3ee", borderWidth: 1 },
-              { label: "F1",        data: results.map((r) => r.relevant > 0 ? +(r.f1        * 100).toFixed(1) : null), backgroundColor: "rgba(74,222,128,0.75)", borderColor: "#4ade80", borderWidth: 1 },
+              {
+                label: "Précision",
+                data: results.map((r) =>
+                  r.relevant > 0 ? +(r.precision * 100).toFixed(1) : null,
+                ),
+                backgroundColor: "rgba(108,99,255,0.75)",
+                borderColor: "#6c63ff",
+                borderWidth: 1,
+              },
+              {
+                label: "Rappel",
+                data: results.map((r) =>
+                  r.relevant > 0 ? +(r.recall * 100).toFixed(1) : null,
+                ),
+                backgroundColor: "rgba(34,211,238,0.75)",
+                borderColor: "#22d3ee",
+                borderWidth: 1,
+              },
+              {
+                label: "F1",
+                data: results.map((r) =>
+                  r.relevant > 0 ? +(r.f1 * 100).toFixed(1) : null,
+                ),
+                backgroundColor: "rgba(74,222,128,0.75)",
+                borderColor: "#4ade80",
+                borderWidth: 1,
+              },
             ],
           },
           options: {
             ...chartDefaults,
             scales: {
               ...chartDefaults.scales,
-              y: { ...chartDefaults.scales.y, min: 0, max: 100, ticks: { color: "#7c88a0", callback: (v) => v + "%" } },
+              y: {
+                ...chartDefaults.scales.y,
+                min: 0,
+                max: 100,
+                ticks: { color: "#7c88a0", callback: (v) => v + "%" },
+              },
             },
           },
         });
@@ -2392,14 +2566,23 @@
           data: {
             labels,
             datasets: [
-              { label: "Moy. (ms)", data: results.map((r) => +r.avg_ms.toFixed(1)), backgroundColor: "rgba(167,139,250,0.75)", borderColor: "#a78bfa", borderWidth: 1 },
+              {
+                label: "Moy. (ms)",
+                data: results.map((r) => +r.avg_ms.toFixed(1)),
+                backgroundColor: "rgba(167,139,250,0.75)",
+                borderColor: "#a78bfa",
+                borderWidth: 1,
+              },
             ],
           },
           options: {
             ...chartDefaults,
             scales: {
               ...chartDefaults.scales,
-              y: { ...chartDefaults.scales.y, ticks: { color: "#7c88a0", callback: (v) => v + " ms" } },
+              y: {
+                ...chartDefaults.scales.y,
+                ticks: { color: "#7c88a0", callback: (v) => v + " ms" },
+              },
             },
           },
         });

@@ -109,6 +109,22 @@ def search():
     type_doc = requete_dict.get("type_doc", "articles")
     keywords: list[str] = requete_dict.get("key_words") or []
 
+    # Get annotations from database for matching query only
+    query_id = None
+    annotations_map = {}
+    with _db() as conn:
+        matching_query = conn.execute(
+            "SELECT id FROM queries WHERE query = ?", (query,)
+        ).fetchone()
+
+        if matching_query:
+            query_id = matching_query["id"]
+            ann_rows = conn.execute(
+                "SELECT doc_id, is_relevant FROM annotations WHERE query_id = ?",
+                (query_id,),
+            ).fetchall()
+            annotations_map = {row["doc_id"]: row["is_relevant"] for row in ann_rows}
+
     if type_doc in ("bulletins", "rubrique"):
         field = "bulletin" if type_doc == "bulletins" else "rubrique"
         if sort_by == "date_asc":
@@ -140,6 +156,7 @@ def search():
                     "score": doc["score"],
                     "snippet": engine.get_snippet(doc["id"], keywords),
                     "has_image": doc.get("has_image", False),
+                    "annotation": annotations_map.get(doc["id"]),
                 }
                 for doc in group["articles"]
             ]
@@ -163,6 +180,7 @@ def search():
                 "score": doc["score"],
                 "snippet": engine.get_snippet(doc["id"], keywords),
                 "has_image": doc.get("has_image", False),
+                "annotation": annotations_map.get(doc["id"]),
             }
             for doc in results
         ]
@@ -175,6 +193,7 @@ def search():
             "count": len(output),
             "keywords": keywords,
             "type_doc": type_doc,
+            "matching_query": query_id,
         }
     )
 

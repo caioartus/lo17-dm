@@ -157,7 +157,7 @@ class SearchEngine:
     def _score(self, doc_id: int, keywords: list[str]) -> float:
         """Score booléen classé : +3 par mot-clé dans le titre, +1 dans le texte."""
         score = 0.0
-        poids = {"titre": 0.7, "texte": 0.3}
+        poids = {"titre": 0.6, "texte": 0.4}
         assert sum(poids.values()) == 1, "La somme des poids doit être égale à 1"
 
         if len(keywords) == 0:  # pas de mots cles, tout les doc sont pertinents

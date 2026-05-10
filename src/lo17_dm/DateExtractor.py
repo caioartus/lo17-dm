@@ -66,7 +66,7 @@ RE_TO = re.compile(
 
 # Date numérique : "12/03/2024" ou "12-03-2024"
 RE_DATE_NUMERIC = re.compile(
-    rf"\b(?:{_RE_PREWORD}\s*)?(?:le\s+|du\s+|de\s+|en\s+)?(?P<day>\d{{1, 2}})[/\- ](?P<month>\d{{1, 2}})[/\- ](?P<year>\d{{4}})\b",
+    rf"\b(?:{_RE_PREWORD}\s*)?(?:le\s+|du\s+|de\s+|en\s+)?(?P<day>\d{{1,2}})[/\- ](?P<month>\d{{1,2}})[/\- ](?P<year>\d{{4}})\b",
     re.IGNORECASE,
 )
 
@@ -171,6 +171,7 @@ class DateExtractor:
 
     def _update_bounds(self, start: str | None, end: str | None) -> None:
         """Élargit la plage courante pour englober [start, end]."""
+        print("IN UPDATE BOUNDS :", start, end)
         if start and (
             self.from_date is None
             or self._as_tuple(start) < self._as_tuple(self.from_date)
@@ -190,6 +191,7 @@ class DateExtractor:
 
         m = RE_DATE_NUMERIC.search(fragment)
         if m:
+            print("parsing numeric : ", m)
             exact = self._fmt(m["day"], m["month"], m["year"])
             return exact, exact
 
@@ -254,11 +256,12 @@ class DateExtractor:
         self.from_date = self.to_date = self.anti_date = None
 
         def handle_range(m):
-            # print("HANDLE RANGE : ", m)
-            # print(m.group("start"))
-            # print(m.group("end"))
+            print("HANDLE RANGE : ", m)
+            print(m.group("start"))
+            print(m.group("end"))
             start = self._parse_fragment(m.group("start"))
             end = self._parse_fragment(m.group("end"))
+            print("parsed fragments :", start, end)
             if start and end:
                 self._update_bounds(start[0], end[1])
                 return True
@@ -279,6 +282,7 @@ class DateExtractor:
             return False
 
         def handle_date(m):
+            print("HANDLE DATE : ", m)
             parsed = self._parse_fragment(m.group(0))
             if parsed:
                 self._update_bounds(*parsed)
