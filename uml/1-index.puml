@@ -45,7 +45,7 @@ end note
 
 class "1-parse_corpus.py" <<script>> {
     --
-    args : -indir, [-outdir, outname]
+    args : -indir, [-outdir, -outname]
 }
 
 note left of "1-parse_corpus.py"
@@ -86,7 +86,7 @@ end note
 class CorpusParser {
 - folder_path : Path
 - documents : list[BulletinParser]
-- xml_str : str
+- xml_str : str  {après makeXML()}
 ---
 + parseFiles() : void
 + makeXML() : str
@@ -94,7 +94,7 @@ class CorpusParser {
 }
 
 class CorpusTokenizer {
-- tree : ElementTree | None
+- _tree : _Element | None
 - table: DataFrame | None
 ---
 + load_xml(path : str | Path) : void
@@ -116,8 +116,8 @@ class Index {
 + save_to_tsv(output_dir : str | Path, all_lemmas_fname: str) : void
 
 + get_required(elem : _Element | None, name : str) : str
-+ add_raw(text : str, doc_id : int, section : str) : dict
-+ treat_field(text : str, doc_id : int, section : str) : dict
++ add_raw(text : str, document_id : int, section : str) : dict
++ treat_field(text : str, document_id : int, section : str) : dict
 }
 
 note top of Index
@@ -133,6 +133,6 @@ end note
 
 CorpusParser *--BulletinParser
 Index <. CorpusParser : «produces XML consumed by»
-Index ..> CorpusTokenizer : «uses»
+Index ..> CorpusTokenizer : «uses static»
 
 @enduml

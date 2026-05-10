@@ -10,10 +10,12 @@ from lxml import etree
 class SearchEngine:
     """Charge les index inversés et le corpus, puis exécute des requêtes booléennes classées."""
 
-    def __init__(self, output_dir: str | Path, corpus_path: str | Path):
+    def __init__(self, output_dir: str | Path, corpus_path: str | Path, 
+                 poids_score: dict[str, float] = {"titre": 0.6, "texte": 0.4}):
         self.output_dir: Path = Path(output_dir)
         self.indexes: dict[str, dict[str, set[int]]] = {}
         self.documents: dict[int, dict] = {}
+        self.poids_score: dict[str, float] = poids_score
         self._load_indexes()
         self._load_corpus(Path(corpus_path))
 
@@ -111,9 +113,7 @@ class SearchEngine:
         grouped.sort(key=lambda g: g["score"], reverse=True)
         return grouped
 
-    # ------------------------------------------------------------------ #
-    # Recherche dans les index                                              #
-    # ------------------------------------------------------------------ #
+    # -------------------------- Recherche dans les index --------------------------
 
     # TO DO : Pourquoi pas _matches_date aussi ?
     def _matches_anti_date(self, doc_date: datetime, anti_date: str) -> bool:
@@ -159,16 +159,21 @@ class SearchEngine:
     def _score(self, doc_id: int, keywords: list[str]) -> float:
         """Score booléen classé : +3 par mot-clé dans le titre, +1 dans le texte."""
         score = 0.0
+<<<<<<< Updated upstream
         poids = {"titre": 0.7, "texte": 0.3}
         assert sum(poids.values()) == 1, "La somme des poids doit être égale à 1"
+=======
+        if sum(self.poids.values()) != 1 :
+            raise ValueError("La somme des poids doit être égale à 1")
+>>>>>>> Stashed changes
 
         if len(keywords) == 0:  # pas de mots cles, tout les doc sont pertinents
             return 1
 
-        for champ in poids.keys():
+        for champ in self.poids.keys():
             for kw in keywords:
                 if doc_id in self.indexes[champ].get(kw, {}):
-                    score += poids[champ]
+                    score += self.poids[champ]
         score = score / len(keywords)
         return score
 
@@ -265,35 +270,3 @@ class SearchEngine:
         elif type_doc == "rubrique":
             return self._group_by(results, "rubrique")
         return results
-
-    def get_snippet(
-        self, doc_id: int, keywords: list[str], context_len: int = 200
-    ) -> str:
-        """Extrait un extrait contextuel autour du premier mot-clé trouvé dans le texte."""
-        doc = self.documents.get(doc_id)
-        if not doc:
-            return ""
-        text: str = doc["texte"]
-        if not text:
-            return ""
-        if not keywords:
-            return text[:context_len] + ("..." if len(text) > context_len else "")
-
-        text_lower = text.lower()
-        best_pos = len(text)
-        for kw in keywords:
-            pos = text_lower.find(kw.lower())
-            if 0 <= pos < best_pos:
-                best_pos = pos
-
-        if best_pos == len(text):
-            return text[:context_len] + ("..." if len(text) > context_len else "")
-
-        start = max(0, best_pos - 60)
-        end = min(len(text), best_pos + context_len)
-        snippet = text[start:end]
-        if start > 0:
-            snippet = "..." + snippet
-        if end < len(text):
-            snippet += "..."
-        return snippet

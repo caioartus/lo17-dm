@@ -49,8 +49,7 @@ class AntiDict <<TD2>> {
     ---
     + get_stopwords() : set[str] | None
     + add_manual_stopwords(manual_stopwords : set[str] | None) : set[str] | None
-    + build_stopwords(df_tf_idf : DataFrame | None, 
-     .                          tf_idf_path : Path | None, thresh : float) : set[str]
+    + build_stopwords(df_tf : DataFrame | Path, thresh : float) : set[str]
     + build_sub_table() : DataFrame
 }
 
@@ -91,10 +90,11 @@ class SpacyStemmer {
 class SnowStemmer {
     - model : SnowballStemmer
     - lemma_table : DataFrame
-    - stemed_tokens : list[str]
     ---
     + make_table(text : str) : DataFrame
     + transform(text : str) : str
+    + transform_tolist(text : str) : list[str]
+    + save_table(outdir : str) : void
 }
 
 class DataCleaner {
@@ -104,6 +104,7 @@ class DataCleaner {
     ---
     + get_stopwords() : set[str] | None
     + get_all_lemmas() : set[str] | None
+    + export_stop_words(output_path : str | Path) : void
     + build_sub_table(df_tf_idf : DataFrame) : void
     + apply_substitue_to_xml(input_path : str | Path, output_path : str | Path) : void
 
