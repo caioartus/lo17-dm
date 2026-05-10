@@ -49,16 +49,9 @@ def main() -> None:
     display_chargement_effectue(len(engine.documents))
 
     while True:
-<<<<<<< Updated upstream
-        print("  Tri : [1] Pertinence (défaut)  [2] Date croissante  [3] Date décroissante")
-        try:
-            query = input("  Requête : ").strip()
-        except (EOFError, KeyboardInterrupt):
-=======
         query = ask_requete()
 
         if not query or query.lower() in ("quitter", "q", "exit", "quit"):
->>>>>>> Stashed changes
             print("\nAu revoir.")
             break
 
@@ -73,16 +66,11 @@ def main() -> None:
 
         display_requete_dict(requete_dict)
 
-<<<<<<< Updated upstream
-        display_results(results, keywords, engine, sort_by, requete_dict.get("type_doc", "articles"))
-        print(f"  Temps de réponse : {elapsed_ms:.1f} ms\n")
-=======
         display_results(
             results, keywords, engine, sort_by, requete_dict.get("type_doc", "articles")
         )
         
         display_tps_rep(elapsed_ms)
->>>>>>> Stashed changes
 
 
 if __name__ == "__main__":

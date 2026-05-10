@@ -159,21 +159,16 @@ class SearchEngine:
     def _score(self, doc_id: int, keywords: list[str]) -> float:
         """Score booléen classé : +3 par mot-clé dans le titre, +1 dans le texte."""
         score = 0.0
-<<<<<<< Updated upstream
-        poids = {"titre": 0.7, "texte": 0.3}
-        assert sum(poids.values()) == 1, "La somme des poids doit être égale à 1"
-=======
-        if sum(self.poids.values()) != 1 :
+        if sum(self.poids_score.values()) != 1 :
             raise ValueError("La somme des poids doit être égale à 1")
->>>>>>> Stashed changes
 
         if len(keywords) == 0:  # pas de mots cles, tout les doc sont pertinents
             return 1
 
-        for champ in self.poids.keys():
+        for champ in self.poids_score.keys():
             for kw in keywords:
                 if doc_id in self.indexes[champ].get(kw, {}):
-                    score += self.poids[champ]
+                    score += self.poids_score[champ]
         score = score / len(keywords)
         return score
 
