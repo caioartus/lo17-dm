@@ -1,6 +1,7 @@
 import json
 import sqlite3
 import statistics as _statistics
+import subprocess
 import sys
 import time
 from datetime import datetime
@@ -16,14 +17,43 @@ app = Flask(__name__)
 
 OUTPUTS = Path(__file__).parent / "outputs"
 CORPUS = OUTPUTS / "corpus.xml"
+CLEAN_CORPUS = OUTPUTS / "clean_corpus.xml"
 QUERIES_PATH = Path(__file__).parent / "test_data" / "eval_requetes.txt"
 LEMMA_TABLE = OUTPUTS / "lemmes_corpus.tsv"
 RUBRIQUE_INDEX = OUTPUTS / "index" / "index_rubrique.tsv"
 STOPWORD_PATH = OUTPUTS / "stop_words.txt"
 DATA_DIR = Path(__file__).parent / "data" / "BULLETINS"
 DB_PATH = OUTPUTS / "annotations.db"
+SCRIPTS_DIR = Path(__file__).parent / "scripts"
 
 sys.path.insert(0, str(Path(__file__).parent / "src"))
+
+
+def _run_script(script: Path, *args: str) -> None:
+    cmd = [sys.executable, str(script), *args]
+    print(f"  > {' '.join(cmd)}")
+    result = subprocess.run(cmd, check=True)
+    if result.returncode != 0:
+        raise RuntimeError(f"Script {script.name} a échoué (code {result.returncode})")
+
+
+def _ensure_outputs() -> None:
+    OUTPUTS.mkdir(parents=True, exist_ok=True)
+
+    if not CORPUS.exists():
+        print(f"[init] {CORPUS.name} manquant — lancement du script 1 (parsing)…")
+        _run_script(SCRIPTS_DIR / "1-parse_corpus.py", "--indir", str(DATA_DIR))
+
+    if not CLEAN_CORPUS.exists() or not STOPWORD_PATH.exists():
+        print(f"[init] {CLEAN_CORPUS.name} ou stop_words.txt manquant — lancement du script 2 (nettoyage)…")
+        _run_script(SCRIPTS_DIR / "2-clean_data.py")
+
+    if not LEMMA_TABLE.exists() or not RUBRIQUE_INDEX.exists():
+        print(f"[init] {LEMMA_TABLE.name} ou index_rubrique.tsv manquant — lancement du script 3 (indexation)…")
+        _run_script(SCRIPTS_DIR / "3-make_index.py")
+
+
+_ensure_outputs()
 
 # load evaluation queries from file
 QUERIES = []
