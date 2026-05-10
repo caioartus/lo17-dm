@@ -5,7 +5,7 @@ from lo17_dm.Tokenizer import CorpusTokenizer
 from lo17_dm.TFIDFProcessor import TFIDFProcessor
 from lo17_dm.DataCleaner import DataCleaner
 
-MANUAL_STOPWORDS: set[str] = set()
+from lo17_dm.ManualStopwords import REQUETE_STOPWORDS
 
 OUTPUTS = Path(__file__).parent.parent / "outputs"
 INNAME = "corpus"
@@ -59,7 +59,7 @@ def main():
     processor.compute_idf()
     df_tf_idf = processor.compute_tf_idf()
 
-    cleaner = DataCleaner(manual_stopwords=MANUAL_STOPWORDS)
+    cleaner = DataCleaner(manual_stopwords=REQUETE_STOPWORDS)
     cleaner.build_sub_table(df_tf_idf)
     cleaner.export_stop_words(OUTPUTS / "stop_words.txt")
     cleaner.apply_substitue_to_xml(input_xml, output_xml)

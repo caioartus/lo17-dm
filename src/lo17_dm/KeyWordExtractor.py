@@ -3,108 +3,6 @@ from lo17_dm.Correcteur import Correcteur
 from pathlib import Path
 import re
 
-
-REQUETE_STOPWORDS = {
-    # pronoms / sujets inutiles
-    "je",
-    "j",
-    "nous",
-    "on",
-    "moi",
-    "me",
-    "mon",
-    "ma",
-    "mes",
-    # verbes de demande très fréquents
-    "veux",
-    "veut",
-    "vouloir",
-    "souhaiter",
-    "souhaite",
-    "souhaites",
-    "souhaitons",
-    "cherche",
-    "chercher",
-    "cherchez",
-    "recherche",
-    "rechercher",
-    "trouver",
-    "trouve",
-    "donner",
-    "donnez",
-    "afficher",
-    "affiche",
-    "lister",
-    "liste",
-    "retourner",
-    "retournez",
-    "obtenir",
-    "avoir",
-    # mots de structure de requête
-    "articles",
-    "article",
-    "bulletins",
-    "bulletin",
-    "liste",
-    "tous",
-    "tout",
-    "des",
-    "les",
-    "du",
-    "de",
-    "d",
-    "la",
-    "le",
-    "un",
-    "une",
-    "au",
-    "aux",
-    "dans",
-    "sur",
-    "avec",
-    "dont",
-    "qui",
-    "que",
-    "quoi",
-    "quels",
-    "quelles",
-    "quel",
-    "quelle",
-    # mots parasites fréquents
-    "mot",
-    "terme",
-    "rubrique",
-    "rubriques",
-    "titre",
-    "contenu",
-    "parlant",
-    "parle",
-    "parlent",
-    "traitant",
-    "traitent",
-    "évoquant",
-    "évoque",
-    "évoquent",
-    "mentionnant",
-    "mentionne",
-    "mentionnent",
-    "écrire",
-    "contenir",
-    "paraitre",
-    "parler",
-    # connecteurs qu’on gère séparément
-    "et",
-    "ou",
-    "mais",
-    "pas",
-    "non",
-    "sans",
-    "ne",  # cas particuliers
-    "listez-moi",
-    # garder vide si stemming bizarre
-    "",
-}
-
 # =========================================================
 # REGEX PATTERNS
 # =========================================================
@@ -168,7 +66,7 @@ class KeyWordExtractor:
         with open(self.stopwords_file, "r", encoding="utf-8") as f:
             corpus_stopwords = set(f.read().splitlines())
 
-        self.stopwords = corpus_stopwords | REQUETE_STOPWORDS
+        self.stopwords = corpus_stopwords
 
         self.stemmer = stemmer
 
