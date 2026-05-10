@@ -123,9 +123,8 @@ package "Traitement de la requête" {
 
     note bottom of DateExtractor
         Reconnaît plages (entre...et, de...à),
-        bornes (à partir de, avant), dates
-        précises, mois/année, et négations
-        (pas en, sauf le...).
+        bornes (à partir de, avant), dates précises, 
+        mois/année, et négations (pas en, sauf le...).
         Retourne (from, to, anti, texte_nettoyé).
     end note
 
@@ -212,10 +211,9 @@ package "Recherche et affichage" {
     note bottom of "app"
         Interface web Flask.
         Annotation manuelle de la pertinence,
-        évaluation P/R/F1 avec mesure du temps,
-        pré-remplissage automatique des annotations
-        par contraintes structurelles.
-        Routes retournent JSON (API) ou HTML (/document).
+        Evaluation P/R/F1 avec mesure du temps,
+        Pré-remplissage automatique des annotations 
+        pour les contraintes de date
     end note
 
     SearchEngine -[hidden]down-> "Interface"
