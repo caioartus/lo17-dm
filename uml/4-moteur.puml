@@ -1,0 +1,141 @@
+@startuml
+
+skinparam defaultFontName Helvetica
+
+skinparam class {
+    BackgroundColor White
+    BorderColor #555555
+    BorderThickness 1.5
+    HeaderBackgroundColor #DDEEFF
+    FontStyle bold
+    AttributeFontSize 11
+    AttributeFontColor #222222
+    StereotypeFontColor #555555
+    StereotypeFontSize 11
+}
+
+skinparam arrow {
+    Color #444444
+    FontColor #444444
+    FontSize 11
+    Thickness 1.2
+}
+
+skinparam note {
+    BackgroundColor #FFFDE7
+    BorderColor #999900
+    FontSize 11
+}
+
+skinparam package {
+    BackgroundColor #F8F8FF
+    BorderColor #888888
+    BorderThickness 1.2
+    FontSize 12
+    FontStyle bold
+}
+
+skinparam shadowing false
+skinparam roundCorner 8
+skinparam nodesep 50
+skinparam ranksep 40
+
+left to right direction
+
+package "Traitement de la requête" {
+  class Pretraiteur {
+      ---
+      + treat_request(text : str) : dict
+  }
+}
+package "Recherche et affichage" {
+
+    class SearchEngine {
+        - output_dir : Path
+        - indexes : dict[str, dict[str, set[int]]]
+        - documents : dict[int, dict]
+        - poids_score : dict[str, float]
+        ---
+        + search(requete_dict : dict) : list[dict]
+        ---
+        - _load_indexes() : void
+        - _load_corpus(corpus_path : Path) : void
+        - _score(doc_id : int, keywords : list[str]) : float
+        - _get_okay_dates(start, end, anti) : set[int]
+        - _lookup_image(has_image : bool) : set[int]
+        - _matches_anti_date(doc_date, anti_date) : bool
+        - {static} _parse_date(date_str : str) : datetime | None
+        - {static} _intersect(a : set[int]|None, b : set[int]) : set[int]
+        - {static} _union(a : set[int]|None, b : set[int]) : set[int]
+        - _all_doc_ids() : set[int]
+        - _group_by(results, field : str) : list[dict]
+    }
+
+    note bottom of SearchEngine
+        Score pondéré : titre X 0.6, texte X 0.4.
+        Filtres structurels (date, rubrique, image)
+        en intersection. Mots-clés en DNF.
+        si type_doc == article :
+          Retourne [{id, titre, rubrique, date, score, ...}, ...]
+        ou si type_doc == bulletins | rubrique :
+          Retourne groupe_by :
+          {bulletin|rubrique, articles, max_score_groupe}
+    end note
+
+    class "Interface" <<module>> {
+        ---
+        + display_ecran_titre() : void
+        + display_chargement_effectue(n : int) : void
+        + ask_requete() : str
+        + ask_tri() : int
+        + display_results(results, keywords,\n  .                 engine, sort_by, type_doc) : void
+        + display_requete_dict(rdict : dict) : void
+        + display_tps_rep(tps : float) : void
+        ---
+        - _display_article(doc, keywords,\n  .                   engine, idx, indent) : void
+        - _wrap(text : str, width : int) : list[str]
+        - _get_snippet(doc_id : int, keywords : list[str],\n  .             context_len : int) : str
+    }
+
+    note right of "Interface"
+        Interface console interactive :
+        saisie requête et choix du tri,
+        affichage liste plate ou regroupée
+        (bulletins/rubriques), snippet et score.
+        ask_requete() → str ; ask_tri() → int.
+    end note
+
+    class "app" <<Flask>> {
+        ---
+        + /search : GET -> JSON
+        + /browse : GET -> JSON
+        + /document/<id> : GET -> HTML
+        + /api/queries : GET | PUT
+        + /api/queries/reset : POST
+        + /api/annotations : GET | POST
+        + /api/prefill : POST
+        + /api/export : GET
+        + /api/evaluate : GET
+        + /api/docs : GET
+    }
+
+    note right of "app"
+        Interface web Flask.
+        Annotation manuelle de la pertinence,
+        Evaluation P/R/F1 avec mesure du temps,
+        Pré-remplissage automatique des annotations
+        pour les contraintes de date
+    end note
+
+    SearchEngine -[hidden]down-> "Interface"
+    SearchEngine -[hidden]down-> "app"
+    "Interface" -[hidden]right-> "app"
+}
+
+"Interface" ..> SearchEngine : «uses»
+"app"       ..> SearchEngine : «uses»
+
+Pretraiteur ..> SearchEngine : «fournit requete_dict»
+"app"       ..> Pretraiteur  : «uses»
+
+@enduml

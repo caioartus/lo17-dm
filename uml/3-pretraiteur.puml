@@ -1,0 +1,146 @@
+@startuml
+
+skinparam defaultFontName Helvetica
+
+skinparam class {
+    BackgroundColor White
+    BorderColor #555555
+    BorderThickness 1.5
+    HeaderBackgroundColor #DDEEFF
+    FontStyle bold
+    AttributeFontSize 11
+    AttributeFontColor #222222
+    StereotypeFontColor #555555
+    StereotypeFontSize 11
+}
+
+skinparam arrow {
+    Color #444444
+    FontColor #444444
+    FontSize 11
+    Thickness 1.2
+}
+
+skinparam note {
+    BackgroundColor #FFFDE7
+    BorderColor #999900
+    FontSize 11
+}
+
+skinparam package {
+    BackgroundColor #F8F8FF
+    BorderColor #888888
+    BorderThickness 1.2
+    FontSize 12
+    FontStyle bold
+}
+
+skinparam shadowing false
+skinparam roundCorner 8
+skinparam nodesep 50
+skinparam ranksep 40
+
+left to right direction
+
+
+package "Traitement de la requête" {
+
+    class Pretraiteur {
+        - lemmas : list[str]
+        - rubriques : list[str]
+        - stemmer : Stemmer
+        - date_extractor : DateExtractor
+        - keyword_extractor : KeyWordExtractor
+        - requete_dict : dict
+        ---
+        + treat_request(text : str) : dict
+        ---
+        + extract_type_doc(text : str) : void
+        + extract_image(text : str) : str
+        + extract_rubriques(text : str) : str
+        + extract_dates(text : str) : str
+        + extract_key_words(text : str) : str
+    }
+
+    class DateExtractor {
+        - from_date : str | None
+        - to_date : str | None
+        - anti_date : str | None
+        ---
+        + extract(text : str) : tuple[str|None, str|None, str|None, str]
+        ---
+        - _parse_fragment(fragment : str) : tuple[str, str] | None
+        - _parse_anti_fragment(fragment : str) : str | None
+        - _update_bounds(start : str|None, end : str|None) : void
+        - {static} _fmt(day, month, year) : str
+        - {static} _fmt_wildcard(day, month, year) : str
+        - {static} _as_tuple(date : str) : tuple[int, int, int]
+        - _month_bounds(month : str, year : str) : tuple[str, str]
+        - _year_bounds(year : str) : tuple[str, str]
+    }
+
+    class KeyWordExtractor {
+        - stopwords : set[str]
+        - stemmer : Stemmer
+        - correcteur : Correcteur
+        ---
+        + extract(text : str) : tuple[dict, str]
+        ---
+        - _parse_logic_block(text : str) : list[list[str]]
+        - _normalize_terms(text : str) : list[str]
+    }
+
+    class Correcteur {
+        - lexique : list[str]
+        - lemma_set : set[str]
+        - seuil_min : int
+        - seuil_max : int
+        - seuil_prox : float
+        ---
+        + corrige(token : str) : str | None
+        ---
+        - _in_index(token : str) : bool
+        - _is_number(token : str) : bool
+        - _treat_non_existant(mot : str) : str | None
+        - _generate_candidates(mot : str) : list[str]
+        - _levenshtein(a : str, b : str) : int
+    }
+
+    note bottom of Pretraiteur
+        Orchestre l'extraction de tous les critères.
+        Retourne requete_dict :
+        {type_doc, image, rubrique,
+        from_date, to_date, anti_date,
+        titre (DNF), contenu (DNF), exclude}.
+    end note
+
+    note bottom of Correcteur
+        Correction orthographique par
+        proximité préfixale puis distance
+        de Levenshtein sur les candidats.
+        Retourne token_corrigé | None.
+    end note
+
+    note right of DateExtractor
+        Reconnaît plages (entre...et, de...à),
+        bornes (à partir de, avant), dates précises,
+        mois/année, et négations (pas en, sauf le...).
+        Retourne (from, to, anti, texte_nettoyé).
+    end note
+
+    note left of KeyWordExtractor
+        Extrait mots-clés de titre, contenu et exclusions via regex.
+        Applique stopwords, stemming et correction.
+        Retourne ({titre, contenu, exclude}, texte_résiduel).
+    end note
+
+    Pretraiteur      -[hidden]down-> DateExtractor
+    Pretraiteur      -[hidden]down-> KeyWordExtractor
+    KeyWordExtractor -[hidden]down-> Correcteur
+}
+
+Pretraiteur      ..>  DateExtractor      : «uses»
+Pretraiteur      ..>  KeyWordExtractor   : «uses»
+KeyWordExtractor ..>  Correcteur         : «uses»
+
+@enduml

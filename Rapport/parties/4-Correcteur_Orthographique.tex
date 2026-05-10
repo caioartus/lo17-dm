@@ -10,14 +10,15 @@ Le lexique est maintenu sous deux formes : \texttt{self.lemmas} (liste ordonnée
 
 \section{Génération des candidats par recherche par préfixe}
 
-La méthode \texttt{generate\_candidates} réduit l'espace de recherche avant d'appliquer Levenshtein. Elle s'appuie sur trois hyperparamètres fixés empiriquement : \texttt{seuilMin = 3} (mots de moins de 3 caractères ignorés des deux côtés), \texttt{seuilMax = 4} (différence de longueur maximale tolérée) et \texttt{seuilProx = 0.6} (ratio de caractères identiques en position sur la longueur maximale). Un arrêt anticipé est déclenché dès que le taux d'erreur accumulé dépasse \texttt{100 - seuilProx}, ce qui évite de parcourir des mots manifestement trop différents.
+La méthode \texttt{generate\_candidates} réduit l'espace de recherche avant d'appliquer Levenshtein. Elle s'appuie sur trois hyperparamètres fixés empiriquement : \texttt{seuilMin = 3} (mots de moins de 3 caractères ignorés des deux côtés), \texttt{seuilMax = 4} (différence de longueur maximale tolérée) et \texttt{seuilProx = 0.6} (ratio de caractères identiques en position sur la longueur maximale). Un arrêt anticipé est déclenché dès que le taux d'erreur accumulé dépasse \texttt{1 - seuilProx}, ce qui évite de parcourir des mots manifestement trop différents.
 
 \section{Départage par distance de Levenshtein}
 
-\texttt{treat\_non\_existant} applique la logique suivante selon la taille de la liste de candidats : si elle est vide, le token est abandonné ; si elle contient un seul candidat, il est retourné directement ; si elle en contient plusieurs, on retourne celui qui minimise la distance de Levenshtein. Celle-ci est implémentée par programmation dynamique en $O(m \times n)$, avec un coût de substitution binaire. L'approche en deux temps — préfixe puis Levenshtein — limite le calcul quadratique à un petit sous-ensemble de candidats.
+\texttt{treat\_non\_existant} applique la logique suivante selon la taille de la liste de candidats : si elle est vide, le token est abandonné ; si elle contient un seul candidat, il est retourné directement ; si elle en contient plusieurs, on retourne celui qui minimise la distance de Levenshtein. Celle-ci est implémentée par programmation dynamique en $O(m \times n)$, avec un coût de substitution binaire. L'approche en deux temps - préfixe puis Levenshtein - limite le calcul quadratique à un petit sous-ensemble de candidats.
 
 \section{Vulnérabilité de l'approche et alternative}
 
-La recherche par préfixe compare les caractères position par position depuis le début du mot. Si la faute porte sur le \textbf{début du mot}, le score de proximité sera nul et le bon candidat sera écarté avant même que Levenshtein ne soit appelé. Par exemple, \textit{erecehrche} n'aura aucun caractère commun en position avec \textit{recherche}.
+La recherche par préfixe compare les caractères position par position depuis le début du mot. Si la faute porte sur le \textbf{début du mot}, le score de proximité sera nul et le bon candidat sera écarté avant même que Levenshtein ne soit appelé. Par exemple, \textit{erecehrche} n'aura aucun caractère commun en position avec \textit{recherche}. Pire encore, avec l'algorithme proposé dans le cours, la recherche s'arrête dés la première différence, donc même oublier un accent en début de mot peut causer un score de 0. Notre solution permet au moins de résoudre le deuxième cas.
 
 Une alternative robuste consiste à utiliser des \textbf{n-grammes de caractères} : on représente chaque mot par ses bigrammes ou trigrammes, puis on calcule une similarité de Jaccard entre les ensembles. Cette méthode est insensible à la position de l'erreur et tolère des transpositions ou insertions en n'importe quel endroit du mot.
+

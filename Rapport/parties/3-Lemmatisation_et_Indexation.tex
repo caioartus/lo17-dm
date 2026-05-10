@@ -4,7 +4,7 @@ L'objectif de ce TD est de normaliser le vocabulaire par lemmatisation, d'affine
 
 \section{Lemmatisation du corpus filtré}
 
-\subsection{Architecture du module}
+\subsection{Classes Stemmer}
 
 On définit une classe abstraite \texttt{Stemmer} exposant une interface commune (\texttt{make\_table}, \texttt{transform}, \texttt{transform\_tolist}, \texttt{save\_table}), dont héritent \texttt{SpacyStemmer} et \texttt{SnowStemmer}. Cette conception les rend interchangeables dans le pipeline sans modifier le code appelant.
 
@@ -16,24 +16,32 @@ On définit une classe abstraite \texttt{Stemmer} exposant une interface commune
 
 \subsection{Analyse comparative et choix}
 
-Le script \texttt{3-make\_stemmer\_tabs.py} applique les deux stemmers sur \texttt{nostopwords\_corpus.xml} et sauvegarde les tableaux \texttt{token}/\texttt{lemma} pour analyse. Sur notre corpus de \textbf{14 344 tokens uniques}, SpaCy produit \textbf{11 285 lemmes uniques} et Snowball \textbf{9 046 racines uniques}. La courbe de Pareto confirme que les deux approches suivent un profil similaire, avec environ 20\% des lemmes couvrant 80\% du corpus, Snowball ayant toutefois une distribution plus extrême.
+Le script \texttt{exercices-td/td3-make\_stemmer\_tabs.py} applique les deux stemmers sur \texttt{nostopwords\_corpus.xml} et sauvegarde les tableaux \texttt{token}/\texttt{lemma} pour analyse avec le notebook \texttt{analyse\_stem.ipynb}. Sur notre corpus de \textbf{14 344 tokens uniques}, SpaCy produit \textbf{11 285 lemmes uniques} et Snowball \textbf{9 046 racines uniques}. La courbe de Pareto confirme que les deux approches suivent un profil similaire, avec environ 20\% des lemmes couvrant 80\% du corpus, Snowball ayant toutefois une distribution plus extrême. Ce qui est logique, car il réduit plus agressivement le vocabulaire.
 
 La différence qualitative est plus décisive : Snowball réduit \textit{optimisation} et \textit{optimiste} à la même racine \texttt{optim}, causant des collisions sémantiques problématiques pour un moteur de recherche. \textbf{On retient SpaCy} : on perd en rappel (l'utilisateur doit être plus précis), mais on gagne en précision en évitant ces confusions.
 
 \section{Affinage de l'anti-dictionnaire}
 
-La lemmatisation regroupe plusieurs formes fléchies sous un même lemme, augmentant mécaniquement la fréquence de certains termes jusque-là sous le seuil. Par exemple, \textit{permettre} avait un TF-IDF moyen de 0.92 avant lemmatisation ; après, l'absorption de \textit{permet}, \textit{permettent}, \textit{permis} et \textit{permettait} fait chuter cette moyenne à 0.42. De même, \textit{son} absorbe \textit{sa}, \textit{leur} et \textit{leurs}. En maintenant le même seuil $\text{tfidf} \leq 0.7$, on élimine ces nouveaux termes sans ajuster les hyperparamètres. Le corpus doublement filtré est produit par \texttt{3-clean\_data.py}.
+La lemmatisation regroupe plusieurs formes fléchies sous un même lemme, augmentant mécaniquement la fréquence de certains termes jusque-là sous le seuil. Par exemple, \textit{permettre} avait un TF-IDF moyen de 0.92 avant lemmatisation ; après, l'absorption de \textit{permet}, \textit{permettent}, \textit{permis} et \textit{permettait} fait chuter cette moyenne à 0.42. De même, \textit{son} absorbe \textit{sa}, \textit{leur} et \textit{leurs}. En maintenant le même seuil $\text{tfidf} \leq 0.7$, on élimine ces nouveaux termes sans ajuster les hyperparamètres. Le corpus doublement filtré est produit par \texttt{2-clean\_data.py}.
 
-\section{Construction des fichiers inverses}
+\section{Construction des fichiers inverses}\label{section:fichierinv}
 
 La classe \texttt{Index} est appliquée au corpus doublement filtré et lemmatisé. On obtient un fichier TSV par champ indexé : \texttt{index\_titre.tsv}, \texttt{index\_texte.tsv}, \texttt{index\_rubrique.tsv}, \texttt{index\_date.tsv}, \texttt{index\_auteur.tsv}, \texttt{index\_contact.tsv} et \texttt{index\_image.tsv}, chacun contenant le lemme, sa fréquence totale et la liste des identifiants d'articles associés.
 
-La structure retenue est un dictionnaire Python offrant des recherches en $O(1)$, tout à fait adapté à la taille du corpus. Pour de plus grands corpus, des alternatives comme les \textbf{tables de hachage}, les \textbf{arbres binaires de recherche} ($O(\log n)$ garanti) ou les \textbf{B-Trees} (standard pour l'indexation sur disque) seraient envisageables.
+Les index sont donc conservés sur le disque sous forme de fichiers TSV, puis convertis en dictionnaires Python lors de leur utilisation. Les avantages de cette approche sont qu'elle permet de visualiser facilement les index inversés et, après le chargement en mémoire RAM, la recherche s'effectue en $O(1)$, car le dictionnaire Python implémente une \textbf{table de hachage} (\textit{hash map}). 
+
+Cependant, cette méthode suppose de pouvoir charger l'ensemble du dictionnaire en mémoire vive. Dans notre cas, le corpus est petit, donc cela ne pose pas de problème. En revanche, avec un corpus plus volumineux, ou susceptible de croître fortement, il devient plus pertinent d'utiliser des \textbf{B-trees}, qui constituent le standard pour l'indexation sur disque. Ils permettent de minimiser les accès au disque dur tout en évitant de surcharger la mémoire RAM.
+
+\section{La classe DataCleaner}
+
+L'ensemble du pipeline de nettoyage du corpus (anti-dictionnaire et lemmatisation) est réalisé par la classe \texttt{DataCleaner}. Cette classe se sert de la classe \texttt{AntiDict} pour déterminer les stop words et d'un \texttt{Stemmer} (\texttt{SpacyStemmer} par défaut), pour lemmatiser le texte dans le texte et le titre (les autres champs sont laissés tels quels). \texttt{DataCleaner} génère un tableau de substitution avec des paires \texttt{token}/\texttt{lemma}, mais où \texttt{lemma} peut être vide si c'est un stop word.
+
+Pour exporter la liste définitive des stop words choisis pour le corpus (automatiques + manuelles), la méthode \texttt{export\_stop\_words()} sauvegarde les stop words dans un fichier texte contenant simplement les stop words. 
 
 \begin{figure}[h]
     \centering
     \hspace*{-0.12\textwidth}
-    \includegraphics[width=1.2\textwidth]{assets/2-DataCleaner_AntiDict_Stemmer.png}
-    \caption{UML Stemmer + AntiDict (TD1)}
+    \includegraphics[width=1.2\textwidth]{assets/2-datacleaner.png}
+    \caption{UML Stemmer + AntiDict (TD2 et TD3)}
     \label{fig:TD2-3-Antidict_Stemmer}
 \end{figure}

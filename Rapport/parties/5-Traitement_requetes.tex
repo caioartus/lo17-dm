@@ -1,0 +1,53 @@
+\chapter{Traitement des requêtes}
+
+L'objectif de cette partie est de construire un pipeline qui transforme une requête NLP, en un format utilisable par notre moteur de recherche,
+c'est-à-dire une recherche booléenne. Notre solution extrait les champs étape par étape (date, images, rubriques, etc.), en enlevant les parties extraites de la requête avant de la transmettre à l'étape suivante.
+
+\section{Format d'une requête}
+Nous représentons les opérations logiques sous \textit{forme normale disjonctive} (DNF) : 
+les listes internes correspondent aux conjonctions (\textit{ET}), 
+tandis que la liste externe représente la disjonction (\textit{OU}) entre ces conjonctions. 
+Ainsi, « A ou B et C » est représentée par \texttt{[[A],[B,C]]}.
+\\[1em]
+\textbf{Contenu d'une requête formatée} : 
+\begin{itemize}
+    \item \texttt{type\_doc} : le type de document recherché (article ou rubrique entière), article par défaut.
+    \item \texttt{date\_from}, \texttt{date\_to} : les bornes de la date du document (\texttt{None} s'il n'y a pas de borne).
+    \item \texttt{anti\_date} : les dates que l'on veut éviter (ex: "pas au mois de juin" $\to$ \texttt{*/06/*}).
+    \item \texttt{image} : booléen indiquant s'il faut une image ou pas (\texttt{None} si cela n'a pas d'importance).
+    \item \texttt{rubrique} : liste indiquant les rubriques souhaitées. 
+    \item \texttt{contenu} : contient le DNF pour les mots clés portant sur le contenu.
+    \item \texttt{titre} : contient le DNF pour les mots clés portant sur le titre.
+    \item \texttt{exclude} : contient la liste conjonctive des termes à exclure de la requête.
+
+\end{itemize}
+
+\section{Extraction des dates}
+
+La classe \texttt{DateExtractor} extrait les dates d'une requête, qu'elles soient numériques ou en langage naturel. Elle utilise deux types de regex : celles détectant une date dans son contexte et celles la convertissant au format jj/mm/aaaa. La méthode \texttt{extract()} identifie intervalles, dates min/max, dates exactes ou anti-dates, puis transmet les fragments à \texttt{\_parse\_date\_fragment()} pour conversion.
+
+\section{Extraction des mots clés}
+Une des plus grandes difficultés a été l'extraction des mots clés, car il y a beaucoup de variabilité dans les requêtes. La classe en charge de cette partie est \texttt{KeyWordExtractor}. Pour cette partie, il a fallu déterminer une liste de stop words propres aux requêtes, car par exemple "je" et "veux" ne sont peut-être pas des stop words du corpus, mais dans les requêtes ils ne sont pas importants. 
+
+Pour extraire les mots clé, il faut d'abord extraire les parties de la requête les contenant. \texttt{RE\_TITRE} et \texttt{RE\_CONTENU} permettent de distinguer les mots clés du titre et du contenu, il y a aussi d'autres regex pour des cas particuliers.
+Une fois ces bouts de texte extraits, ils sont traités par la méthode \texttt{\_parse\_logic\_block()} qui construit le DNF pour les mots clés. Elle détecte les opérateurs de conjonction via des regex et sépare le texte logiquement. Si le mot n'est pas un stop word ni du corpus ni des requêtes, alors il est lemmatisé et corrigé par \texttt{normalize\_terms()}.
+
+
+\section{Classe Pretraiteur}
+
+La classe \texttt{Pretraiteur} encapsule tout le pipeline pour passer d'une requête brute à une requête formatée. Elle utilise les classes \texttt{DateExtractor} et \texttt{KeyWordExtractor} pour extraire les dates et les mots clés. Pour les traitements plus simples (bulletin, image ou non, etc.), la logique est directement mise dans des méthodes de \texttt{Pretraiteur}. 
+C'est la méthode \texttt{treat\_request()} qui effectue la totalité du pipeline. Chaque traitement retire la partie traitée, ce qui permet d'éviter les conflits.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{assets/pretraiteur.png}
+    \caption{Pipeline de traitement des requêtes (Pretraiteur + DateExtractor)}
+    \label{fig:pretraiteur}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=1.1\textwidth]{assets/3-pretraiteur.png}
+    \caption{UML Pretraiteur + Correcteur (TD4 et TD5)}
+    \label{fig:UMLpretraiteur}
+\end{figure}
