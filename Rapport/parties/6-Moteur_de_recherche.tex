@@ -10,32 +10,7 @@ Comme spécifié en partie \ref{section:fichierinv} de ce rapport, nous avons ch
 
 \section{Recherche}
 
-La méthode \texttt{search(requete\_dict)} de \texttt{SearchEngine} permet d'effectuer la recherche. En utilisant les opérations de union et intersection nous pouvons aisément obtenir la liste des documents qui intégrent toutes les contraintes. Pour gérer les DNF dans les champs contenu et titre de la requête, nous utilisons l'algorithme \ref{algo:dnf} ci-dessous.
-\\[1em]
-
-\begin{algorithm}[H]\label{algo:dnf}
-\caption{Recherche des documents à partir d'une requête en DNF}
-
-$docs\_result \leftarrow \emptyset$
-
-$dnf\_groups \leftarrow$ liste des groupes OU de la requête DNF\;
-
-\For{chaque $and\_group \in dnf\_groups$}{
-
-    $docs\_group \leftarrow$ ensembles des documents associés à chaque mot de $and\_group$\;
-
-    \If{$docs\_group \neq \emptyset$}{
-        $docs\_and \leftarrow \bigcap docs\_group$\;
-
-        $docs\_result \leftarrow docs\_result \cup docs\_and$\;
-
-    }
-}
-
-Retourner $docs\_result$\;
-
-\end{algorithm}
-
+La méthode \texttt{search(requete\_dict)} de \texttt{SearchEngine} permet d'effectuer la recherche. En utilisant les opérations de union et intersection nous pouvons aisément obtenir la liste des documents qui intégrent toutes les contraintes. 
 
 \section{Classement des résultats}
 
@@ -50,19 +25,34 @@ Nous considérons dans cette partie que les mots clés de la requête sont les m
 
 Où $n_{mc}$ est le nombre de mots clés dans la requête, $l$ est le nombre de champs (titre, contenu), $p_i$ est le poids du $i$-ème champ, et $\text{presence}(i, j) = 1$ si le $j$-ème mot clé est présent dans le $i$-ème document.
 
-\section{Evalutation du moteur du recherche}
+\section{Évaluation du moteur de recherche}
 
-Afin de connaître les performances de notre moteur de recherche nous pouvons l'évaluer avec des métriques de précision et de rappel. 
+Afin de connaître les performances de notre moteur de recherche, nous pouvons l'évaluer avec des métriques de précision et de rappel.
+Pour calculer ces métriques, il faut connaître les documents qui sont pertinents et non pertinents pour certaines requêtes, et donc il est nécessaire de les annoter manuellement. Nous avons donc annoté les documents pour 10 requêtes suffisamment complexes pour bien tester le modèle. 
 
-\begin{align*}
-    \text{Précision} &= \frac{TP}{TP + FP} \\[1em]
-    \text{Rappel} &= \frac{TP}{TP + FN}
-\end{align*}
+L'annotation manuelle a été faite de façon à annoter seulement les documents réellement pertinents, et non seulement ceux qui contiennent les mots clés. Par exemple, un document qui ne mentionne pas l'informatique mais parle de ``logiciel'' sera quand même pertinent pour une requête traitant de l'informatique. À l'inverse, un document qui contient les mots ``système'' et ``embarqué'' mais qui ne parle pas vraiment de systèmes embarqués ne sera pas pertinent pour une requête sur les systèmes embarqués.
 
-Où, $TP$ est le nombre les documents pertinents retournées, $FP$ le nombre de documents non pertinent retournés, et $FN$ le nombre de docoments pertinents non retournés.
+Notre système atteint sur ces requêtes une \textbf{précision moyenne de 0.83}, un \textbf{rappel moyen de 0.72} et un \textbf{F1 moyen de 0.79}. On remarque une meilleure précision que rappel ; cela vient du fait que souvent les documents contenant les mots clés sont pertinents, mais que beaucoup de documents sans ces mots clés le sont aussi car ils utilisent d'autres termes. La figure \ref{fig:metriques} montre les métriques de pertinence pour les 10 requêtes. 
 
-Pour calculer, ces métriques il faut connaitre les documents qui sont pertinents et non pertinents pour certaines requêtes et donc il est nescessaire de les annoter manuellement. Nous avons donc annoter les documents pour 10 requêtes suffisament complèxes pour bien tester le modèle. 
+Une des requêtes (la numéro 7) demandait que le titre contienne \textit{le terme ``marché'' et le mot ``projet''}. Or le lemmatiseur SpaCy comprend mal le contexte et transforme le nom ``marché'' en verbe infinitif ``marcher''. Aucun document n'a le terme marcher et projet dans le titre, donc la requête ne retourne rien alors qu'elle devrait. Cela met en évidence une difficulté liée au fait que nous utilisons un lemmatiseur, qui doit se baser sur le contexte, plutôt qu'un stemmer qui a une approche plus basique.
 
+Certaines requêtes mettent en évidence les limites de l'approche \textit{bag of words} que nous employons. Par exemple, la requête 4 demande \textit{traitant d’informatique ou de réseaux}. On comprend que le terme réseau ici fait référence aux réseaux informatiques, mais des documents portant sur des réseaux d'entreprise, des réseaux cellulaires ou encore des réseaux électriques sont retournés, faisant baisser la précision. Pour ces cas, il faudrait prendre en compte plus finement l'ordre des mots et la sémantique du texte. De même pour la requête 5 traitant du \textit{domaine industriel}. Un document qui mentionne le mot ``industriel'' n'est pas forcément pertinent pour la requête, pourtant il correspond tout à fait aux contraintes booléennes.
+
+Le temps des requêtes est aussi un facteur important (figure \ref{fig:time}). En exécutant chacune des 10 requêtes 100 fois, nous avons une bonne estimation du temps moyen. Celui-ci est de 0.012 ms. La requête 7 est particulièrement longue, prenant en moyenne environ 6 fois plus de temps que les autres. Cela est dû à la correction automatique : puisque le terme ``marcher'' doit être corrigé pour devenir ``marche'', il passe par la correction. Or ``marcher'' est un mot de longueur très commune, donc le préfiltre laisse passer beaucoup de mots (3640 exactement), alors qu'un mot comme ``supramoléculaire'' par exemple est très long et n'a que très peu de candidats d'une taille similaire (909 exactement).  
+
+\begin{figure}[h] 
+    \centering 
+    \includegraphics[width=0.8\textwidth]{assets/metrics.png} 
+    \caption{Métriques d'évaluation de la pertinence du moteur de recherche} 
+    \label{fig:metriques} 
+\end{figure} 
+
+\begin{figure}[h] 
+    \centering 
+    \includegraphics[width=0.4\textwidth]{assets/time.png} 
+    \caption{Métriques d'évaluation du temps d'exécution du moteur de recherche} 
+    \label{fig:time} 
+\end{figure}
 
 
 

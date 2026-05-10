@@ -171,7 +171,7 @@ class DateExtractor:
 
     def _update_bounds(self, start: str | None, end: str | None) -> None:
         """Élargit la plage courante pour englober [start, end]."""
-        print("IN UPDATE BOUNDS :", start, end)
+        # print("IN UPDATE BOUNDS :", start, end)
         if start and (
             self.from_date is None
             or self._as_tuple(start) < self._as_tuple(self.from_date)
@@ -191,7 +191,6 @@ class DateExtractor:
 
         m = RE_DATE_NUMERIC.search(fragment)
         if m:
-            print("parsing numeric : ", m)
             exact = self._fmt(m["day"], m["month"], m["year"])
             return exact, exact
 
@@ -246,7 +245,6 @@ class DateExtractor:
         m = pattern.search(text)
         if m:
             if handler(m):
-                # print(m.group(0))
                 text = pattern.sub("", text, count=1)
         return text
 
@@ -256,12 +254,9 @@ class DateExtractor:
         self.from_date = self.to_date = self.anti_date = None
 
         def handle_range(m):
-            print("HANDLE RANGE : ", m)
-            print(m.group("start"))
-            print(m.group("end"))
+
             start = self._parse_fragment(m.group("start"))
             end = self._parse_fragment(m.group("end"))
-            print("parsed fragments :", start, end)
             if start and end:
                 self._update_bounds(start[0], end[1])
                 return True
@@ -282,7 +277,6 @@ class DateExtractor:
             return False
 
         def handle_date(m):
-            print("HANDLE DATE : ", m)
             parsed = self._parse_fragment(m.group(0))
             if parsed:
                 self._update_bounds(*parsed)
