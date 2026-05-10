@@ -25,6 +25,13 @@ Nous considérons dans cette partie que les mots clés de la requête sont les m
 
 Où $n_{mc}$ est le nombre de mots clés dans la requête, $l$ est le nombre de champs (titre, contenu), $p_i$ est le poids du $i$-ème champ, et $\text{presence}(i, j) = 1$ si le $j$-ème mot clé est présent dans le $i$-ème document.
 
+\section{Interface en ligne de commande et web}
+
+Nous avons développé une interface pour utiliser le moteur de recherche en ligne de commande située dans \texttt{scripts/4-moteur.py}. 
+
+Pour avoir une meilleure expérience utilisateur, nous avons également réalisé une interface web en utilisant \texttt{Flask}. 
+La programmation web sortant du cadre de l'UV LO17, l'IA générative a été grandement exploitée pour la réalisation du template \texttt{templates/index.html} et de l'API \texttt{app.py}.
+
 \section{Évaluation du moteur de recherche}
 
 Afin de connaître les performances de notre moteur de recherche, nous pouvons l'évaluer avec des métriques de précision et de rappel.
