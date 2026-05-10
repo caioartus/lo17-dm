@@ -1,6 +1,6 @@
 # Moteur de recherche documentaire — LO17
 
-*Ce dépôt présente l'implémentation d'un moteur de recherche sur un corpus de bulletins officiels en langue française, réalisé dans le cadre du cours LO17 à l'UTC. Le projet couvre l'ensemble de la chaîne de traitement : extraction du corpus, nettoyage, indexation, et interrogation — avec une interface web et une suite d'évaluation.*
+*Ce dépôt présente l'implémentation d'un moteur de recherche sur un corpus de bulletins officiels en langue française, réalisé dans le cadre du cours LO17 à l'UTC. Le projet couvre l'ensemble de la chaîne de traitement : extraction du corpus, nettoyage, indexation, et interrogation, avec une interface web et une suite d'évaluation.*
 
 ---
 
@@ -73,10 +73,10 @@ python .\scripts\4-moteur.py
 
 ### Mode application web
 
-L'application lance automatiquement les étapes 1 à 3 si les fichiers de sortie sont absents.
+L'application lance automatiquement les étapes 1 à 3 si les fichiers de sortie sont absents (cela peut prendre un moment).
 
 ```bash
-python .\app.py
+uv run app.py
 ```
 
 L'interface est ensuite accessible à l'adresse [http://localhost:5000](http://localhost:5000). Elle permet de :
