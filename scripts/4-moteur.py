@@ -13,7 +13,6 @@ CORPUS_NAME = "corpus"
 LEMMA_NAME = "lemmes_corpus"
 
 
-
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -49,18 +48,9 @@ def main() -> None:
     display_chargement_effectue(len(engine.documents))
 
     while True:
-<<<<<<< HEAD
         query = ask_requete()
 
         if not query or query.lower() in ("quitter", "q", "exit", "quit"):
-=======
-        print(
-            "  Tri : [1] Pertinence (défaut)  [2] Date croissante  [3] Date décroissante"
-        )
-        try:
-            query = input("  Requête : ").strip()
-        except (EOFError, KeyboardInterrupt):
->>>>>>> rapport
             print("\nAu revoir.")
             break
 
@@ -78,13 +68,8 @@ def main() -> None:
         display_results(
             results, keywords, engine, sort_by, requete_dict.get("type_doc", "articles")
         )
-<<<<<<< HEAD
 
         display_tps_rep(elapsed_ms)
-=======
-        print(f"\n Fin Analyse : {requete_dict}")
-        print(f"  Temps de réponse : {elapsed_ms:.1f} ms\n")
->>>>>>> rapport
 
 
 if __name__ == "__main__":
