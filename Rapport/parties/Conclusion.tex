@@ -1,10 +1,35 @@
 \chapter*{Conclusion}
+
 \paragraph{Résumé du travail}
-    \lipsum[1]
+
+Dans ce travail, nous avons construit un moteur de recherche capable de traiter des requêtes en langage naturel et d'effectuer des recherches booléennes sur le corpus de l'ADIT.
+
+Ce DM a permis de mettre en application plusieurs notions du cours sur un cas concret, tout en mettant en évidence les difficultés liées au traitement automatique du langage naturel.
+
+Le projet a impliqué le scraping des documents, la détermination de l'anti-dictionnaire à l'aide d'une analyse fondée sur le TF-IDF, la lemmatisation du corpus, la construction d'index inversés, le traitement des requêtes en langage naturel à l'aide d'expressions régulières, ainsi que l'appariement entre les requêtes et les documents pertinents via le moteur de recherche.
+
+Une fois le moteur finalisé, il a été évalué sur 10 requêtes pour lesquelles les documents pertinents ont été annotés manuellement. Cette évaluation a mis en évidence les limites de la recherche booléenne ainsi que celles de l'approche \textit{bag of words}.
+
+Une progression naturelle consisterait à s'éloigner de la recherche booléenne en implémentant une recherche vectorielle simple utilisant le TF-IDF. En allant plus loin, il serait également possible de s'éloigner de l'approche \textit{bag of words}, et d'utiliser des modèles de Deep Learning afin d'obtenir des représentations vectorielles denses, plus riches sémantiquement, et tenant compte du context.
 
 \paragraph{Bilan}
-Décrivez 
-    \lipsum[1]
+
+En résumé, ce travail inclut :
+
+\begin{itemize}
+    \item le scraping de pages web ;
+    \item la construction d'index inversés avec anti-dictionnaire et stop words ;
+    \item le traitement de requêtes en langage naturel ;
+    \item la construction d'un moteur de recherche booléen avec l'approche \textit{bag of words} ;
+    \item l'évaluation du moteur de recherche sur un échantillon à l'aide des métriques de précision, rappel et score F1.
+\end{itemize}
 
 \paragraph{Contributions}
-    \lipsum[1]
+
+Les responsabilités sur ce projet se sont beaucoup chevauchées, avec une grande part de réflexion menée en collaboration. Au total, la division du travail est restée équilibrée, chaque membre ayant apporté un niveau de contribution comparable au projet.
+
+Ci-dessous le détail des contributions spécifiques :
+
+\textbf{Caio ARTUS} : implémentation du scraping des pages HTML (Parser), détermination de l'anti-dictionnaire, implémentation du tokenizer, implémentation des classes Stemmer, implémentation du constructeur d'index, implémentation de la pipeline de prétraitement (DateExtractor, KeyWordExtractor, Pretraiteur), contributions à la classe SearchEngine, rédaction de parties du rapport, analyses diverses sur les notebooks.
+
+\textbf{Clothilde Marko--Lafon} :
