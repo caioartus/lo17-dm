@@ -157,17 +157,6 @@ class KeyWordExtractor:
         stopwords_file: str | Path,
         correcteur: Correcteur,
         stemmer: Stemmer = SpacyStemmer(),
-<<<<<<< Updated upstream
-    ):
-        self.stopwords_file = Path(stopwords_file)
-        self.correcteur = correcteur
-        self.antidict = AntiDict()
-
-        with open(self.stopwords_file, "r", encoding="utf-8") as f:
-            corpus_stopwords = set(f.read().splitlines())
-        self.antidict.add_manual_stopwords(corpus_stopwords | set(REQUETE_STOPWORDS))
-
-=======
     ):        
         f_stopwords = Path(stopwords_file) if isinstance(stopwords_file, str) else stopwords_file
         with open(f_stopwords, "r", encoding="utf-8") as f:
@@ -175,7 +164,6 @@ class KeyWordExtractor:
         self.stopwords = corpus_stopwords
         
         self.correcteur = correcteur
->>>>>>> Stashed changes
         self.stemmer = stemmer
 
     def extract(self, text: str) -> dict:

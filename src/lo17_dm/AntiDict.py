@@ -10,46 +10,17 @@ class AntiDict:
         
     def get_stopwords(self) -> set[str] | None:
         return self.stopwords
-<<<<<<< Updated upstream
-    
-    def add_manual_stopwords(self, manual_stopwords : set[str] | None) -> set[str] | None :
-        if self.stopwords is not None and manual_stopwords is not None :
-=======
 
     def add_manual_stopwords(self, manual_stopwords: set[str] | None) -> set[str] | None:
         if self.stopwords is not None and manual_stopwords is not None:
->>>>>>> Stashed changes
             self.stopwords |= manual_stopwords
         else:
             self.stopwords = manual_stopwords
 
-<<<<<<< Updated upstream
-    '''
-        def build_from_file(self, path: str | Path):
-            path = Path(path)
-            if not path.exists():
-                raise FileNotFoundError("Path not found")
-            self.sub_table = pd.read_csv(path, sep="\t")
-            self.stopwords = set(
-                self.sub_table[self.sub_table["sub"].isna()]["token"].to_list()
-            )
-    '''
-
-    def build_stopwords(
-        self, df_tf_idf: pd.DataFrame | None = None, tf_idf_path: Path | None = None, thresh: float = 0.7
-    ):
-        """Builds the stopword set from data"""
-        assert df_tf_idf is not None or tf_idf_path is not None , "Il est nécessaire de soumettre les tokens pour calculer la TF-IDF"
-        
-        if df_tf_idf is None : # (and tf_idf_path is not None)
-            df_tf_idf = pd.read_csv(tf_idf_path, sep="\t")
-            
-=======
     def build_stopwords(self, tf_idf: pd.DataFrame | Path, thresh: float = 0.7):
         """Builds the stopword set from data"""
         df_tf_idf: pd.DataFrame = pd.read_csv(tf_idf, sep="\t") if isinstance(tf_idf, Path) else tf_idf
 
->>>>>>> Stashed changes
         self._tokens_list = df_tf_idf["token"].unique().tolist()
         mean_tfidf = df_tf_idf.groupby("token").mean()
         stopwords = mean_tfidf[mean_tfidf["tf_idf"] <= thresh].index.to_list()
