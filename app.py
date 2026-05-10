@@ -45,11 +45,15 @@ def _ensure_outputs() -> None:
         _run_script(SCRIPTS_DIR / "1-parse_corpus.py", "--indir", str(DATA_DIR))
 
     if not CLEAN_CORPUS.exists() or not STOPWORD_PATH.exists():
-        print(f"[init] {CLEAN_CORPUS.name} ou stop_words.txt manquant — lancement du script 2 (nettoyage)…")
+        print(
+            f"[init] {CLEAN_CORPUS.name} ou stop_words.txt manquant — lancement du script 2 (nettoyage)…"
+        )
         _run_script(SCRIPTS_DIR / "2-clean_data.py")
 
     if not LEMMA_TABLE.exists() or not RUBRIQUE_INDEX.exists():
-        print(f"[init] {LEMMA_TABLE.name} ou index_rubrique.tsv manquant — lancement du script 3 (indexation)…")
+        print(
+            f"[init] {LEMMA_TABLE.name} ou index_rubrique.tsv manquant — lancement du script 3 (indexation)…"
+        )
         _run_script(SCRIPTS_DIR / "3-make_index.py")
 
 

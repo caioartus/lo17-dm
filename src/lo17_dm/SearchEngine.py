@@ -267,3 +267,35 @@ class SearchEngine:
         elif type_doc == "rubrique":
             return self._group_by(results, "rubrique")
         return results
+
+    def get_snippet(
+        self, doc_id: int, keywords: list[str], context_len: int = 200
+    ) -> str:
+        """Extrait un extrait contextuel autour du premier mot-clé trouvé dans le texte."""
+        doc = self.documents.get(doc_id)
+        if not doc:
+            return ""
+        text: str = doc["texte"]
+        if not text:
+            return ""
+        if not keywords:
+            return text[:context_len] + ("..." if len(text) > context_len else "")
+
+        text_lower = text.lower()
+        best_pos = len(text)
+        for kw in keywords:
+            pos = text_lower.find(kw.lower())
+            if 0 <= pos < best_pos:
+                best_pos = pos
+
+        if best_pos == len(text):
+            return text[:context_len] + ("..." if len(text) > context_len else "")
+
+        start = max(0, best_pos - 60)
+        end = min(len(text), best_pos + context_len)
+        snippet = text[start:end]
+        if start > 0:
+            snippet = "..." + snippet
+        if end < len(text):
+            snippet += "..."
+        return snippet

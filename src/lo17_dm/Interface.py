@@ -45,7 +45,9 @@ def _wrap(text: str, width: int = 70) -> list[str]:
     return lines or [""]
 
 
-def _display_article(doc: dict, keywords: list[str], idx: int, indent: str = "  ") -> None:
+def _display_article(
+    doc: dict, keywords: list[str], idx: int, indent: str = "  "
+) -> None:
     print(
         f"{indent}[{idx:3d}]  ID: {doc['id']}   "
         f"Date: {doc['date']}   "
@@ -61,20 +63,24 @@ def _display_article(doc: dict, keywords: list[str], idx: int, indent: str = "  
         for line in lines[1:]:
             print(f"{indent}                  {line}")
 
+
 def display_ecran_titre():
     print(SEP)
     print("  Moteur de recherche ADIT  -  chargement en cours…")
     print(SEP)
 
-def display_chargement_effectue(n : int):
+
+def display_chargement_effectue(n: int):
     print(f"  {n} documents chargés.")
     print("  Tapez 'quitter' pour quitter.\n")
-    
+
+
 SORT_LABELS = {
     "1": "relevance",
     "2": "date_asc",
     "3": "date_desc",
 }
+
 
 def ask_requete() -> str:
     """Demande une requête à l'utilisateur. Retourne une chaîne vide si EOF/interruption."""
@@ -132,9 +138,15 @@ def display_results(
         for group in results:
             print(SEP)
             group_name = group.get(field) or "—"
-            header = f"Bulletin {group_name}" if type_doc == "bulletins" else f"Rubrique : {group_name}"
+            header = (
+                f"Bulletin {group_name}"
+                if type_doc == "bulletins"
+                else f"Rubrique : {group_name}"
+            )
             articles = group.get("articles", [])
-            print(f"  ▶  {header}  ({len(articles)} article{'s' if len(articles) > 1 else ''})")
+            print(
+                f"  ▶  {header}  ({len(articles)} article{'s' if len(articles) > 1 else ''})"
+            )
             print()
             for i, doc in enumerate(articles, 1):
                 _display_article(doc, keywords, i, indent="     ")
@@ -142,9 +154,17 @@ def display_results(
                     print()
         print(SEP)
     else:
-        results_flat = sorted(results, key=lambda d: engine._parse_date(d["date"]) or d["date"]) if sort_by == "date_asc" \
-            else sorted(results, key=lambda d: engine._parse_date(d["date"]) or d["date"], reverse=True) if sort_by == "date_desc" \
+        results_flat = (
+            sorted(results, key=lambda d: engine._parse_date(d["date"]) or d["date"])
+            if sort_by == "date_asc"
+            else sorted(
+                results,
+                key=lambda d: engine._parse_date(d["date"]) or d["date"],
+                reverse=True,
+            )
+            if sort_by == "date_desc"
             else results
+        )
 
         print(f"\n  {len(results_flat)} document(s) trouvé(s)\n")
         print(SEP)
@@ -152,8 +172,10 @@ def display_results(
             _display_article(doc, keywords, i)
             print(SEP)
 
+
 def display_requete_dict(rdict: dict):
     print(f"\n  Analyse : {rdict}")
-    
+
+
 def display_tps_rep(tps: float):
     print(f"  Temps de réponse : {tps:.1f} ms\n")
