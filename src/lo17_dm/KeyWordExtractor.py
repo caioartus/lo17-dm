@@ -1,107 +1,7 @@
-from lo17_dm.AntiDict import AntiDict
 from lo17_dm.Stemmer import Stemmer, SpacyStemmer
 from lo17_dm.Correcteur import Correcteur
 from pathlib import Path
-import pandas as pd
 import re
-
-
-REQUETE_STOPWORDS = [
-    # pronoms / sujets inutiles
-    "je",
-    "j",
-    "nous",
-    "on",
-    "moi",
-    "me",
-    "mon",
-    "ma",
-    "mes",
-    # verbes de demande très fréquents
-    "veux",
-    "veut",
-    "vouloir",
-    "souhaiter",
-    "souhaite",
-    "souhaites",
-    "souhaitons",
-    "cherche",
-    "cherchez",
-    "recherche",
-    "rechercher",
-    "trouver",
-    "trouve",
-    "donner",
-    "donnez",
-    "afficher",
-    "affiche",
-    "lister",
-    "liste",
-    "retourner",
-    "retournez",
-    "obtenir",
-    # mots de structure de requête
-    "articles",
-    "article",
-    "liste",
-    "tous",
-    "tout",
-    "des",
-    "les",
-    "du",
-    "de",
-    "d",
-    "la",
-    "le",
-    "un",
-    "une",
-    "au",
-    "aux",
-    "dans",
-    "sur",
-    "avec",
-    "dont",
-    "qui",
-    "que",
-    "quoi",
-    "quels",
-    "quelles",
-    "quel",
-    "quelle",
-    # mots parasites fréquents
-    "mot",
-    "terme",
-    "rubrique",
-    "rubriques",
-    "titre",
-    "contenu",
-    "parlant",
-    "parle",
-    "parlent",
-    "traitant",
-    "traitent",
-    "évoquant",
-    "évoque",
-    "évoquent",
-    "mentionnant",
-    "mentionne",
-    "mentionnent",
-    "écrire",
-    "contenir",
-    "paraitre",
-    "parler",
-    # connecteurs qu’on gère séparément
-    "et",
-    "ou",
-    "mais",
-    "pas",
-    "non",
-    "sans",
-    # cas particuliers
-    "listez-moi",
-    # garder vide si stemming bizarre
-    "",
-]
 
 # =========================================================
 # REGEX PATTERNS
@@ -133,7 +33,9 @@ RE_CONTENU = (
     r"impliquent|"
     r"concernent|"
     r"[ée]voquent|"
-    r"possédant)"
+    r"possédant|"
+    r"dans\s+le\s+domaine(?:\s+de)?"
+    r")"
 )
 RE_CONTENU_POST = r"(?:est-il\s+cité|être\s+cité)"
 
@@ -157,20 +59,22 @@ class KeyWordExtractor:
         stopwords_file: str | Path,
         correcteur: Correcteur,
         stemmer: Stemmer = SpacyStemmer(),
-    ):        
-        f_stopwords = Path(stopwords_file) if isinstance(stopwords_file, str) else stopwords_file
-        with open(f_stopwords, "r", encoding="utf-8") as f:
-            corpus_stopwords = set(f.read().splitlines())
-        self.stopwords = corpus_stopwords
-        
+    ):
+        self.stopwords_file = Path(stopwords_file)
         self.correcteur = correcteur
+
+        with open(self.stopwords_file, "r", encoding="utf-8") as f:
+            corpus_stopwords = set(f.read().splitlines())
+
+        self.stopwords = corpus_stopwords
+
         self.stemmer = stemmer
 
-    def extract(self, text: str) -> dict:
+    def extract(self, text: str) -> tuple[dict, str]:
         text = text.lower()
-        results = {"titre": [], "contenu": [], "exclude": []}
-        print("EXTRACTING KEY WORDS : ")
-        print("original text = ", text)
+        results: dict[str, list[str]] = {"titre": [], "contenu": [], "exclude": []}
+        # print("EXTRACTING KEY WORDS : ")
+        # print("original text = ", text)
 
         # -----------------------------
         # EXCLUSIONS (on traite ca d'abord comme ça pas de confusion avec titre/contenu)
@@ -189,7 +93,7 @@ class KeyWordExtractor:
             flags=re.IGNORECASE,
         )
 
-        print("after exclude : ", text)
+        # print("after exclude : ", text)
 
         # -----------------------------
         # TITRE : plusieurs occurrences possibles
@@ -207,7 +111,7 @@ class KeyWordExtractor:
             flags=re.IGNORECASE,
         )
 
-        print("after titre : ", text)
+        # print("after titre : ", text)
 
         # -----------------------------
         # TITRE POST : "contenant ... dans le titre"
@@ -218,7 +122,7 @@ class KeyWordExtractor:
             text,
             flags=re.IGNORECASE,
         )
-        print("after titre post : ", text)
+        # print("after titre post : ", text)
 
         # -----------------------------
         # CONTENU : plusieurs occurrences possibles
@@ -234,41 +138,43 @@ class KeyWordExtractor:
             text,
             flags=re.IGNORECASE,
         )
-        print("after contenu : ", text)
+        # print("after contenu : ", text)
 
         # ------------
         # CONTENU POST : "ou ... est cité."
         # ------------
         def handle_contenu_post(m):
-            block = m.group(0).strip()
+            block = m.group(1).strip()
+            print("in handle contenu post : ", block)
             results["contenu"].extend(self._parse_logic_block(block))
             return " " * len(m.group(0))
 
         text = re.sub(
-            rf"(.+?)(?={RE_CONTENU_POST})",
+            rf"(.+?)(?:{RE_CONTENU_POST})",
             handle_contenu_post,
             text,
             flags=re.IGNORECASE,
         )
-        print("after contenu post : ", text)
 
-        # ------------
-        # SI JUSTE "mot1 et mot2 ou mot3..."
-        # ------------
-        def handle_rest(m):
-            block = m.group(0).strip()
-            results["contenu"].extend(self._parse_logic_block(block))
-            return " " * len(m.group(0))
+        # print("after contenu post : ", text)
 
-        text = re.sub(
-            r"(.*)",
-            handle_rest,
-            text,
-            flags=re.IGNORECASE,
-        )
+        # # ------------
+        # # SI JUSTE "mot1 et mot2 ou mot3..."
+        # # ------------
+        # def handle_rest(m):
+        #     block = m.group(0).strip()
+        #     results["contenu"].extend(self._parse_logic_block(block))
+        #     return " " * len(m.group(0))
 
-        print("after handle rest : ", text)
-        return results
+        # text = re.sub(
+        #     r"(.*)",
+        #     handle_rest,
+        #     text,
+        #     flags=re.IGNORECASE,
+        # )
+
+        # print("after handle rest : ", text)
+        return results, text
 
     # =========================================================
     # LOGIC PARSING
@@ -283,9 +189,9 @@ class KeyWordExtractor:
 
             # split sur ET
             for term in re.split(RE_AND, or_part):
-                term = re.sub(RE_PREFIX_CLEAN, "", term.strip())
+                # term = re.sub(RE_PREFIX_CLEAN, "", term.strip())
 
-                if term in self.antidict.stopwords:
+                if term in self.stopwords:
                     continue
 
                 clean = self.normalize_terms(term)
@@ -306,7 +212,7 @@ class KeyWordExtractor:
         cleaned = []
 
         for token in tokens:
-            if token in self.antidict.stopwords:
+            if token in self.stopwords:
                 continue
 
             candidate = self.correcteur.corrige(token)

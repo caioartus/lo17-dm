@@ -10,8 +10,12 @@ from lxml import etree
 class SearchEngine:
     """Charge les index inversés et le corpus, puis exécute des requêtes booléennes classées."""
 
-    def __init__(self, output_dir: str | Path, corpus_path: str | Path, 
-                 poids_score: dict[str, float] = {"titre": 0.6, "texte": 0.4}):
+    def __init__(
+        self,
+        output_dir: str | Path,
+        corpus_path: str | Path,
+        poids_score: dict[str, float] = {"titre": 0.6, "texte": 0.4},
+    ):
         self.output_dir: Path = Path(output_dir)
         self.indexes: dict[str, dict[str, set[int]]] = {}
         self.documents: dict[int, dict] = {}
@@ -114,7 +118,6 @@ class SearchEngine:
 
     # -------------------------- Recherche dans les index --------------------------
 
-    # TO DO : Pourquoi pas _matches_date aussi ?
     def _matches_anti_date(self, doc_date: datetime, anti_date: str) -> bool:
         """Vérifie si doc_date correspond au motif anti_date (ex: '*/06/*' pour juin)."""
         parts = anti_date.split("/")
@@ -158,7 +161,7 @@ class SearchEngine:
     def _score(self, doc_id: int, keywords: list[str]) -> float:
         """Score booléen classé : +3 par mot-clé dans le titre, +1 dans le texte."""
         score = 0.0
-        if sum(self.poids_score.values()) != 1 :
+        if sum(self.poids_score.values()) != 1:
             raise ValueError("La somme des poids doit être égale à 1")
 
         if len(keywords) == 0:  # pas de mots cles, tout les doc sont pertinents

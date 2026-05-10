@@ -34,14 +34,14 @@ class Index:
             self.index_dict[section][treated] = {"freq": 1, "docs": [document_id]}
         else:
             self.index_dict[section][treated]["freq"] += 1
-            if document_id not in self.index_dict[section][treated]["docs"]: # vérification
+            if (
+                document_id not in self.index_dict[section][treated]["docs"]
+            ):  # vérification
                 self.index_dict[section][treated]["docs"].append(document_id)
 
         return self.index_dict
 
-    def treat_field(
-        self, text: str, document_id: int, section: str
-    ) -> dict:
+    def treat_field(self, text: str, document_id: int, section: str) -> dict:
         """Traite un champ de text, retourne le dictionnaire mis a jour"""
         token_counts = Counter(CorpusTokenizer.tokenize(text))
         if section not in self.index_dict:
@@ -93,9 +93,7 @@ class Index:
 
             # Traitement des champs tokenisés
             for section, text in tokenized_fields.items():
-                self.index_dict = self.treat_field(
-                    text, doc_id, section
-                )
+                self.index_dict = self.treat_field(text, doc_id, section)
 
             # Traitement des champs bruts
             for section, text in raw_fields.items():
@@ -103,8 +101,13 @@ class Index:
 
             # Traitement des légendes d'images
             images_elem = document.find("images")
-            if images_elem is not None and len(list(images_elem)) > 0 : 
-                    self.index_dict = self.add_raw("image", doc_id, "image")
+            if images_elem is not None and len(list(images_elem)) > 0:
+                self.index_dict = self.add_raw("image", doc_id, "image")
+                for image in images_elem:
+                    # on ajoute la legende de l'image au text
+                    self.index_dict = self.treat_field(
+                        image.find("legendeImage").text, doc_id, "texte"
+                    )
 
     def save_to_tsv(self, output_dir: str | Path, all_lemmas_fname: str):
         """

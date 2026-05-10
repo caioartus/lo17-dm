@@ -34,7 +34,7 @@ def main() -> None:
     corpus_path = outdir / f"{args.corpus}.xml"
     lemma_table_path = outdir / f"{args.lemma}.tsv"
     rubrique_index_path = outdir / "index" / "index_rubrique.tsv"
-    stop_words_path = outdir / "stop_words.tsv"
+    stop_words_path = outdir / "stop_words.txt"
 
     display_ecran_titre()
 
